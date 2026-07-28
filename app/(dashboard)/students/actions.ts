@@ -1,0 +1,152 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireSuperAdmin } from "@/lib/require-role";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+
+type StudentInput = {
+  full_name: string;
+  contact_email: string;
+  roll_number: string;
+  father_name: string;
+  mother_name: string;
+  gender: string;
+  date_of_birth: string;
+  blood_group: string;
+  address: string;
+  mobile_number: string;
+  class_id: string;
+  section_id: string;
+  session_id: string;
+  admission_date: string;
+};
+
+export async function createStudent(input: StudentInput) {
+  await requireSuperAdmin();
+
+  const admin = createAdminClient();
+
+  // inviteUserByEmail creates the auth account (which triggers our
+  // handle_new_user trigger to populate `profiles`) and sends the student a
+  // Supabase-hosted email to set their own password — we never see or store
+  // a password ourselves. Note: this relies on email sending being
+  // configured on your Supabase project (the built-in dev sender is rate
+  // limited; use custom SMTP for production).
+  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
+    input.contact_email,
+    { data: { full_name: input.full_name, role: "student" } }
+  );
+
+  if (inviteError || !invited.user) {
+    return { error: inviteError?.message ?? "Could not create the student's account" };
+  }
+
+  const supabase = await createClient();
+  const { error: insertError } = await supabase.from("students").insert({
+    id: invited.user.id,
+    contact_email: input.contact_email,
+    roll_number: input.roll_number || null,
+    father_name: input.father_name || null,
+    mother_name: input.mother_name || null,
+    gender: input.gender || null,
+    date_of_birth: input.date_of_birth || null,
+    blood_group: input.blood_group || null,
+    address: input.address || null,
+    mobile_number: input.mobile_number || null,
+    class_id: input.class_id,
+    section_id: input.section_id,
+    session_id: input.session_id,
+    admission_date: input.admission_date,
+  });
+
+  if (insertError) {
+    // Don't leave an orphaned login with no student record behind it.
+    await admin.auth.admin.deleteUser(invited.user.id);
+    return { error: insertError.message };
+  }
+
+  revalidatePath("/students");
+  redirect(`/students/${invited.user.id}`);
+}
+
+type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email">> & {
+  full_name?: string;
+  contact_email?: string;
+};
+
+export async function updateStudent(id: string, input: StudentUpdateInput) {
+  // contact_email doubles as the account's login email at creation time and
+  // isn't exposed on the edit form — drop it here too so a stray empty
+  // string in the payload can never overwrite it. Changing a student's
+  // login email isn't implemented yet; that needs admin.updateUserById.
+  const { full_name, contact_email: _contactEmail, ...studentFields } = input;
+  const supabase = await createClient();
+
+  const [{ error: profileError }, { error: studentError }] = await Promise.all([
+    full_name
+      ? supabase.from("profiles").update({ full_name }).eq("id", id)
+      : Promise.resolve({ error: null }),
+    supabase.from("students").update(studentFields).eq("id", id),
+  ]);
+
+  revalidatePath(`/students/${id}`);
+  revalidatePath("/students");
+  return { error: profileError?.message ?? studentError?.message ?? null };
+}
+
+export async function setStudentActive(id: string, isActive: boolean) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("students").update({ is_active: isActive }).eq("id", id);
+  revalidatePath("/students");
+  revalidatePath(`/students/${id}`);
+  return { error: error?.message ?? null };
+}
+
+export async function promoteStudents(input: {
+  from_class_id: string;
+  from_section_id: string;
+  from_session_id: string;
+  to_class_id: string;
+  to_section_id: string;
+  to_session_id: string;
+}) {
+  const supabase = await createClient();
+  const { error, count } = await supabase
+    .from("students")
+    .update(
+      { class_id: input.to_class_id, section_id: input.to_section_id, session_id: input.to_session_id },
+      { count: "exact" }
+    )
+    .eq("class_id", input.from_class_id)
+    .eq("section_id", input.from_section_id)
+    .eq("session_id", input.from_session_id)
+    .eq("is_active", true);
+
+  revalidatePath("/students");
+  return { error: error?.message ?? null, count: count ?? 0 };
+}
+
+export async function setStudentPhoto(id: string, path: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("students").update({ photo_path: path }).eq("id", id);
+  revalidatePath(`/students/${id}`);
+  return { error: error?.message ?? null };
+}
+
+export async function addStudentDocument(studentId: string, filePath: string, fileName: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("student_documents")
+    .insert({ student_id: studentId, file_path: filePath, file_name: fileName });
+  revalidatePath(`/students/${studentId}`);
+  return { error: error?.message ?? null };
+}
+
+export async function removeStudentDocument(id: string, studentId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("student_documents").delete().eq("id", id);
+  revalidatePath(`/students/${studentId}`);
+  return { error: error?.message ?? null };
+}

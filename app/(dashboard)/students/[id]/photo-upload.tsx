@@ -1,0 +1,51 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Button } from "@/components/ui";
+import { useToast } from "@/components/toaster";
+import { createClient } from "@/lib/supabase/client";
+import { setStudentPhoto } from "../actions";
+
+export function PhotoUpload({ studentId }: { studentId: string }) {
+  const { push } = useToast();
+  const [pending, startTransition] = useTransition();
+  const [file, setFile] = useState<File | null>(null);
+
+  function handleUpload() {
+    if (!file) return;
+    startTransition(async () => {
+      const supabase = createClient();
+      const path = `${studentId}/${Date.now()}-${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("student-photos")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) {
+        push(uploadError.message, "error");
+        return;
+      }
+
+      const { error } = await setStudentPhoto(studentId, path);
+      if (error) {
+        push(error, "error");
+        return;
+      }
+      push("Photo updated");
+      setFile(null);
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        className="text-sm"
+      />
+      <Button onClick={handleUpload} disabled={!file || pending} variant="ghost">
+        {pending ? "Uploading…" : "Upload"}
+      </Button>
+    </div>
+  );
+}
