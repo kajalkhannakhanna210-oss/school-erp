@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ExportCsvButton } from "./export-csv-button";
 import { StudentFilters } from "./student-filters";
 import { StudentTable, type StudentRow } from "./student-table";
+import { BulkStudentUpdate } from "./bulk-update";
 
 const PAGE_SIZE = 20;
 
@@ -42,9 +43,10 @@ export default async function StudentsPage({
 
   const { data: students, count } = await query.range(from, to);
 
-  const [{ data: classes }, { data: sections }] = await Promise.all([
+  const [{ data: classes }, { data: sections }, { data: sessions }] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("sections").select("id, name, class_id").order("name"),
+    supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }),
   ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
@@ -72,6 +74,7 @@ export default async function StudentsPage({
           />
           {canManage && (
             <>
+              <BulkStudentUpdate ids={rows.map((student) => student.id)} classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} />
               <Link href="/students/promote">
                 <Button variant="ghost">Promote</Button>
               </Link>

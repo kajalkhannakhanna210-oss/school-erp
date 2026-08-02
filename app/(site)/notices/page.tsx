@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 
+// Notice visibility can change as scheduled publish dates arrive.
+export const dynamic = "force-dynamic";
+
 export default async function NoticesPage() {
   const supabase = await createClient();
   const { data: notices } = await supabase

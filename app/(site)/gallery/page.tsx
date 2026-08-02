@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 
+// Gallery content is managed in the CMS and must not be statically cached.
+export const dynamic = "force-dynamic";
+
 export default async function GalleryPage() {
   const supabase = await createClient();
   const [{ data: albums }, { data: images }] = await Promise.all([

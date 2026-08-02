@@ -1,14 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent } from "react";
+import { useState } from "react";
 import { Button, Card, Input, Label } from "@/components/ui";
-import { useToast } from "@/components/toaster";
-import { createStaff, updateStaff } from "./actions";
+import { createStaffFromForm, updateStaffFromForm } from "./actions";
 
 type FormState = {
   full_name: string;
   contact_email: string;
+  temporary_password: string;
   department: string;
   designation: string;
   qualification: string;
@@ -26,13 +25,11 @@ export function StaffForm({
   staffId?: string;
   initial?: Partial<FormState>;
 }) {
-  const router = useRouter();
-  const { push } = useToast();
-  const [pending, startTransition] = useTransition();
 
   const [form, setForm] = useState<FormState>({
     full_name: initial?.full_name ?? "",
     contact_email: initial?.contact_email ?? "",
+    temporary_password: "",
     department: initial?.department ?? "",
     designation: initial?.designation ?? "",
     qualification: initial?.qualification ?? "",
@@ -40,32 +37,10 @@ export function StaffForm({
     salary: initial?.salary ?? "",
     joining_date: initial?.joining_date ?? new Date().toISOString().slice(0, 10),
   });
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    startTransition(async () => {
-      if (mode === "create") {
-        const result = await createStaff(form);
-        // On success createStaff redirects server-side and never returns;
-        // reaching this line means it returned an error instead.
-        if (result?.error) {
-          push(result.error, "error");
-        }
-        return;
-      }
-
-      const result = await updateStaff(staffId!, form);
-      if (result.error) {
-        push(result.error, "error");
-        return;
-      }
-      push("Staff member updated");
-      router.push(`/staff/${staffId}`);
-    });
-  }
+  const pending = false;
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-2">
+    <form action={mode === "create" ? createStaffFromForm : updateStaffFromForm.bind(null, staffId!)} noValidate className="grid gap-6 lg:grid-cols-2">
       <Card>
         <h2 className="font-display text-lg text-ink-700">Basic details</h2>
         <div className="mt-4 space-y-4">
@@ -79,23 +54,31 @@ export function StaffForm({
             />
           </div>
           {mode === "create" && (
-            <div>
-              <Label htmlFor="contact_email">Email (used for login)</Label>
-              <Input
-                id="contact_email"
-                type="email"
-                required
-                value={form.contact_email}
-                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-              />
-            </div>
+            <>
+              <div>
+                <Label htmlFor="contact_email">Email (used for login)</Label>
+                <Input id="contact_email" type="email" required value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+              </div>
+              <div>
+                <Label htmlFor="temporary_password">Temporary password</Label>
+                <Input id="temporary_password" type="password" autoComplete="new-password" minLength={8} required value={form.temporary_password} onChange={(e) => setForm({ ...form, temporary_password: e.target.value })} />
+                <p className="mt-1 text-xs text-slate/60">Share this password securely with the staff member.</p>
+              </div>
+            </>
           )}
           <div>
             <Label htmlFor="mobile_number">Mobile number</Label>
-            <Input
-              id="mobile_number"
-              value={form.mobile_number}
-              onChange={(e) => setForm({ ...form, mobile_number: e.target.value })}
+              <Input
+                id="mobile_number"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                minLength={10}
+                maxLength={10}
+                required
+                placeholder="10-digit mobile number"
+                value={form.mobile_number}
+                onChange={(e) => setForm({ ...form, mobile_number: e.target.value.replace(/\D/g, "").slice(0, 10) })}
             />
           </div>
           <div>
@@ -153,7 +136,7 @@ export function StaffForm({
               />
             </div>
           </div>
-          <Button type="submit" disabled={pending} className="w-full">
+          <Button type="submit" className="w-full">
             {pending ? "Saving…" : mode === "create" ? "Add staff member" : "Save changes"}
           </Button>
         </div>

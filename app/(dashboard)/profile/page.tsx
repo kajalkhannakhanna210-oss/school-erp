@@ -4,6 +4,7 @@ import { FeeSummary } from "@/app/(dashboard)/fees/fee-summary";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import { ChangePasswordForm } from "./change-password-form";
+import { DateValue } from "@/components/date-value";
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -61,7 +62,7 @@ export default async function ProfilePage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-slate/50">Admission date</dt>
-              <dd className="font-medium">{studentRecord.admission_date}</dd>
+              <dd className="font-medium"><DateValue value={studentRecord.admission_date} /></dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate/50">Class</dt>
@@ -107,7 +108,7 @@ export default async function ProfilePage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-slate/50">Joining date</dt>
-              <dd className="font-medium">{staffRecord.joining_date}</dd>
+              <dd className="font-medium"><DateValue value={staffRecord.joining_date} /></dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate/50">Salary</dt>

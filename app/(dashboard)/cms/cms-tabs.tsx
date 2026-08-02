@@ -25,9 +25,12 @@ type SitePage = { slug: string; title: string; content: string; image_path: stri
 type Notice = { id: string; title: string; body: string; publish_date: string };
 type Album = { id: string; title: string };
 type GalleryImage = { id: string; album_id: string; image_path: string; caption: string | null };
-type EventRow = { id: string; title: string; description: string; event_date: string };
+type EventRow = { id: string; title: string; description: string; event_date: string; image_path: string | null };
 type ContactMessage = { id: string; name: string; email: string; phone: string | null; message: string; is_read: boolean; created_at: string };
 type Settings = Record<string, string>;
+
+const MAX_PAGE_IMAGE_SIZE = 5 * 1024 * 1024;
+const PAGE_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const TABS = ["pages", "notices", "gallery", "events", "messages", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -93,6 +96,7 @@ function PagesTab({ pages }: { pages: SitePage[] }) {
   const [pending, startTransition] = useTransition();
   const [slug, setSlug] = useState(pages[0]?.slug ?? "");
   const current = pages.find((p) => p.slug === slug);
+  const isAboutPage = slug === "about";
   const [title, setTitle] = useState(current?.title ?? "");
   const [content, setContent] = useState(current?.content ?? "");
   const [file, setFile] = useState<File | null>(null);
@@ -106,6 +110,10 @@ function PagesTab({ pages }: { pages: SitePage[] }) {
 
   function handleSave(e: FormEvent) {
     e.preventDefault();
+    if (!title.trim() || !content.trim()) {
+      push("Title and content are required.", "error");
+      return;
+    }
     startTransition(async () => {
       const { error } = await savePage(slug, { title, content });
       if (error) {
@@ -118,9 +126,18 @@ function PagesTab({ pages }: { pages: SitePage[] }) {
 
   function handleUploadImage() {
     if (!file) return;
+    if (!PAGE_IMAGE_TYPES.has(file.type)) {
+      push("Use a JPG, PNG, or WebP image.", "error");
+      return;
+    }
+    if (file.size > MAX_PAGE_IMAGE_SIZE) {
+      push("Image size must be 5 MB or less.", "error");
+      return;
+    }
     startTransition(async () => {
       const supabase = createClient();
-      const path = `pages/${slug}/${Date.now()}-${file.name}`;
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+      const path = `pages/${slug}/${Date.now()}-${safeFileName}`;
       const { error: uploadError } = await supabase.storage.from("site-media").upload(path, file, { upsert: true });
       if (uploadError) {
         push(uploadError.message, "error");
@@ -155,16 +172,18 @@ function PagesTab({ pages }: { pages: SitePage[] }) {
         </ul>
       </Card>
       <Card>
-        <form onSubmit={handleSave} className="space-y-4">
+        {!isAboutPage ? <form onSubmit={handleSave} className="space-y-4">
           <div>
             <Label htmlFor="page-title">Title</Label>
-            <Input id="page-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input id="page-title" required maxLength={160} value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="page-content">Content</Label>
             <textarea
               id="page-content"
               rows={10}
+              required
+              maxLength={10000}
               className="mt-1 w-full rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-slate focus:outline-none focus:ring-2 focus:ring-gold"
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -173,15 +192,21 @@ function PagesTab({ pages }: { pages: SitePage[] }) {
           <Button type="submit" disabled={pending}>
             Save page
           </Button>
-        </form>
+        </form> : <p className="text-sm leading-6 text-slate/70">The About page uses a fixed school profile. You can update its photograph below.</p>}
         <div className="mt-6 border-t border-ink-100 pt-4">
           <Label>Page image</Label>
           <div className="mt-2 flex items-center gap-3">
-            <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="text-sm"
+            />
             <Button variant="ghost" onClick={handleUploadImage} disabled={!file || pending}>
               Upload
             </Button>
           </div>
+          <p className="mt-2 text-xs text-slate/50">JPG, PNG, or WebP; maximum 5 MB.</p>
         </div>
       </Card>
     </div>
@@ -432,7 +457,7 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
 function EventsTab({ events }: { events: EventRow[] }) {
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
-  const [form, setForm] = useState({ title: "", description: "", event_date: "" });
+  const [form, setForm] = useState({ title: "", description: "", event_date: "", image_path: "" });
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
 
   function handleCreate(e: FormEvent) {
@@ -444,7 +469,7 @@ function EventsTab({ events }: { events: EventRow[] }) {
         return;
       }
       push("Event created");
-      setForm({ title: "", description: "", event_date: "" });
+      setForm({ title: "", description: "", event_date: "", image_path: "" });
     });
   }
 
@@ -488,6 +513,16 @@ function EventsTab({ events }: { events: EventRow[] }) {
               className="mt-1 w-full rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-slate"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="e-image">Banner image URL</Label>
+            <Input
+              id="e-image"
+              type="url"
+              placeholder="https://images.unsplash.com/..."
+              value={form.image_path}
+              onChange={(e) => setForm({ ...form, image_path: e.target.value })}
             />
           </div>
           <Button type="submit" disabled={pending} className="w-full">

@@ -13,7 +13,7 @@ export default async function NewStudentPage() {
     <div>
       <h1 className="font-display text-2xl text-ink-700">Add Student</h1>
       <p className="mt-1 text-sm text-slate/60">
-        Creates the student&apos;s login and sends them an email to set their password.
+        Creates the student&apos;s login directly without sending an email invitation.
       </p>
       <div className="mt-6">
         <StudentForm

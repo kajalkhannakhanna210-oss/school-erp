@@ -1,16 +1,26 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 
 const NAV_LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/facilities", label: "Facilities" },
-  { href: "/academics", label: "Academics" },
-  { href: "/admissions", label: "Admissions" },
   { href: "/gallery", label: "Gallery" },
   { href: "/events", label: "Events" },
   { href: "/notices", label: "Notices" },
-  { href: "/contact", label: "Contact" },
+];
+
+const ORGANISATION_LINKS = [
+  { href: "/about", label: "About the school" },
+  { href: "/principal-message", label: "Principal’s message" },
+  { href: "/chairman-message", label: "Chairman’s message" },
+];
+
+const INFORMATION_LINKS = [
+  { href: "/academics", label: "Academics" },
+  { href: "/facilities", label: "Facilities" },
+  { href: "/admissions", label: "Admissions" },
+  { href: "/fee-structure", label: "Fee structure" },
+  { href: "/alumni", label: "Alumni registration" },
+  { href: "/contact", label: "Contact us" },
 ];
 
 const FOOTER_LINKS = [
@@ -21,41 +31,67 @@ const FOOTER_LINKS = [
   { href: "/contact", label: "Contact us" },
 ];
 
-export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const revalidate = 300;
 
-  const { data: settingsRows } = await supabase
-    .from("site_settings")
-    .select("key, value")
-    .in("key", ["school_name", "contact_email", "contact_phone", "contact_address", "facebook_url", "twitter_url", "instagram_url"]);
+export default async function SiteLayout({ children }: { children: ReactNode }) {
+  const supabase = createPublicClient();
+
+  let settingsRows: { key: string; value: string }[] = [];
+  try {
+    const result = await supabase
+      .from("site_settings")
+      .select("key, value")
+      .in("key", ["school_name", "contact_email", "contact_phone", "contact_address", "facebook_url", "twitter_url", "instagram_url"]);
+    settingsRows = (result.data ?? []) as { key: string; value: string }[];
+  } catch {
+    // Keep public pages available with fallback school details during outages.
+  }
   const settings = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
   const schoolName = settings.school_name || "Your School Name";
   const contactAddress = settings.contact_address || "123 Education Lane, Knowledge Park\nNew Delhi, India 110001";
   const contactEmail = settings.contact_email || "admissions@yourschool.edu.in";
   const contactPhone = settings.contact_phone || "+91 11 2345 6789";
+  const schoolInitials = schoolName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word: string) => word.charAt(0))
+    .join("")
+    .toUpperCase();
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
-      <header className="border-b border-ink-100 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link href="/" className="font-display text-xl text-ink-700">
-            {schoolName}
+      <header className="relative z-20 bg-white shadow-[0_1px_0_rgba(30,42,74,0.08)]">
+        <div className="hidden border-b border-white/10 bg-ink-900 text-paper md:block">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 text-[11px] font-medium uppercase tracking-[0.13em] text-paper/70">
+            <span>Learning with purpose · Growing with confidence</span>
+            <div className="flex items-center gap-5 normal-case tracking-normal">
+              <a href={`mailto:${contactEmail}`} className="transition hover:text-gold">{contactEmail}</a>
+              <a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="transition hover:text-gold">{contactPhone}</a>
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:py-5">
+          <Link href="/" className="flex items-center gap-3" aria-label={`${schoolName} home`}>
+            <span className="grid h-11 w-11 place-items-center rounded-full border-2 border-gold bg-ink-900 font-display text-base tracking-wide text-gold shadow-sm">{schoolInitials}</span>
+            <span>
+              <span className="block font-display text-xl leading-none text-ink-700">{schoolName}</span>
+              <span className="mt-1 block font-mono text-[9px] uppercase tracking-[0.2em] text-gold-600">Inspire · Learn · Lead</span>
+            </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm text-slate lg:flex">
+          <nav className="hidden items-center gap-5 text-sm font-medium text-slate lg:flex">
+            <NavMenu label="Organisation" links={ORGANISATION_LINKS} />
+            <NavMenu label="Information" links={INFORMATION_LINKS} />
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="hover:text-ink-700">
+              <Link key={l.href} href={l.href} className="relative py-2 transition hover:text-gold-600 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-gold after:transition-transform hover:after:scale-x-100">
                 {l.label}
               </Link>
             ))}
           </nav>
           <Link
-            href={user ? "/dashboard" : "/login"}
-            className="rounded-md bg-ink-700 px-4 py-2 text-sm font-medium text-paper hover:bg-ink-600"
+            href="/admin/login"
+            className="rounded-md bg-ink-700 px-4 py-2.5 text-sm font-semibold text-paper shadow-sm transition hover:bg-ink-600 hover:shadow-md"
           >
-            {user ? "Dashboard" : "Login"}
+            Admin login
           </Link>
         </div>
       </header>
@@ -63,10 +99,13 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-ink-100 bg-ink-900 text-paper">
-        <div className="mx-auto max-w-6xl px-6 py-14">
+        <div className="mx-auto max-w-7xl px-6 py-14">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <div className="font-display text-2xl text-paper">{schoolName}</div>
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-gold/70 font-display text-sm text-gold">{schoolInitials}</span>
+                <div className="font-display text-2xl text-paper">{schoolName}</div>
+              </div>
               <p className="mt-3 max-w-xs text-sm leading-6 text-paper/65">A thoughtful education for curious minds, kind hearts, and confident futures.</p>
             </div>
             <div>
@@ -115,6 +154,19 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function NavMenu({ label, links }: { label: string; links: { href: string; label: string }[] }) {
+  return (
+    <div className="group relative py-2">
+      <button type="button" className="inline-flex items-center gap-1 transition hover:text-gold-600" aria-haspopup="true">
+        {label}<span aria-hidden="true" className="text-[10px]">▾</span>
+      </button>
+      <div className="invisible absolute left-0 top-full z-30 mt-1 w-52 translate-y-1 rounded-lg border border-ink-100 bg-white p-2 opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+        {links.map((link) => <Link key={link.href} href={link.href} className="block rounded-md px-3 py-2.5 text-sm text-slate transition hover:bg-ink-50 hover:text-ink-700">{link.label}</Link>)}
+      </div>
     </div>
   );
 }

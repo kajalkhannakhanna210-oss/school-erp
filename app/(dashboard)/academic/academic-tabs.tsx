@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
@@ -11,27 +12,44 @@ import {
   deleteClassRow,
   deleteSectionRow,
   deleteSession,
+  setCurrentSession,
+  createDepartment,
+  deleteDepartment,
+  createDesignation,
+  deleteDesignation,
 } from "./actions";
 
 type Session = { id: string; name: string; start_date: string; end_date: string; is_current: boolean };
 type ClassRow = { id: string; name: string; sort_order: number };
 type SectionRow = { id: string; name: string; class_id: string; classes: { name: string } | null };
+type MasterRow = { id: string; name: string };
 
 export function AcademicTabs({
   sessions,
   classes,
   sections,
+  departments = [],
+  designations = [],
 }: {
   sessions: Session[];
   classes: ClassRow[];
   sections: SectionRow[];
+  departments?: MasterRow[];
+  designations?: MasterRow[];
 }) {
-  const [tab, setTab] = useState<"sessions" | "classes" | "sections">("sessions");
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const selectedTab = ["classes", "sections", "departments", "designations"].includes(requestedTab ?? "") ? requestedTab as "classes" | "sections" | "departments" | "designations" : "sessions";
+  const [tab, setTab] = useState<"sessions" | "classes" | "sections" | "departments" | "designations">(selectedTab);
+
+  useEffect(() => {
+    setTab(selectedTab);
+  }, [selectedTab]);
 
   return (
     <div className="mt-6">
       <div className="flex gap-2 border-b border-ink-100">
-        {(["sessions", "classes", "sections"] as const).map((t) => (
+        {(["sessions", "classes", "sections", "departments", "designations"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -47,6 +65,8 @@ export function AcademicTabs({
         {tab === "sessions" && <SessionsTab sessions={sessions} />}
         {tab === "classes" && <ClassesTab classes={classes} />}
         {tab === "sections" && <SectionsTab sections={sections} classes={classes} />}
+        {tab === "departments" && <NamedMasterTab title="Department" rows={departments} create={createDepartment} remove={deleteDepartment} />}
+        {tab === "designations" && <NamedMasterTab title="Designation" rows={designations} create={createDesignation} remove={deleteDesignation} />}
       </div>
     </div>
   );
@@ -82,6 +102,9 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
       }
       push("Academic session deleted");
     });
+  }
+  function makeCurrent(id: string) {
+    startTransition(async () => { const { error } = await setCurrentSession(id); if (error) push(error, "error"); else push("Current session updated"); });
   }
 
   return (
@@ -149,7 +172,7 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
                 <td className="py-3 text-slate/70">
                   {s.start_date} → {s.end_date}
                 </td>
-                <td className="py-3">{s.is_current && <Badge>Current</Badge>}</td>
+                <td className="py-3">{s.is_current ? <Badge>Current</Badge> : <Button variant="ghost" disabled={pending} onClick={() => makeCurrent(s.id)}>Set current</Button>}</td>
                 <td className="py-3 text-right">
                   <Button variant="ghost" onClick={() => setDeleteId(s.id)}>
                     Delete
@@ -176,6 +199,11 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
       />
     </div>
   );
+}
+
+function NamedMasterTab({ title, rows, create, remove }: { title: string; rows: MasterRow[]; create: (name: string) => Promise<{ error: string | null }>; remove: (id: string) => Promise<{ error: string | null }> }) {
+  const { push } = useToast(); const [name, setName] = useState(""); const [pending, startTransition] = useTransition();
+  return <div className="grid gap-6 lg:grid-cols-[320px_1fr]"><Card><h2 className="font-display text-lg text-ink-700">New {title.toLowerCase()}</h2><form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); startTransition(async () => { const { error } = await create(name); if (error) push(error, "error"); else { setName(""); push(`${title} created`); } }); }}><div><Label htmlFor={`new-${title}`}>Name</Label><Input id={`new-${title}`} required value={name} onChange={(e) => setName(e.target.value)} /></div><Button className="w-full" disabled={pending}>Add {title}</Button></form></Card><Card><table className="w-full text-sm"><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-3">{row.name}</td><td className="py-3 text-right"><Button variant="ghost" disabled={pending} onClick={() => startTransition(async () => { const { error } = await remove(row.id); if (error) push(error, "error"); else push(`${title} deleted`); })}>Delete</Button></td></tr>)}{rows.length === 0 && <tr><td className="py-6 text-center text-slate/50">No {title.toLowerCase()}s yet.</td></tr>}</tbody></table></Card></div>;
 }
 
 function ClassesTab({ classes }: { classes: ClassRow[] }) {

@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 type StudentInput = {
   full_name: string;
   contact_email: string;
+  temporary_password: string;
   roll_number: string;
   father_name: string;
   mother_name: string;
@@ -26,26 +27,28 @@ type StudentInput = {
 export async function createStudent(input: StudentInput) {
   await requireSuperAdmin();
 
+  if (input.temporary_password.length < 8) {
+    return { error: "Temporary password must be at least 8 characters." };
+  }
+
   const admin = createAdminClient();
 
-  // inviteUserByEmail creates the auth account (which triggers our
-  // handle_new_user trigger to populate `profiles`) and sends the student a
-  // Supabase-hosted email to set their own password — we never see or store
-  // a password ourselves. Note: this relies on email sending being
-  // configured on your Supabase project (the built-in dev sender is rate
-  // limited; use custom SMTP for production).
-  const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(
-    input.contact_email,
-    { data: { full_name: input.full_name, role: "student" } }
-  );
+  // Create the account directly rather than sending an invitation email.
+  // Supabase hashes the temporary password; it is never written to our tables.
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
+    email: input.contact_email,
+    password: input.temporary_password,
+    email_confirm: true,
+    user_metadata: { full_name: input.full_name, role: "student" },
+  });
 
-  if (inviteError || !invited.user) {
-    return { error: inviteError?.message ?? "Could not create the student's account" };
+  if (createError || !created.user) {
+    return { error: createError?.message ?? "Could not create the student's account" };
   }
 
   const supabase = await createClient();
   const { error: insertError } = await supabase.from("students").insert({
-    id: invited.user.id,
+    id: created.user.id,
     contact_email: input.contact_email,
     roll_number: input.roll_number || null,
     father_name: input.father_name || null,
@@ -63,25 +66,24 @@ export async function createStudent(input: StudentInput) {
 
   if (insertError) {
     // Don't leave an orphaned login with no student record behind it.
-    await admin.auth.admin.deleteUser(invited.user.id);
+    await admin.auth.admin.deleteUser(created.user.id);
     return { error: insertError.message };
   }
 
   revalidatePath("/students");
-  redirect(`/students/${invited.user.id}`);
+  redirect(`/students/${created.user.id}`);
 }
 
-type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email">> & {
+type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email" | "temporary_password">> & {
   full_name?: string;
   contact_email?: string;
+  temporary_password?: string;
 };
 
 export async function updateStudent(id: string, input: StudentUpdateInput) {
-  // contact_email doubles as the account's login email at creation time and
-  // isn't exposed on the edit form — drop it here too so a stray empty
-  // string in the payload can never overwrite it. Changing a student's
-  // login email isn't implemented yet; that needs admin.updateUserById.
-  const { full_name, contact_email: _contactEmail, ...studentFields } = input;
+  // Login credentials are creation-only. Drop them from an edit payload so
+  // they can never be written to the student record.
+  const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, ...studentFields } = input;
   const supabase = await createClient();
 
   const [{ error: profileError }, { error: studentError }] = await Promise.all([
@@ -124,6 +126,15 @@ export async function promoteStudents(input: {
     .eq("session_id", input.from_session_id)
     .eq("is_active", true);
 
+  revalidatePath("/students");
+  return { error: error?.message ?? null, count: count ?? 0 };
+}
+
+export async function bulkUpdateStudents(ids: string[], input: { class_id?: string; section_id?: string; session_id?: string }) {
+  await requireSuperAdmin();
+  if (!ids.length || !Object.keys(input).length) return { error: "Select students and at least one field to update.", count: 0 };
+  const supabase = await createClient();
+  const { error, count } = await supabase.from("students").update(input, { count: "exact" }).in("id", ids);
   revalidatePath("/students");
   return { error: error?.message ?? null, count: count ?? 0 };
 }

@@ -11,6 +11,7 @@ type Option = { id: string; name: string };
 type FormState = {
   full_name: string;
   contact_email: string;
+  temporary_password: string;
   roll_number: string;
   father_name: string;
   mother_name: string;
@@ -47,6 +48,7 @@ export function StudentForm({
   const [form, setForm] = useState<FormState>({
     full_name: initial?.full_name ?? "",
     contact_email: initial?.contact_email ?? "",
+    temporary_password: "",
     roll_number: initial?.roll_number ?? "",
     father_name: initial?.father_name ?? "",
     mother_name: initial?.mother_name ?? "",
@@ -101,16 +103,31 @@ export function StudentForm({
             />
           </div>
           {mode === "create" && (
-            <div>
-              <Label htmlFor="contact_email">Email (used for login)</Label>
-              <Input
-                id="contact_email"
-                type="email"
-                required
-                value={form.contact_email}
-                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-              />
-            </div>
+            <>
+              <div>
+                <Label htmlFor="contact_email">Email (used for login)</Label>
+                <Input
+                  id="contact_email"
+                  type="email"
+                  required
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="temporary_password">Temporary password</Label>
+                <Input
+                  id="temporary_password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                  value={form.temporary_password}
+                  onChange={(e) => setForm({ ...form, temporary_password: e.target.value })}
+                />
+                <p className="mt-1 text-xs text-slate/60">Give this password to the student securely. No email invitation will be sent.</p>
+              </div>
+            </>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div>

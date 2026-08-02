@@ -8,6 +8,7 @@ export type HeroSlide = {
   title: string;
   description: string;
   imageUrl?: string | null;
+  videoUrl?: string | null;
 };
 
 export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
@@ -23,22 +24,29 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
 
   return (
     <section className="relative isolate min-h-[590px] overflow-hidden bg-ink-700 text-paper md:min-h-[660px]">
-      {slides.map((slide, index) => (
-        <div
-          key={`${slide.title}-${index}`}
-          aria-hidden={index !== activeIndex}
-          className={`absolute inset-0 -z-20 transition-opacity duration-700 ${index === activeIndex ? "opacity-100" : "opacity-0"}`}
-        >
-          {slide.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={slide.imageUrl} alt="" className="h-full w-full object-cover" />
-          )}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_15%,rgba(201,154,59,0.34),transparent_25%),linear-gradient(120deg,rgba(30,42,74,0.98),rgba(30,42,74,0.7))]" />
-        </div>
-      ))}
+      <div className="hero-image-in absolute inset-0 -z-20" key={`${activeSlide.title}-${activeIndex}`}>
+        {activeSlide.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={activeSlide.imageUrl} alt="" fetchPriority="high" decoding="async" className="h-full w-full object-cover brightness-110" />
+        )}
+        {activeSlide.videoUrl && (
+          <video
+            className="absolute inset-0 h-full w-full object-cover brightness-110"
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={activeSlide.imageUrl ?? undefined}
+            aria-hidden="true"
+          >
+            <source src={activeSlide.videoUrl} type="video/mp4" />
+          </video>
+        )}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_15%,rgba(247,194,0,0.48),transparent_30%),linear-gradient(120deg,rgba(34,47,87,0.76),rgba(34,47,87,0.34))]" />
+      </div>
 
       <div className="mx-auto grid min-h-[590px] max-w-6xl items-end gap-12 px-6 py-16 md:min-h-[660px] md:py-20 lg:grid-cols-[1.2fr_.8fr]">
-        <div className="max-w-3xl">
+        <div key={`${activeSlide.title}-content-${activeIndex}`} className="hero-content-in max-w-3xl">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-gold">{activeSlide.eyebrow}</p>
           <h1 className="mt-6 font-display text-5xl leading-[0.98] sm:text-6xl lg:text-7xl">{activeSlide.title}</h1>
           <p className="mt-7 max-w-xl whitespace-pre-line text-base leading-7 text-paper/80 sm:text-lg">{activeSlide.description}</p>
@@ -51,7 +59,8 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
             </Link>
           </div>
         </div>
-        <div className="hidden justify-self-end lg:block">
+        <div className="hero-float hidden justify-self-end lg:block">
+          <div className="mb-8 ml-auto h-14 w-14 rounded-full border border-gold/70 bg-gold/10" aria-hidden="true" />
           <div className="max-w-[250px] border-l border-gold pl-5 text-sm leading-6 text-paper/80">
             A school is more than a timetable. It is the daily practice of becoming.
           </div>

@@ -1,0 +1,1268 @@
+
+> school-management@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3002
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 4.2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1905ms (170 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 7.6s (601 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+ ○ Compiling /_error ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled /_error in 9.2s (828 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 1226ms (434 modules)
+ ✓ Compiled in 102ms (380 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ○ Compiling /admin/login ...
+ ✓ Compiled /admin/login in 4.1s (939 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 568ms (942 modules)
+ ✓ Compiled in 981ms (956 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 716ms (944 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.1s (947 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/76d5b07be7b9892d.webpack.hot-update.json 404 in 1619ms
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ GET / 500 in 36001ms
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+ GET / 500 in 19654ms
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 3.7s (956 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ○ Compiling /[slug] ...
+ ✓ Compiled /[slug] in 4.6s (969 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+ GET / 500 in 195394ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 566ms (971 modules)
+ ✓ Compiled in 1155ms (985 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 4s (983 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 3.7s (983 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 698ms (983 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 785ms (983 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ GET /login 200 in 230ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ○ Compiling /notices ...
+ ✓ Compiled /notices in 3.8s (971 modules)
+ ○ Compiling /contact ...
+ ✓ Compiled /contact in 2.5s (1113 modules)
+ GET / 500 in 315770ms
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ unhandledRejection: [TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ⨯ Error: failed to pipe response
+    at er (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:388802)
+    at async en.pipeToNodeResponse (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:390251)
+    at async sendRenderResult (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\send-payload.js:120:5)
+    at async DevServer.pipeImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:937:13)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\next-server.js:272:17)
+    at async DevServer.handleRequestImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:818:17)
+    at async C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:339:20
+    at async Span.traceAsyncFn (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\trace\trace.js:154:20)
+    at async DevServer.handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\next-dev-server.js:336:24)
+    at async invokeRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:179:21)
+    at async handleRequest (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:359:24)
+    at async requestHandlerImpl (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\router-server.js:383:13)
+    at async Server.requestListener (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\start-server.js:141:13) {
+  [cause]: [TypeError: fetch failed] {
+    [cause]: AggregateError [EACCES]: 
+        at internalConnectMultiple (node:net:1194:18)
+        at afterConnectMultiple (node:net:1784:7) {
+      code: 'EACCES',
+      [errors]: [Array]
+    }
+  }
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 725ms (1115 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 10s (990 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 1353ms (989 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 1046ms (989 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ✓ Compiled in 918ms (989 modules)
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ ○ Compiling /contact ...
+ ✓ Compiled /contact in 1780ms (612 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 6.9s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 6.2s (1122 modules)
+ POST /contact 200 in 225ms
+ POST /contact 200 in 33ms
+ POST /contact 200 in 94ms
+ POST /contact 200 in 77ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 5s (1122 modules)
+ POST /contact 200 in 142ms
+ POST /contact 200 in 43ms
+ GET / 500 in 518817ms
+ GET /contact 200 in 7332ms
+ GET / 500 in 1274615ms
+ ✓ Compiled in 1055ms (1122 modules)
+ GET /contact 200 in 7288ms
+ ✓ Compiled in 1109ms (1122 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1179ms (1111 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /_next/static/webpack/6f2f92c1fdfc87db.webpack.hot-update.json 404 in 1329ms
+ GET /contact 200 in 7188ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\handle-externals.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\handle-externals.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+ ✓ Compiled in 14.5s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+ ✓ Compiled in 10.9s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\loader-runner\LoaderRunner.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\bundle5.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\webpack\webpack.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\plugins\define-env-plugin.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\swc\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\swc\index.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-swc-loader.js
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, lstat 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found'
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Resolving '../../../../.next/server/app/_not-found/page' in C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server for build dependencies doesn't lead to expected result 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js', but to 'Error: Can't resolve '../../../../.next/server/app/_not-found/page' in 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server'' instead. Resolving dependencies are ignored for this path.
+<w>  at resolve commonjs file ../../../../.next/server/app/_not-found/page (expected C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\_not-found\page.js)
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+<w>  at file dependencies C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at file C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+<w>  at resolve commonjs C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\webpack\loaders\next-route-loader\index.js
+ ✓ Compiled in 8.1s (515 modules)
+ ✓ Compiled in 531ms (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 5.8s (1111 modules)
+ GET /admin/login 404 in 6196ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 14.1s (1122 modules)
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 722ms (1111 modules)
+ GET /_next/static/chunks/app/(auth)/admin/login/page.js 404 in 1116ms
+ GET /admin/login 200 in 367ms
+ GET /_next/static/chunks/app/(auth)/admin/login/page.js 404 in 47ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 11.9s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 10.5s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 4.9s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 7s (515 modules)
+ ✓ Compiled in 459ms (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 10.6s (1122 modules)
+ ✓ Compiled in 1386ms (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 11.9s (1122 modules)
+ ✓ Compiled in 861ms (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 6.9s (1122 modules)
+ ✓ Compiled in 1281ms (1122 modules)
+ ✓ Compiled in 3.3s (1122 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 14.1s (1292 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 14.3s (1292 modules)
+ ✓ Compiled in 646ms (515 modules)
+ ✓ Compiled in 2.8s (1292 modules)
+ ✓ Compiled in 429ms (170 modules)
+ ✓ Compiled in 2.8s (1122 modules)
+ ✓ Compiled in 3.8s (1292 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 3.7s (515 modules)
+ ✓ Compiled in 295ms (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 9.3s (1292 modules)
+ ✓ Compiled in 610ms (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 6.5s (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 4.4s (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 5.3s (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 3.6s (515 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies

@@ -1,0 +1,15 @@
+project_id = "school-management"
+
+[auth.sms]
+enable_signup = true
+enable_confirmations = true
+
+# Local development only. Do not add production phone numbers or codes here.
+[auth.sms.test_otp]
+919999999999 = "123456"
+
+[auth.mfa.phone]
+enroll_enabled = true
+verify_enabled = true
+otp_length = 6
+max_frequency = "10s"

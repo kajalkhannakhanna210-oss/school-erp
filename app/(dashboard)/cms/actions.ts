@@ -3,21 +3,39 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
+const SITE_PAGE_SLUGS = new Set(["home", "principal-message", "chairman-message", "facilities", "academics", "admissions"]);
+const PAGE_IMAGE_SLUGS = new Set([...SITE_PAGE_SLUGS, "about"]);
+
 export async function savePage(slug: string, input: { title: string; content: string; image_path?: string | null }) {
+  if (!SITE_PAGE_SLUGS.has(slug)) return { error: "Invalid page." };
+
+  const title = input.title.trim();
+  const content = input.content.trim();
+  if (!title) return { error: "A page title is required." };
+  if (!content) return { error: "Page content is required." };
+  if (title.length > 160) return { error: "The title must be 160 characters or fewer." };
+  if (content.length > 10000) return { error: "The content must be 10,000 characters or fewer." };
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("site_pages")
-    .update({ title: input.title, content: input.content, updated_at: new Date().toISOString() })
+    .update({ title, content, updated_at: new Date().toISOString() })
     .eq("slug", slug);
   revalidatePath("/cms");
   revalidatePath(`/${slug === "home" ? "" : slug}`);
+  if (slug === "about") revalidatePath("/");
   return { error: error?.message ?? null };
 }
 
 export async function setPageImage(slug: string, path: string) {
+  if (!PAGE_IMAGE_SLUGS.has(slug)) return { error: "Invalid page." };
+  if (!path.startsWith(`pages/${slug}/`)) return { error: "Invalid image path." };
+
   const supabase = await createClient();
   const { error } = await supabase.from("site_pages").update({ image_path: path }).eq("slug", slug);
   revalidatePath("/cms");
+  revalidatePath(`/${slug === "home" ? "" : slug}`);
+  if (slug === "about") revalidatePath("/");
   return { error: error?.message ?? null };
 }
 
@@ -25,7 +43,9 @@ export async function createNotice(input: { title: string; body: string; publish
   const supabase = await createClient();
   const { error } = await supabase.from("notices").insert(input);
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/notices");
+  revalidatePath("/dashboard");
   return { error: error?.message ?? null };
 }
 
@@ -33,7 +53,9 @@ export async function deleteNotice(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("notices").delete().eq("id", id);
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/notices");
+  revalidatePath("/dashboard");
   return { error: error?.message ?? null };
 }
 
@@ -41,6 +63,7 @@ export async function createAlbum(title: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_albums").insert({ title });
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
@@ -49,6 +72,7 @@ export async function deleteAlbum(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_albums").delete().eq("id", id);
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
@@ -59,6 +83,7 @@ export async function addGalleryImage(albumId: string, path: string, caption: st
     .from("gallery_images")
     .insert({ album_id: albumId, image_path: path, caption: caption || null });
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
@@ -67,14 +92,19 @@ export async function deleteGalleryImage(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_images").delete().eq("id", id);
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
 
-export async function createEvent(input: { title: string; description: string; event_date: string }) {
+export async function createEvent(input: { title: string; description: string; event_date: string; image_path?: string }) {
   const supabase = await createClient();
-  const { error } = await supabase.from("events").insert(input);
+  const { error } = await supabase.from("events").insert({
+    ...input,
+    image_path: input.image_path?.trim() || null,
+  });
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/events");
   return { error: error?.message ?? null };
 }
@@ -83,6 +113,7 @@ export async function deleteEvent(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("events").delete().eq("id", id);
   revalidatePath("/cms");
+  revalidatePath("/");
   revalidatePath("/events");
   return { error: error?.message ?? null };
 }

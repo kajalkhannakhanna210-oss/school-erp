@@ -13,6 +13,8 @@ const PUBLIC_PAGE_PATHS = new Set([
   "/facilities",
   "/academics",
   "/admissions",
+  "/fee-structure",
+  "/alumni",
   "/gallery",
   "/events",
   "/notices",
@@ -20,6 +22,15 @@ const PUBLIC_PAGE_PATHS = new Set([
 ]);
 
 export async function updateSession(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/admin/login") || pathname.startsWith("/forgot-password");
+  const isPublicPage = PUBLIC_PAGE_PATHS.has(pathname);
+  const isApiRoute = pathname.startsWith("/api/");
+
+  // Public pages have anonymous read policies and don't need a session refresh.
+  // Skipping this remote auth request makes the public site respond much faster.
+  if (isPublicPage) return NextResponse.next({ request });
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -45,18 +56,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/forgot-password");
-  const isPublicPage = PUBLIC_PAGE_PATHS.has(pathname);
   // API routes are never given an HTML redirect — a fetch/webhook caller
   // can't follow one usefully, and critically, external callers (Razorpay's
   // webhook servers, for one) will never carry our session cookie at all.
   // Each API route is responsible for its own auth response (RLS scoping
   // results to nothing for an anonymous caller, or an explicit 401/403),
   // exactly like /api/webhooks/razorpay and /api/reports/[type] already do.
-  const isApiRoute = pathname.startsWith("/api/");
-
-  if (!user && !isAuthRoute && !isPublicPage && !isApiRoute) {
+  if (!user && !isAuthRoute && !isApiRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

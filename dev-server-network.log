@@ -1,0 +1,132 @@
+
+> school-management@0.1.0 dev
+> next dev -p 3004
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3004
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.9s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 2.1s (170 modules)
+ ○ Compiling /contact ...
+ ✓ Compiled /contact in 7.7s (756 modules)
+ GET /contact 200 in 10556ms
+ ○ Compiling /[slug] ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (106kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (254kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled /[slug] in 4.5s (765 modules)
+ GET /favicon.ico 404 in 6187ms
+ POST /contact 200 in 516ms
+ ✓ Compiled in 5.2s (757 modules)
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 7.8s (1942 modules)
+ GET /contact 200 in 1329ms
+ ○ Compiling /cms ...
+ ✓ Compiled /cms in 1353ms (1958 modules)
+ ○ Compiling /master ...
+ ✓ Compiled /master in 1359ms (1983 modules)
+ POST /master?tab=sessions 200 in 1981ms
+ POST /master?tab=sessions 200 in 1295ms
+ GET /contact 200 in 2506ms
+ POST /contact 200 in 1386ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5.1s (1992 modules)
+ GET /contact 200 in 830ms
+ GET /contact 200 in 377ms
+ GET /master?tab=sessions 200 in 2552ms
+ ○ Compiling /[slug] ...
+ ✓ Compiled /[slug] in 4s (1135 modules)
+ ⨯ TypeError: Cannot read properties of undefined (reading 'clientModules')
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:40:25679
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\trace\tracer.js:191:62
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\trace\tracer.js:140:36
+    at NoopContextManager.with (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:14:19)
+    at ContextAPI.with (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\api\context.js:51:46)
+    at NoopTracer.startActiveSpan (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\trace\NoopTracer.js:54:31)
+    at ProxyTracer.startActiveSpan (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\trace\ProxyTracer.js:27:24)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\trace\tracer.js:122:103
+    at NoopContextManager.with (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\context\NoopContextManager.js:14:19)
+    at ContextAPI.with (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\@opentelemetry\api\build\src\api\context.js:51:46)
+    at NextTracerImpl.trace (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\trace\tracer.js:122:28)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\lib\trace\tracer.js:191:31
+    at ne (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:42:1678)
+    at async doRender (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:1427:30)
+    at async cacheEntry.responseCache.get.routeKind (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\base-server.js:1576:40) {
+  page: '/master'
+}
+ ○ Compiling /_error ...
+ ⨯ Failed to generate static paths for /[slug]:
+Error: Cannot find module './vendor-chunks/cookie.js'
+Require stack:
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\webpack-runtime.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\server\app\(site)\[slug]\page.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\load-components.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\build\utils.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\dev\static-paths-worker.js
+- C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1517:15)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require-hook.js:55:36
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1095:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)
+    at Module._load (node:internal/modules/cjs/loader:1294:5)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1617:12)
+    at mod.require (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\server\require-hook.js:65:28)
+    at require (node:internal/modules/helpers:153:16) {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\.next\\server\\webpack-runtime.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\.next\\server\\app\\(site)\\[slug]\\page.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\node_modules\\next\\dist\\server\\dev\\static-paths-worker.js',
+    'C:\\Users\\KAJAL\\Downloads\\school-management-phase1-9\\school-management\\node_modules\\next\\dist\\compiled\\jest-worker\\processChild.js'
+  ]
+}
+ ✓ Compiled /_error in 3.3s (2221 modules)
+ GET /master?tab=sessions 500 in 8743ms
+ ✓ Compiled in 1360ms (1044 modules)
+ ✓ Compiled in 1053ms (1044 modules)
+ ✓ Compiled in 1024ms (1044 modules)
+ ✓ Compiled in 3.1s (2217 modules)
+ ✓ Compiled in 7.9s (2217 modules)
+ ✓ Compiled in 1607ms (2217 modules)
+ ✓ Compiled in 13.6s (1044 modules)
+ ✓ Compiled in 11s (1044 modules)
+ ✓ Compiled in 12s (2217 modules)
+ ✓ Compiled in 2.9s (1044 modules)
+ ✓ Compiled in 10.5s (2217 modules)
+ ✓ Compiled in 1159ms (2217 modules)
+ ✓ Compiled in 1516ms (1044 modules)
+ ✓ Compiled in 3.1s (2217 modules)
+ ✓ Compiled in 2.1s (2217 modules)
+ ✓ Compiled in 941ms (1044 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\1.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\1.pack.gz'
+ ✓ Compiled in 12.7s (2217 modules)
+ ✓ Compiled in 1622ms (2217 modules)
+ ✓ Compiled in 5.2s (1044 modules)
+ ✓ Compiled in 827ms (1044 modules)
+ ✓ Compiled in 3.7s (2217 modules)
+ ✓ Compiled in 15.4s (2387 modules)
+ ✓ Compiled in 16.1s (2387 modules)
+ ✓ Compiled in 1051ms (1044 modules)
+ ✓ Compiled in 2.8s (2373 modules)
+ ✓ Compiled in 434ms (170 modules)
+ ✓ Compiled in 4s (2217 modules)
+ ✓ Compiled in 1252ms (1044 modules)
+ ✓ Compiled in 2.5s (2387 modules)
+ ✓ Compiled in 1013ms (1044 modules)
+ ✓ Compiled in 844ms (1044 modules)
+ ✓ Compiled in 1202ms (2217 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\1.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\1.pack.gz'
+ ✓ Compiled in 10.5s (2387 modules)
+ ✓ Compiled in 6.4s (1044 modules)
+ ✓ Compiled in 1609ms (1044 modules)
+ ✓ Compiled in 2.5s (1044 modules)
+ ✓ Compiled in 1651ms (1044 modules)

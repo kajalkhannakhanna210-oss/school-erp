@@ -6,7 +6,7 @@ import { ArchiveControl } from "./archive-control";
 import { PermissionsEditor } from "./permissions-editor";
 import { PhotoUpload } from "./photo-upload";
 
-export default async function StaffDetailPage({ params }: { params: { id: string } }) {
+export default async function StaffDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { saved?: string } }) {
   const supabase = await createClient();
 
   const {
@@ -42,6 +42,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
 
   return (
     <div>
+      {searchParams.saved && <div className="mb-5 rounded-lg border border-success/30 bg-success/10 px-4 py-3 text-sm font-medium text-success">{searchParams.saved === "created" ? "Staff member saved successfully." : "Staff member updated successfully."}</div>}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-display text-2xl text-ink-700">{s.profiles?.full_name}</h1>
