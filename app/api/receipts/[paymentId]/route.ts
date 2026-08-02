@@ -23,15 +23,11 @@ export async function GET(
     return NextResponse.json({ error: "Receipt not found" }, { status: 404 });
   }
 
-  const buffer = await renderReceiptPdf(payment as unknown as ReceiptPayment);
-
-  const pdfBytes = new Uint8Array(
-    buffer.buffer,
-    buffer.byteOffset,
-    buffer.byteLength
+  const buffer = await renderReceiptPdf(
+    payment as unknown as ReceiptPayment
   );
 
-  return new NextResponse(pdfBytes, {
+  return new NextResponse(Buffer.from(buffer), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="receipt-${payment.receipt_number}.pdf"`,
