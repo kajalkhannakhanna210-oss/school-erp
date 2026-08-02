@@ -41,18 +41,17 @@ export async function GET(
     );
   }
 
-  if (format === "excel") {
-    const buffer = await renderReportExcel(result);
+ if (format === "excel") {
+  const buffer = await renderReportExcel(result);
 
-    return new NextResponse(Buffer.from(buffer), {
-      headers: {
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition":
-          `attachment; filename="${params.type}.xlsx"`,
-      },
-    });
-  }
+  return new NextResponse(new Uint8Array(buffer), {
+    headers: {
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="${params.type}.xlsx"`,
+    },
+  });
+}
 
   const buffer = await renderReportPdf(result);
 
