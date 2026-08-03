@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
@@ -13,6 +13,7 @@ import {
   createNotice,
   deleteAlbum,
   deleteEvent,
+  deleteEventImage,
   deleteGalleryImage,
   deleteMessage,
   deleteNotice,
@@ -34,6 +35,21 @@ type Settings = Record<string, string>;
 const MAX_PAGE_IMAGE_SIZE = 5 * 1024 * 1024;
 const PAGE_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
+
+function mediaUrl(path: string) {
+  return path.startsWith("http") ? path : createClient().storage.from("site-media").getPublicUrl(path).data.publicUrl;
+}
+
+function SelectedImagePreviews({ files, onRemove }: { files: File[]; onRemove: (index: number) => void }) {
+  const [urls, setUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const nextUrls = files.map((file) => URL.createObjectURL(file));
+    setUrls(nextUrls);
+    return () => nextUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [files]);
+  if (!files.length) return null;
+  return <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{files.map((file, index) => <div key={`${file.name}-${file.lastModified}-${index}`} className="group relative overflow-hidden rounded-lg border border-ink-100 bg-ink-50"><img src={urls[index]} alt={file.name} className="aspect-square w-full object-cover" /><button type="button" onClick={() => onRemove(index)} className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-ink-900/80 text-sm font-bold text-white opacity-100 transition hover:bg-danger sm:opacity-0 sm:group-hover:opacity-100" aria-label={`Remove ${file.name}`}>×</button><p className="truncate px-2 py-1.5 text-xs text-slate/60">{file.name}</p></div>)}</div>;
+}
 
 const TABS = ["pages", "notices", "gallery", "events", "messages", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -328,13 +344,14 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
   function handleCreateAlbum(e: FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const { error } = await createAlbum(albumTitle);
+      const { error, id } = await createAlbum(albumTitle);
       if (error) {
         push(error, "error");
         return;
       }
       push("Album created");
       setAlbumTitle("");
+      if (id) setSelectedAlbum(id);
     });
   }
 
@@ -396,38 +413,29 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+    <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
       <Card>
-        <h2 className="font-display text-lg text-ink-700">Albums</h2>
-        <form onSubmit={handleCreateAlbum} className="mt-4 flex gap-2">
-          <Input placeholder="New album" value={albumTitle} onChange={(e) => setAlbumTitle(e.target.value)} />
-          <Button type="submit" variant="ghost" disabled={pending}>
-            Add
-          </Button>
+        <h2 className="font-display text-lg text-ink-700">New gallery</h2>
+        <p className="mt-1 text-sm text-slate/60">Create a gallery, then add multiple photos to it.</p>
+        <form onSubmit={handleCreateAlbum} className="mt-4 space-y-3">
+          <Input placeholder="Gallery name" required value={albumTitle} onChange={(e) => setAlbumTitle(e.target.value)} />
+          <Button type="submit" disabled={pending} className="w-full">Create gallery</Button>
         </form>
-        <ul className="mt-4 space-y-1 text-sm">
-          {albums.map((a) => (
-            <li key={a.id} className="flex items-center justify-between">
-              <button
-                onClick={() => setSelectedAlbum(a.id)}
-                className={`flex-1 rounded-md px-3 py-2 text-left ${
-                  a.id === selectedAlbum ? "bg-ink-50 font-medium text-ink-700" : "text-slate hover:bg-ink-50"
-                }`}
-              >
-                {a.title}
-              </button>
-              <Button variant="ghost" onClick={() => setDeleteAlbumTarget(a)}>
-                Delete
-              </Button>
-            </li>
-          ))}
-        </ul>
       </Card>
       <Card>
         {!selectedAlbum ? (
           <p className="text-sm text-slate/50">Create an album to add photos.</p>
         ) : (
           <>
+            <div>
+              <Label htmlFor="gallery-selector">Gallery</Label>
+              <div className="mt-1 flex gap-2">
+                <select id="gallery-selector" className="w-full" value={selectedAlbum} onChange={(e) => setSelectedAlbum(e.target.value)}>
+                  {albums.map((album) => <option key={album.id} value={album.id}>{album.title}</option>)}
+                </select>
+                {albums.find((album) => album.id === selectedAlbum) && <Button type="button" variant="ghost" onClick={() => setDeleteAlbumTarget(albums.find((album) => album.id === selectedAlbum) ?? null)}>Delete gallery</Button>}
+              </div>
+            </div>
             <div className="flex flex-wrap items-end gap-3">
               <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="text-sm" />
               <Input placeholder="Caption (optional)" value={caption} onChange={(e) => setCaption(e.target.value)} />
@@ -436,19 +444,28 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
               </Button>
             </div>
             <p className="mt-2 text-xs text-slate/50">Select multiple JPG, PNG, or WebP images (up to 5 MB each).</p>
-            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+            <SelectedImagePreviews files={files} onRemove={(index) => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))} />
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {albumImages.map((img) => (
-                <div key={img.id} className="relative">
-                  <div className="flex h-24 items-center justify-center rounded-md bg-ink-50 text-xs text-slate/40">
-                    {img.caption || "Photo"}
-                  </div>
-                  <Button variant="ghost" onClick={() => setDeleteImageTarget(img)} className="mt-1 w-full">
-                    Delete
-                  </Button>
+                <div key={img.id} className="group relative overflow-hidden rounded-lg border border-ink-100 bg-ink-50">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaUrl(img.image_path)} alt={img.caption || "Gallery photo"} className="aspect-square w-full object-cover" />
+                  <button type="button" onClick={() => setDeleteImageTarget(img)} className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-ink-900/80 text-xs font-bold text-white opacity-100 transition hover:bg-danger sm:opacity-0 sm:group-hover:opacity-100" aria-label="Delete gallery image">×</button>
+                  <p className="truncate px-2 py-2 text-xs text-slate/60">{img.caption || "Gallery photo"}</p>
                 </div>
               ))}
               {albumImages.length === 0 && <p className="col-span-full text-sm text-slate/50">No photos yet.</p>}
             </div>
+            <ul className="mt-6 divide-y divide-ink-100 border-t border-ink-100">
+              {albums.map((album) => (
+                <li key={album.id} className="flex items-center justify-between gap-3 py-3">
+                  <button type="button" onClick={() => setSelectedAlbum(album.id)} className={`min-w-0 flex-1 truncate text-left text-sm font-medium ${album.id === selectedAlbum ? "text-ink-700" : "text-slate/70 hover:text-ink-700"}`}>
+                    {album.title}
+                  </button>
+                  <Button type="button" variant="ghost" onClick={() => setDeleteAlbumTarget(album)}>Delete</Button>
+                </li>
+              ))}
+            </ul>
           </>
         )}
       </Card>
@@ -478,6 +495,8 @@ function EventsTab({ events, eventImages }: { events: EventRow[]; eventImages: E
   const [files, setFiles] = useState<File[]>([]);
   const [caption, setCaption] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
+  const [deleteImageTarget, setDeleteImageTarget] = useState<EventImage | null>(null);
+  const selectedEventImages = eventImages.filter((image) => image.event_id === selectedEvent);
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -534,6 +553,19 @@ function EventsTab({ events, eventImages }: { events: EventRow[]; eventImages: E
         return;
       }
       push("Event deleted");
+    });
+  }
+
+  function handleDeleteEventImage() {
+    if (!deleteImageTarget) return;
+    startTransition(async () => {
+      const { error } = await deleteEventImage(deleteImageTarget.id);
+      setDeleteImageTarget(null);
+      if (error) {
+        push(error, "error");
+        return;
+      }
+      push("Event image deleted");
     });
   }
 
@@ -594,7 +626,8 @@ function EventsTab({ events, eventImages }: { events: EventRow[]; eventImages: E
             <Button variant="ghost" onClick={handleUploadImages} disabled={!selectedEvent || !files.length || pending}>Upload {files.length > 1 ? `${files.length} images` : "image"}</Button>
           </div>
           <p className="mt-2 text-xs text-slate/50">Select multiple JPG, PNG, or WebP images (up to 5 MB each) for the selected event.</p>
-          {selectedEvent && <p className="mt-2 text-xs font-medium text-ink-700">{eventImages.filter((image) => image.event_id === selectedEvent).length} event photos uploaded</p>}
+          <SelectedImagePreviews files={files} onRemove={(index) => setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index))} />
+          {selectedEvent && <><p className="mt-4 text-xs font-medium text-ink-700">{selectedEventImages.length} event photos uploaded</p><div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3"><>{selectedEventImages.map((image) => <div key={image.id} className="group relative overflow-hidden rounded-lg border border-ink-100 bg-white"><img src={mediaUrl(image.image_path)} alt={image.caption || "Event photo"} className="aspect-square w-full object-cover" /><button type="button" onClick={() => setDeleteImageTarget(image)} className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-ink-900/80 text-xs font-bold text-white opacity-100 transition hover:bg-danger sm:opacity-0 sm:group-hover:opacity-100" aria-label="Delete event image">×</button><p className="truncate px-2 py-2 text-xs text-slate/60">{image.caption || "Event photo"}</p></div>)}</></div></>}
         </div>
         <ul className="divide-y divide-ink-100">
           {events.map((e) => (
@@ -617,6 +650,13 @@ function EventsTab({ events, eventImages }: { events: EventRow[]; eventImages: E
         description="It disappears from the public site immediately."
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+      />
+      <ConfirmDialog
+        open={!!deleteImageTarget}
+        title="Delete event image?"
+        description="This photo will be removed from the event gallery."
+        onConfirm={handleDeleteEventImage}
+        onCancel={() => setDeleteImageTarget(null)}
       />
     </div>
   );

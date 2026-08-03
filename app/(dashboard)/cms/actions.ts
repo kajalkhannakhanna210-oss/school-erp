@@ -61,11 +61,11 @@ export async function deleteNotice(id: string) {
 
 export async function createAlbum(title: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("gallery_albums").insert({ title });
+  const { data, error } = await supabase.from("gallery_albums").insert({ title }).select("id").single();
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
-  return { error: error?.message ?? null };
+  return { error: error?.message ?? null, id: data?.id ?? null };
 }
 
 export async function deleteAlbum(id: string) {
@@ -113,6 +113,15 @@ export async function addEventImage(eventId: string, path: string, caption: stri
   if (!path.startsWith(`events/${eventId}/`)) return { error: "Invalid image path." };
   const supabase = await createClient();
   const { error } = await supabase.from("event_images").insert({ event_id: eventId, image_path: path, caption: caption || null });
+  revalidatePath("/cms");
+  revalidatePath("/");
+  revalidatePath("/events");
+  return { error: error?.message ?? null };
+}
+
+export async function deleteEventImage(id: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_images").delete().eq("id", id);
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
