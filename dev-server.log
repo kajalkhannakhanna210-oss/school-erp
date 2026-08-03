@@ -1280,3 +1280,24 @@
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
  ✓ Compiled in 1346ms (607 modules)
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 1914ms (515 modules)
+ ✓ Compiled in 13.1s (1125 modules)
+ ✓ Compiled in 6.2s (1125 modules)
+ ✓ Compiled in 451ms (516 modules)
+ ✓ Compiled in 1530ms (1125 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: RangeError: Failed to allocate memory
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development.pack.gz: Error: incorrect header check
+ ✓ Compiled in 1283ms (516 modules)
+ ✓ Compiled in 826ms (516 modules)
+ ✓ Compiled in 702ms (516 modules)
+ ✓ Compiled in 738ms (516 modules)
+ ✓ Compiled in 855ms (516 modules)
+ ✓ Compiled in 13.7s (1125 modules)
+ ✓ Compiled in 7.9s (1125 modules)
+ ✓ Compiled in 5.2s (516 modules)
+ ✓ Compiled in 686ms (516 modules)
+ ✓ Compiled in 749ms (516 modules)
+ ✓ Compiled in 665ms (516 modules)
+ ✓ Compiled in 1080ms (516 modules)
+ ✓ Compiled in 666ms (516 modules)
+[?25h

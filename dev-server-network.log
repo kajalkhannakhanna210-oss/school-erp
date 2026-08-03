@@ -142,3 +142,22 @@ Require stack:
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\2.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\2.pack.gz'
  ✓ Compiled in 605ms (170 modules)
  ✓ Compiled in 1694ms (1173 modules)
+ ✓ Compiled in 739ms (1044 modules)
+ ✓ Compiled in 20.2s (2223 modules)
+ ✓ Compiled in 521ms (1046 modules)
+ ✓ Compiled in 1668ms (2223 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\2.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\2.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development.pack.gz: Error: incorrect header check
+ ✓ Compiled in 2.5s (2223 modules)
+ ✓ Compiled in 1015ms (1046 modules)
+ ✓ Compiled in 953ms (1046 modules)
+ ✓ Compiled in 958ms (1046 modules)
+ ✓ Compiled in 1087ms (1046 modules)
+ ✓ Compiled in 13.4s (2223 modules)
+ ✓ Compiled in 8s (2223 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: RangeError: Failed to allocate memory
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\8.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\8.pack.gz'
+ ✓ Compiled in 8.9s (2223 modules)
+ ✓ Compiled in 1233ms (2223 modules)
+ ✓ Compiled in 1872ms (2223 modules)
+[?25h

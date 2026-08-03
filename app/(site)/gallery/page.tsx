@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 
-// Gallery content is managed in the CMS and must not be statically cached.
-export const dynamic = "force-dynamic";
+// CMS updates appear within a minute without requiring a database request per visitor.
+export const revalidate = 60;
 
 export default async function GalleryPage() {
   const supabase = await createClient();

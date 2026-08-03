@@ -51,7 +51,7 @@ export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElem
 export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("rounded-xl border border-ink-100/80 bg-white p-6 shadow-[0_2px_10px_rgba(30,42,74,0.05)]", className)}
+      className={cn("rounded-xl border border-ink-100/80 bg-white p-4 shadow-[0_2px_10px_rgba(30,42,74,0.05)] sm:p-6", className)}
       {...props}
     />
   );

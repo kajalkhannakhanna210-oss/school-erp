@@ -52,7 +52,6 @@ export async function GET(
     },
   });
 }
-
   const buffer = await renderReportPdf(result);
 
   return new NextResponse(Buffer.from(buffer), {

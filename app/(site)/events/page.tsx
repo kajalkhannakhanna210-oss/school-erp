@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(`${value}T00:00:00`));
@@ -9,9 +9,13 @@ function formatDate(value: string) {
 
 export default async function EventsPage() {
   const supabase = await createClient();
-  const { data: events } = await supabase.from("events").select("*").order("event_date", { ascending: false });
+  const [{ data: events }, { data: eventImages }] = await Promise.all([
+    supabase.from("events").select("*").order("event_date", { ascending: false }),
+    supabase.from("event_images").select("id, event_id, image_path, caption").order("created_at", { ascending: false }),
+  ]);
   const eventItems = events ?? [];
   const featuredEvent = eventItems[0];
+  const featuredImages = (eventImages ?? []).filter((image) => image.event_id === featuredEvent?.id);
 
   function imageUrl(path: string | null) {
     if (!path) return "/about-school.jpg";
@@ -47,6 +51,22 @@ export default async function EventsPage() {
           </section>
         ) : (
           <section className="relative z-10 -mt-10 rounded-2xl bg-white p-10 text-center shadow-[0_22px_50px_-30px_rgba(34,47,87,.55)]"><p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Coming soon</p><h2 className="mt-4 font-display text-3xl text-ink-700">Our next school event is on its way.</h2><p className="mx-auto mt-4 max-w-xl leading-7 text-slate/70">Please check back soon for new dates and details.</p></section>
+        )}
+
+        {featuredEvent && featuredImages.length > 0 && (
+          <section className="mt-16">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Latest event gallery</p>
+            <h2 className="mt-3 font-display text-3xl text-ink-700">Photos from {featuredEvent.title}</h2>
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {featuredImages.map((image) => (
+                <figure key={image.id} className="overflow-hidden rounded-xl border border-ink-100 bg-white shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imageUrl(image.image_path)} alt={image.caption || featuredEvent.title} loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                  {image.caption && <figcaption className="p-3 text-xs text-slate/60">{image.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </section>
         )}
 
         {eventItems.length > 1 && (

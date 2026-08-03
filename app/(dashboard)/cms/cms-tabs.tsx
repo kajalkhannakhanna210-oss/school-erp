@@ -7,6 +7,7 @@ import { useToast } from "@/components/toaster";
 import { createClient } from "@/lib/supabase/client";
 import {
   addGalleryImage,
+  addEventImage,
   createAlbum,
   createEvent,
   createNotice,
@@ -26,11 +27,13 @@ type Notice = { id: string; title: string; body: string; publish_date: string };
 type Album = { id: string; title: string };
 type GalleryImage = { id: string; album_id: string; image_path: string; caption: string | null };
 type EventRow = { id: string; title: string; description: string; event_date: string; image_path: string | null };
+type EventImage = { id: string; event_id: string; image_path: string; caption: string | null };
 type ContactMessage = { id: string; name: string; email: string; phone: string | null; message: string; is_read: boolean; created_at: string };
 type Settings = Record<string, string>;
 
 const MAX_PAGE_IMAGE_SIZE = 5 * 1024 * 1024;
 const PAGE_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_UPLOAD_SIZE = 5 * 1024 * 1024;
 
 const TABS = ["pages", "notices", "gallery", "events", "messages", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -49,6 +52,7 @@ export function CmsTabs({
   albums,
   images,
   events,
+  eventImages,
   messages,
   settings,
 }: {
@@ -57,6 +61,7 @@ export function CmsTabs({
   albums: Album[];
   images: GalleryImage[];
   events: EventRow[];
+  eventImages: EventImage[];
   messages: ContactMessage[];
   settings: Settings;
 }) {
@@ -83,7 +88,7 @@ export function CmsTabs({
         {tab === "pages" && <PagesTab pages={pages} />}
         {tab === "notices" && <NoticesTab notices={notices} />}
         {tab === "gallery" && <GalleryTab albums={albums} images={images} />}
-        {tab === "events" && <EventsTab events={events} />}
+        {tab === "events" && <EventsTab events={events} eventImages={eventImages} />}
         {tab === "messages" && <MessagesTab messages={messages} />}
         {tab === "settings" && <SettingsTab settings={settings} />}
       </div>
@@ -313,7 +318,7 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
   const [pending, startTransition] = useTransition();
   const [albumTitle, setAlbumTitle] = useState("");
   const [selectedAlbum, setSelectedAlbum] = useState(albums[0]?.id ?? "");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [caption, setCaption] = useState("");
   const [deleteAlbumTarget, setDeleteAlbumTarget] = useState<Album | null>(null);
   const [deleteImageTarget, setDeleteImageTarget] = useState<GalleryImage | null>(null);
@@ -334,22 +339,32 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
   }
 
   function handleUploadImage() {
-    if (!file || !selectedAlbum) return;
+    if (!files.length || !selectedAlbum) return;
+    const invalidFile = files.find((image) => !PAGE_IMAGE_TYPES.has(image.type) || image.size > MAX_UPLOAD_SIZE);
+    if (invalidFile) {
+      push("Each image must be a JPG, PNG, or WebP and no larger than 5 MB.", "error");
+      return;
+    }
     startTransition(async () => {
       const supabase = createClient();
-      const path = `gallery/${selectedAlbum}/${Date.now()}-${file.name}`;
-      const { error: uploadError } = await supabase.storage.from("site-media").upload(path, file);
-      if (uploadError) {
-        push(uploadError.message, "error");
-        return;
+      let uploaded = 0;
+      for (const [index, image] of files.entries()) {
+        const safeName = image.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const path = `gallery/${selectedAlbum}/${Date.now()}-${index}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from("site-media").upload(path, image);
+        if (uploadError) {
+          push(uploadError.message, "error");
+          break;
+        }
+        const { error } = await addGalleryImage(selectedAlbum, path, caption);
+        if (error) {
+          push(error, "error");
+          break;
+        }
+        uploaded += 1;
       }
-      const { error } = await addGalleryImage(selectedAlbum, path, caption);
-      if (error) {
-        push(error, "error");
-        return;
-      }
-      push("Image added");
-      setFile(null);
+      if (uploaded) push(`${uploaded} image${uploaded === 1 ? "" : "s"} added`);
+      setFiles([]);
       setCaption("");
     });
   }
@@ -413,13 +428,14 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
           <p className="text-sm text-slate/50">Create an album to add photos.</p>
         ) : (
           <>
-            <div className="flex items-end gap-3">
-              <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
+            <div className="flex flex-wrap items-end gap-3">
+              <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="text-sm" />
               <Input placeholder="Caption (optional)" value={caption} onChange={(e) => setCaption(e.target.value)} />
-              <Button variant="ghost" onClick={handleUploadImage} disabled={!file || pending}>
-                Upload
+              <Button variant="ghost" onClick={handleUploadImage} disabled={!files.length || pending}>
+                Upload {files.length > 1 ? `${files.length} images` : "image"}
               </Button>
             </div>
+            <p className="mt-2 text-xs text-slate/50">Select multiple JPG, PNG, or WebP images (up to 5 MB each).</p>
             <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {albumImages.map((img) => (
                 <div key={img.id} className="relative">
@@ -454,22 +470,57 @@ function GalleryTab({ albums, images }: { albums: Album[]; images: GalleryImage[
   );
 }
 
-function EventsTab({ events }: { events: EventRow[] }) {
+function EventsTab({ events, eventImages }: { events: EventRow[]; eventImages: EventImage[] }) {
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
   const [form, setForm] = useState({ title: "", description: "", event_date: "", image_path: "" });
+  const [selectedEvent, setSelectedEvent] = useState(events[0]?.id ?? "");
+  const [files, setFiles] = useState<File[]>([]);
+  const [caption, setCaption] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<EventRow | null>(null);
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const { error } = await createEvent(form);
+      const { error, id } = await createEvent(form);
       if (error) {
         push(error, "error");
         return;
       }
       push("Event created");
       setForm({ title: "", description: "", event_date: "", image_path: "" });
+      if (id) setSelectedEvent(id);
+    });
+  }
+
+  function handleUploadImages() {
+    if (!selectedEvent || !files.length) return;
+    const invalidFile = files.find((image) => !PAGE_IMAGE_TYPES.has(image.type) || image.size > MAX_UPLOAD_SIZE);
+    if (invalidFile) {
+      push("Each image must be a JPG, PNG, or WebP and no larger than 5 MB.", "error");
+      return;
+    }
+    startTransition(async () => {
+      const supabase = createClient();
+      let uploaded = 0;
+      for (const [index, image] of files.entries()) {
+        const safeName = image.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+        const path = `events/${selectedEvent}/${Date.now()}-${index}-${safeName}`;
+        const { error: uploadError } = await supabase.storage.from("site-media").upload(path, image);
+        if (uploadError) {
+          push(uploadError.message, "error");
+          break;
+        }
+        const { error } = await addEventImage(selectedEvent, path, caption);
+        if (error) {
+          push(error, "error");
+          break;
+        }
+        uploaded += 1;
+      }
+      if (uploaded) push(`${uploaded} event image${uploaded === 1 ? "" : "s"} added`);
+      setFiles([]);
+      setCaption("");
     });
   }
 
@@ -531,6 +582,20 @@ function EventsTab({ events }: { events: EventRow[] }) {
         </form>
       </Card>
       <Card>
+        <div className="rounded-lg border border-ink-100 bg-ink-50 p-4">
+          <Label htmlFor="event-photo-upload">Event photo gallery</Label>
+          <select id="event-photo-upload" className="mt-1 w-full" value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+            <option value="">Choose an event</option>
+            {events.map((event) => <option key={event.id} value={event.id}>{event.title} — {event.event_date}</option>)}
+          </select>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <input type="file" accept="image/jpeg,image/png,image/webp" multiple disabled={!selectedEvent} onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="text-sm" />
+            <Input placeholder="Caption for these images (optional)" value={caption} onChange={(e) => setCaption(e.target.value)} />
+            <Button variant="ghost" onClick={handleUploadImages} disabled={!selectedEvent || !files.length || pending}>Upload {files.length > 1 ? `${files.length} images` : "image"}</Button>
+          </div>
+          <p className="mt-2 text-xs text-slate/50">Select multiple JPG, PNG, or WebP images (up to 5 MB each) for the selected event.</p>
+          {selectedEvent && <p className="mt-2 text-xs font-medium text-ink-700">{eventImages.filter((image) => image.event_id === selectedEvent).length} event photos uploaded</p>}
+        </div>
         <ul className="divide-y divide-ink-100">
           {events.map((e) => (
             <li key={e.id} className="flex items-start justify-between py-3">

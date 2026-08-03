@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createPublicClient } from "@/lib/supabase/public";
+import { createPublicClient, withPublicDataTimeout } from "@/lib/supabase/public";
 import { HeroSlider, type HeroSlide } from "./hero-slider";
 
 const HIGHLIGHTS = [
@@ -42,9 +42,8 @@ const DEFAULT_ABOUT_TITLE = "A community where every child can thrive.";
 const DEFAULT_ABOUT_CONTENT =
   "We provide a balanced education that helps students grow academically, creatively, socially, and emotionally. Our teachers create a supportive space where children are encouraged to ask questions, build confidence, and discover their strengths.";
 
-// Homepage highlights are driven by the CMS; always show the latest gallery,
-// event, and notice records.
-export const dynamic = "force-dynamic";
+// Keep public CMS content fast while allowing edits to appear shortly after saving.
+export const revalidate = 60;
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(
@@ -59,7 +58,7 @@ function previewText(content: string, maximumLength = 260) {
 
 export default async function HomePage() {
   const supabase = createPublicClient();
-  const [{ data: page }, { data: aboutPage }, { data: notices }, { data: galleryImages }, { data: events }] = await Promise.all([
+  const contentRequest = Promise.all([
     supabase.from("site_pages").select("title, content, image_path").eq("slug", "home").single(),
     supabase.from("site_pages").select("title, content, image_path").eq("slug", "about").single(),
     supabase
@@ -75,6 +74,10 @@ export default async function HomePage() {
       .order("event_date", { ascending: false })
       .limit(3),
   ]);
+  const [{ data: page }, { data: aboutPage }, { data: notices }, { data: galleryImages }, { data: events }] = await withPublicDataTimeout(
+    contentRequest,
+    [{ data: null }, { data: null }, { data: null }, { data: null }, { data: null }] as Awaited<typeof contentRequest>
+  );
 
   let imageUrl: string | null = null;
   if (page?.image_path) {

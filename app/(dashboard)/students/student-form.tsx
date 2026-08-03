@@ -129,7 +129,7 @@ export function StudentForm({
               </div>
             </>
           )}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="roll_number">Roll number</Label>
               <Input
@@ -153,7 +153,7 @@ export function StudentForm({
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="date_of_birth">Date of birth</Label>
               <Input
@@ -228,7 +228,7 @@ export function StudentForm({
               ))}
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="class_id">Class</Label>
               <select

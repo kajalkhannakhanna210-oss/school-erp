@@ -40,7 +40,7 @@ export function StudentFilters({
 
   return (
     <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
-      <div className="w-56">
+      <div className="w-full sm:w-56">
         <Input
           placeholder="Search name, admission no, mobile"
           value={q}

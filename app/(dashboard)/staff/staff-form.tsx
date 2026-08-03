@@ -95,7 +95,7 @@ export function StaffForm({
       <Card>
         <h2 className="font-display text-lg text-ink-700">Employment</h2>
         <div className="mt-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="department">Department</Label>
               <Input
@@ -113,7 +113,7 @@ export function StaffForm({
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="salary">Salary</Label>
               <Input

@@ -114,7 +114,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
         <Card className="lg:col-span-2">
           <h2 className="font-display text-lg text-ink-700">Details</h2>
-          <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <dl className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
             <Field label="Roll number" value={s.roll_number} />
             <Field label="Gender" value={s.gender} />
             <Field label="Date of birth" value={s.date_of_birth} />

@@ -19,14 +19,18 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    try {
     const supabase = createClient();
     const normalizedPhone = identifier.replace(/[\s()-]/g, "");
     const isPhone = normalizedPhone.startsWith("+") || /^\d{10,15}$/.test(normalizedPhone);
-    const { data: signInData, error: passwordError } = await supabase.auth.signInWithPassword(
-      isPhone
-        ? { phone: normalizedPhone.startsWith("+") ? normalizedPhone : `+91${normalizedPhone}`, password }
-        : { email: identifier, password }
-    );
+    const { data: signInData, error: passwordError } = await Promise.race([
+      supabase.auth.signInWithPassword(
+        isPhone
+          ? { phone: normalizedPhone.startsWith("+") ? normalizedPhone : `+91${normalizedPhone}`, password }
+          : { email: identifier, password }
+      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Sign-in request timed out")), 12_000)),
+    ]);
 
     if (passwordError) {
       setLoading(false);
@@ -61,6 +65,10 @@ export default function LoginPage() {
     setLoading(false);
     router.replace("/dashboard");
     router.refresh();
+    } catch {
+      setLoading(false);
+      setError("We couldn't reach the sign-in service. Check your internet connection and try again.");
+    }
   }
 
   return (

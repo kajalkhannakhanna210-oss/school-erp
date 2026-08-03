@@ -16,6 +16,7 @@ export default async function CmsPage() {
     { data: albums },
     { data: images },
     { data: events },
+    { data: eventImages },
     { data: messages },
     { data: settingsRows },
   ] = await Promise.all([
@@ -24,6 +25,7 @@ export default async function CmsPage() {
     supabase.from("gallery_albums").select("*").order("created_at", { ascending: false }),
     supabase.from("gallery_images").select("*").order("created_at", { ascending: false }),
     supabase.from("events").select("*").order("event_date", { ascending: false }),
+    supabase.from("event_images").select("*").order("created_at", { ascending: false }),
     supabase.from("contact_messages").select("*").order("created_at", { ascending: false }),
     supabase.from("site_settings").select("key, value"),
   ]);
@@ -42,6 +44,7 @@ export default async function CmsPage() {
         albums={albums ?? []}
         images={images ?? []}
         events={events ?? []}
+        eventImages={eventImages ?? []}
         messages={messages ?? []}
         settings={settings}
       />

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
+import { withPublicDataTimeout } from "@/lib/supabase/public";
+import { MobileNavigation } from "./mobile-navigation";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -38,10 +40,11 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 
   let settingsRows: { key: string; value: string }[] = [];
   try {
-    const result = await supabase
-      .from("site_settings")
-      .select("key, value")
-      .in("key", ["school_name", "contact_email", "contact_phone", "contact_address", "facebook_url", "twitter_url", "instagram_url"]);
+    const settingsRequest = supabase.from("site_settings").select("key, value").in("key", ["school_name", "contact_email", "contact_phone", "contact_address", "facebook_url", "twitter_url", "instagram_url"]);
+    const result = await withPublicDataTimeout(
+      settingsRequest,
+      { data: [] as { key: string; value: string }[] } as Awaited<typeof settingsRequest>
+    );
     settingsRows = (result.data ?? []) as { key: string; value: string }[];
   } catch {
     // Keep public pages available with fallback school details during outages.
@@ -70,11 +73,11 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
             </div>
           </div>
         </div>
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:py-5">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:py-5">
           <Link href="/" className="flex items-center gap-3" aria-label={`${schoolName} home`}>
             <span className="grid h-11 w-11 place-items-center rounded-full border-2 border-gold bg-ink-900 font-display text-base tracking-wide text-gold shadow-sm">{schoolInitials}</span>
             <span>
-              <span className="block font-display text-xl leading-none text-ink-700">{schoolName}</span>
+              <span className="block max-w-[11rem] truncate font-display text-base leading-none text-ink-700 sm:max-w-none sm:text-xl">{schoolName}</span>
               <span className="mt-1 block font-mono text-[9px] uppercase tracking-[0.2em] text-gold-600">Inspire · Learn · Lead</span>
             </span>
           </Link>
@@ -87,9 +90,10 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
               </Link>
             ))}
           </nav>
+          <MobileNavigation organisationLinks={ORGANISATION_LINKS} informationLinks={INFORMATION_LINKS} navLinks={NAV_LINKS} />
           <Link
             href="/admin/login"
-            className="rounded-md bg-ink-700 px-4 py-2.5 text-sm font-semibold text-paper shadow-sm transition hover:bg-ink-600 hover:shadow-md"
+            className="hidden rounded-md bg-ink-700 px-4 py-2.5 text-sm font-semibold text-paper shadow-sm transition hover:bg-ink-600 hover:shadow-md sm:inline-flex"
           >
             Admin login
           </Link>

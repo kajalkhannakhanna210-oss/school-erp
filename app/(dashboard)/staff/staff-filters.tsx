@@ -24,7 +24,7 @@ export function StaffFilters() {
 
   return (
     <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
-      <div className="w-64">
+      <div className="w-full sm:w-64">
         <Input
           placeholder="Search department, designation, employee ID"
           value={q}

@@ -90,3 +90,30 @@
  ✓ Compiled in 603ms (170 modules)
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
  ✓ Compiled in 713ms (492 modules)
+ ✓ Compiled in 581ms (264 modules)
+ ✓ Compiled in 5.4s (264 modules)
+ ✓ Compiled in 6.5s (763 modules)
+ ✓ Compiled in 2.9s (763 modules)
+ ✓ Compiled in 847ms (763 modules)
+ ✓ Compiled in 413ms (267 modules)
+ ✓ Compiled in 342ms (267 modules)
+ ✓ Compiled in 1006ms (763 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: RangeError: Failed to allocate memory
+<w> [webpack.cache.PackFileCacheStrategy] Restoring pack failed from C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development.pack.gz: Error: incorrect header check
+ ✓ Compiled in 1128ms (267 modules)
+ ✓ Compiled in 730ms (267 modules)
+ ✓ Compiled in 564ms (267 modules)
+ ✓ Compiled in 599ms (267 modules)
+ ✓ Compiled in 630ms (267 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 9.6s (763 modules)
+ ✓ Compiled in 4.8s (763 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\7.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\server-development\7.pack.gz'
+ ✓ Compiled in 3.4s (267 modules)
+ ✓ Compiled in 571ms (267 modules)
+ ✓ Compiled in 654ms (267 modules)
+ ✓ Compiled in 535ms (267 modules)
+ ✓ Compiled in 816ms (267 modules)
+ ✓ Compiled in 502ms (267 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\3.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\3.pack.gz'
+[?25h

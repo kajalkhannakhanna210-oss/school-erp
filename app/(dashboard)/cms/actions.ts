@@ -99,10 +99,20 @@ export async function deleteGalleryImage(id: string) {
 
 export async function createEvent(input: { title: string; description: string; event_date: string; image_path?: string }) {
   const supabase = await createClient();
-  const { error } = await supabase.from("events").insert({
+  const { data, error } = await supabase.from("events").insert({
     ...input,
     image_path: input.image_path?.trim() || null,
-  });
+  }).select("id").single();
+  revalidatePath("/cms");
+  revalidatePath("/");
+  revalidatePath("/events");
+  return { error: error?.message ?? null, id: data?.id ?? null };
+}
+
+export async function addEventImage(eventId: string, path: string, caption: string) {
+  if (!path.startsWith(`events/${eventId}/`)) return { error: "Invalid image path." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_images").insert({ event_id: eventId, image_path: path, caption: caption || null });
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");

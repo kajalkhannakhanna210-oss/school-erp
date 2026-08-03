@@ -84,7 +84,7 @@ export default async function StaffDetailPage({ params, searchParams }: { params
 
         <Card className="lg:col-span-2">
           <h2 className="font-display text-lg text-ink-700">Details</h2>
-          <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <dl className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
             <Field label="Qualification" value={s.qualification} />
             <Field label="Mobile" value={s.mobile_number} />
             <Field label="Contact email" value={s.contact_email} />

@@ -1,0 +1,284 @@
+
+> school-management@0.1.0 dev
+> next dev --hostname 127.0.0.1
+
+  ▲ Next.js 14.2.35
+  - Local:        http://127.0.0.1:3000
+  - Network:      http://127.0.0.1:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1611ms (170 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 7.2s (606 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ GET / 200 in 14960ms
+ GET / 200 in 7297ms
+ GET / 200 in 7257ms
+ GET / 200 in 7253ms
+ ✓ Compiled in 1007ms (606 modules)
+ ✓ Compiled in 394ms (264 modules)
+ ✓ Compiled in 433ms (264 modules)
+ GET / 200 in 7335ms
+ ✓ Compiled in 352ms (342 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ GET / 200 in 7282ms
+ ○ Compiling /login ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled /login in 4.3s (716 modules)
+ GET /login 200 in 4523ms
+ ✓ Compiled in 346ms (404 modules)
+ ✓ Compiled in 846ms (730 modules)
+ ✓ Compiled in 904ms (730 modules)
+ ✓ Compiled in 977ms (730 modules)
+ ⨯ ./app/(site)/mobile-navigation.tsx
+Error: Failed to read source code from C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\app\(site)\mobile-navigation.tsx
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Import trace for requested module:
+./app/(site)/mobile-navigation.tsx
+./app/(site)/layout.tsx
+ ✓ Compiled in 554ms (325 modules)
+ ○ Compiling /_error ...
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled /_error in 7s (881 modules)
+ ✓ Compiled in 830ms (498 modules)
+ ✓ Compiled in 389ms (383 modules)
+Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+ ⨯ Internal error: TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at LinkComponent (./node_modules/next/dist/client/link.js:125:40)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:44746)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50067)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+digest: "1195507556"
+Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at usePathname (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:121:34)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:159:50)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:15122
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at usePathname (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:121:34)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:159:50)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:15122
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  page: '/'
+}
+ GET / 500 in 4116ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ GET / 200 in 1654ms
+ ✓ Compiled /login in 272ms (445 modules)
+ GET /login 200 in 599ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled in 1389ms (957 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ⨯ ./app/(site)/mobile-navigation.tsx
+Error: Failed to read source code from C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\app\(site)\mobile-navigation.tsx
+
+Caused by:
+    The system cannot find the file specified. (os error 2)
+
+Import trace for requested module:
+./app/(site)/mobile-navigation.tsx
+./app/(site)/layout.tsx
+ ✓ Compiled in 560ms (511 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 1916ms (881 modules)
+ ✓ Compiled in 1357ms (895 modules)
+Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+ ⨯ Internal error: TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at LinkComponent (./node_modules/next/dist/client/link.js:125:40)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:44746)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at aC (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:52874)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50095)
+    at aj (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53793)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42336
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:42822)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:50067)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+digest: "1195507556"
+Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at usePathname (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:121:34)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:159:50)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:15122
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+ ⨯ TypeError: Cannot read properties of null (reading 'useContext')
+    at t.useContext (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:162364)
+    at usePathname (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:121:34)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:159:50)
+    at au (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:10446)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:15122
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46505)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at ab (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:11808)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16871
+    at aw (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:16908)
+    at a_ (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:49776)
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:58612
+    at C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59270
+    at aN (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:59278)
+    at Timeout._onTimeout (C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:6939)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7) {
+  page: '/'
+}
+ GET / 500 in 2635ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 2.2s (445 modules)
+ GET /login 200 in 2575ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ GET / 200 in 1695ms
+ GET /login 200 in 115ms
+ ✓ Compiled in 1084ms (895 modules)
+ ✓ Compiled in 1747ms (895 modules)
+ ○ Compiling /admin/login ...
+ ✓ Compiled /admin/login in 906ms (959 modules)
+ ✓ Compiled /login in 282ms (448 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ GET /login 200 in 230ms
+ GET /login 200 in 81ms
+ GET /login 200 in 65ms
+ ✓ Compiled in 1200ms (961 modules)
+ GET /login 200 in 117ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
