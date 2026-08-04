@@ -69,11 +69,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   const s = student as any;
 
   return (
-    <div>
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-2xl text-ink-700">{s.profiles?.full_name}</h1>
-          <p className="mt-1 text-sm text-slate/60">
+    <div className="min-w-0">
+      <div className="flex flex-col gap-4 rounded-xl border border-ink-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="min-w-0"><p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Student profile</p>
+          <h1 className="mt-2 break-words font-display text-3xl font-semibold text-ink-700">{s.profiles?.full_name}</h1>
+          <p className="mt-2 break-words text-sm text-slate/60">
             <span className="font-mono">{s.admission_number}</span> · {s.classes?.name}
             {s.sections?.name && ` - ${s.sections.name}`} · {s.academic_sessions?.name}
             {!s.is_active && (
@@ -85,19 +85,19 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           </p>
         </div>
         {canManage && (
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 rounded-xl border border-gold-200 bg-gold-50/60 p-2.5 sm:shrink-0"><p className="px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-700">Quick actions</p><div className="flex flex-wrap gap-2">
             <Link href={`/students/${s.id}/edit`}>
-              <Button variant="ghost">Edit</Button>
+              <Button>Edit student</Button>
             </Link>
             <ArchiveControl studentId={s.id} isActive={s.is_active} />
-          </div>
+          </div></div>
         )}
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <h2 className="font-display text-lg text-ink-700">Photo</h2>
-          <div className="mt-4 flex h-40 w-40 items-center justify-center overflow-hidden rounded-md bg-ink-50">
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
+        <Card className="border-ink-100 shadow-sm lg:col-span-1">
+          <h2 className="font-display text-xl font-semibold text-ink-700">Student photo</h2>
+          <div className="mx-auto mt-5 flex aspect-square w-full max-w-56 items-center justify-center overflow-hidden rounded-xl border border-gold-200 bg-gold-50/40">
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photoUrl} alt={s.profiles?.full_name} className="h-full w-full object-cover" />
@@ -112,9 +112,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           )}
         </Card>
 
-        <Card className="lg:col-span-2">
-          <h2 className="font-display text-lg text-ink-700">Details</h2>
-          <dl className="mt-4 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+        <Card className="border-ink-100 shadow-sm lg:col-span-2">
+          <h2 className="font-display text-xl font-semibold text-ink-700">Student details</h2>
+          <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
             <Field label="Roll number" value={s.roll_number} />
             <Field label="Gender" value={s.gender} />
             <Field label="Date of birth" value={s.date_of_birth} />
@@ -128,8 +128,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           </dl>
         </Card>
 
-        <Card className="lg:col-span-3">
-          <h2 className="font-display text-lg text-ink-700">Documents</h2>
+        <Card className="border-ink-100 shadow-sm lg:col-span-3">
+          <h2 className="font-display text-xl font-semibold text-ink-700">Documents</h2>
           <div className="mt-4">
             <DocumentUpload studentId={s.id} documents={documentsWithUrls} canManage={canManage} />
           </div>
@@ -159,9 +159,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-slate/50">{label}</dt>
-      <dd className="mt-0.5 font-medium text-slate">{value || "—"}</dd>
+    <div className="min-w-0 rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2.5">
+      <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate/50">{label}</dt>
+      <dd className="mt-1 break-words font-medium text-ink-700">{value || "—"}</dd>
     </div>
   );
 }

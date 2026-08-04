@@ -19,6 +19,7 @@ export function StudentFilters({
   const [q, setQ] = useState(searchParams?.get("q") ?? "");
   const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
   const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
+  const [admission, setAdmission] = useState(searchParams?.get("admission") ?? "");
 
   const filteredSections = sections.filter((s) => !classId || s.class_id === classId);
 
@@ -28,6 +29,7 @@ export function StudentFilters({
     if (q) params.set("q", q);
     if (classId) params.set("class", classId);
     if (sectionId) params.set("section", sectionId);
+    if (admission) params.set("admission", admission);
     router.push(`/students?${params.toString()}`);
   }
 
@@ -35,20 +37,21 @@ export function StudentFilters({
     setQ("");
     setClassId("");
     setSectionId("");
+    setAdmission("");
     router.push("/students");
   }
 
   return (
-    <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-3">
+    <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-2">
       <div className="w-full sm:w-56">
-        <Input
+        <Input className="mt-0 min-h-10" 
           placeholder="Search name, admission no, mobile"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
       </div>
       <select
-        className="mt-1 rounded-md border border-ink-100 px-3 py-2 text-sm"
+        className="min-h-10 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm"
         value={classId}
         onChange={(e) => {
           setClassId(e.target.value);
@@ -62,8 +65,13 @@ export function StudentFilters({
           </option>
         ))}
       </select>
+      <select className="min-h-10 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm" value={admission} onChange={(e) => setAdmission(e.target.value)} aria-label="Admission number status">
+        <option value="">All admission numbers</option>
+        <option value="assigned">With admission number</option>
+        <option value="unassigned">Without admission number</option>
+      </select>
       <select
-        className="mt-1 rounded-md border border-ink-100 px-3 py-2 text-sm"
+        className="min-h-10 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm"
         value={sectionId}
         onChange={(e) => setSectionId(e.target.value)}
         disabled={!classId}
@@ -75,10 +83,10 @@ export function StudentFilters({
           </option>
         ))}
       </select>
-      <Button type="submit" variant="ghost">
+      <Button type="submit" className="min-h-10">
         Apply
       </Button>
-      <Button type="button" variant="ghost" onClick={clearFilters}>
+      <Button type="button" variant="ghost" className="min-h-10 bg-white" onClick={clearFilters}>
         Clear
       </Button>
     </form>

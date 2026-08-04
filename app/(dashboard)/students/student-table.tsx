@@ -38,10 +38,10 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-ink-100 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
+          <tr className="border-b border-ink-100 bg-ink-50/70 text-left text-xs font-bold uppercase tracking-[0.12em] text-slate/60">
             <th className="px-4 py-3">Admission No</th>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Class / Section</th>
@@ -52,23 +52,26 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
         </thead>
         <tbody>
           {students.map((s) => (
-            <tr key={s.id} className="border-b border-ink-100 last:border-0">
+            <tr key={s.id} className="border-b border-ink-100 transition hover:bg-gold-50/30 last:border-0">
               <td className="px-4 py-3 font-mono">{s.admission_number}</td>
               <td className="px-4 py-3">
-                <Link href={`/students/${s.id}`} className="font-medium text-ink-700 hover:underline">
-                  {s.profiles?.full_name}
+                <Link href={`/students/${s.id}`} className="flex items-center gap-3 font-semibold text-ink-700 hover:text-gold-600">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{(s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span><span className="truncate">{s.profiles?.full_name}</span>
                 </Link>
               </td>
               <td className="px-4 py-3 text-slate/70">
                 {s.classes?.name} {s.sections?.name && `- ${s.sections.name}`}
               </td>
               <td className="px-4 py-3 text-slate/70">{s.mobile_number}</td>
-              <td className="px-4 py-3">{!s.is_active && <Badge>Archived</Badge>}</td>
+              <td className="px-4 py-3">{s.is_active ? <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span> : <Badge>Archived</Badge>}</td>
               <td className="px-4 py-3 text-right">
                 {canManage && (
-                  <Button variant="ghost" onClick={() => setArchiveTarget(s)} disabled={pending}>
-                    {s.is_active ? "Archive" : "Restore"}
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Link href={`/students/${s.id}/edit`}><Button variant="ghost">Edit</Button></Link>
+                    <Button variant="ghost" onClick={() => setArchiveTarget(s)} disabled={pending}>
+                      {s.is_active ? "Archive" : "Restore"}
+                    </Button>
+                  </div>
                 )}
               </td>
             </tr>

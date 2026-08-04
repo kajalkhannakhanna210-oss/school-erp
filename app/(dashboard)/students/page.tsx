@@ -6,12 +6,12 @@ import { StudentFilters } from "./student-filters";
 import { StudentTable, type StudentRow } from "./student-table";
 import { BulkStudentUpdate } from "./bulk-update";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: { q?: string; class?: string; section?: string; page?: string };
+  searchParams: { q?: string; class?: string; section?: string; admission?: string; page?: string };
 }) {
   const supabase = await createClient();
 
@@ -32,6 +32,8 @@ export default async function StudentsPage({
 
   if (searchParams.class) query = query.eq("class_id", searchParams.class);
   if (searchParams.section) query = query.eq("section_id", searchParams.section);
+  if (searchParams.admission === "assigned") query = query.not("admission_number", "is", null);
+  if (searchParams.admission === "unassigned") query = query.is("admission_number", null);
   if (searchParams.q) {
     // Strip characters that have special meaning in a PostgREST filter string.
     const q = searchParams.q.replace(/[,()]/g, "");
@@ -54,14 +56,15 @@ export default async function StudentsPage({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-2 rounded-lg border border-ink-100 border-l-4 border-l-gold-500 bg-white px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <div>
-          <h1 className="font-display text-2xl text-ink-700">Students</h1>
-          <p className="mt-1 text-sm text-slate/60">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-gold-700">Student directory</p>
+          <h1 className="mt-0.5 font-display text-xl font-semibold text-ink-700">Students</h1>
+          <p className="text-xs text-slate/60">
             {count ?? 0} student{count === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
           <ExportCsvButton
             rows={rows.map((s) => ({
               admission_number: s.admission_number,
@@ -75,18 +78,21 @@ export default async function StudentsPage({
           {canManage && (
             <>
               <BulkStudentUpdate ids={rows.map((student) => student.id)} classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} />
-              <Link href="/students/promote">
-                <Button variant="ghost">Promote</Button>
-              </Link>
+            <Link href="/students/promote">
+              <Button variant="ghost" className="border border-ink-100 bg-ink-50">Promote students</Button>
+            </Link>
+            <Link href="/students/admission-allotment">
+              <Button variant="ghost" className="border border-ink-100 bg-ink-50">Admission allotment</Button>
+            </Link>
               <Link href="/students/new">
-                <Button>Add Student</Button>
+              <Button>Add student</Button>
               </Link>
             </>
           )}
         </div>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-2 rounded-lg border border-ink-100 bg-ink-50/50 px-2.5 py-1.5 shadow-sm sm:px-3">
         <StudentFilters classes={classes ?? []} sections={sections ?? []} />
       </div>
 

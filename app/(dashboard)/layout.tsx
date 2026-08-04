@@ -74,7 +74,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <SignOutButton />
           </div>
         </header>
-        <main className="min-w-0 overflow-x-hidden p-4 sm:p-5 lg:p-8">{children}</main>
+        <main className="min-h-[calc(100vh-4.5rem)] min-w-0 overflow-x-hidden bg-cover bg-fixed bg-center p-4 sm:p-5 lg:p-8" style={{ backgroundImage: "linear-gradient(135deg, rgba(248,249,253,.96), rgba(243,245,250,.9)), url('/about-school.jpg')" }}>{children}</main>
       </div>
     </div>
   );

@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import { createStudent, updateStudent } from "./actions";
+import { createClient } from "@/lib/supabase/client";
+import { setStudentPhoto } from "./actions";
 
 type Option = { id: string; name: string };
 
@@ -13,6 +15,7 @@ type FormState = {
   contact_email: string;
   temporary_password: string;
   roll_number: string;
+  admission_number: string;
   father_name: string;
   mother_name: string;
   gender: string;
@@ -44,12 +47,22 @@ export function StudentForm({
   const router = useRouter();
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!photo) { setPhotoPreview(null); return; }
+    const url = URL.createObjectURL(photo);
+    setPhotoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [photo]);
 
   const [form, setForm] = useState<FormState>({
     full_name: initial?.full_name ?? "",
     contact_email: initial?.contact_email ?? "",
     temporary_password: "",
     roll_number: initial?.roll_number ?? "",
+    admission_number: initial?.admission_number ?? "",
     father_name: initial?.father_name ?? "",
     mother_name: initial?.mother_name ?? "",
     gender: initial?.gender ?? "",
@@ -74,7 +87,17 @@ export function StudentForm({
         // reaching this line means it returned an error instead.
         if (result?.error) {
           push(result.error, "error");
+          return;
         }
+        if (photo && result?.id) {
+          if (!photo.type.startsWith("image/") || photo.size > 5 * 1024 * 1024) { push("Photo must be an image up to 5 MB.", "error"); return; }
+          const path = `${result.id}/${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+          const { error: uploadError } = await createClient().storage.from("student-photos").upload(path, photo, { upsert: true });
+          if (uploadError) { push(uploadError.message, "error"); return; }
+          const photoResult = await setStudentPhoto(result.id, path);
+          if (photoResult.error) { push(photoResult.error, "error"); return; }
+        }
+        router.push(`/students/${result?.id}`);
         return;
       }
 
@@ -93,6 +116,7 @@ export function StudentForm({
       <Card>
         <h2 className="font-display text-lg text-ink-700">Basic details</h2>
         <div className="mt-4 space-y-4">
+          {mode === "create" && <div><Label htmlFor="student-photo">Student photo</Label><div className="mt-1.5 flex flex-col gap-4 rounded-xl border border-gold-300 bg-gold-50/40 p-3 shadow-sm sm:flex-row sm:items-center"><div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-gold-200 bg-white text-center text-xs text-slate/50">{photoPreview ? <img src={photoPreview} alt="Selected student preview" className="h-full w-full object-cover" /> : "Photo preview"}</div><div className="min-w-0 flex-1"><input id="student-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} className="block w-full text-sm text-slate" /><p className="mt-1 text-xs text-slate/60">Optional · JPG, PNG, or WebP up to 5 MB</p></div></div></div>}
           <div>
             <Label htmlFor="full_name">Student name</Label>
             <Input
@@ -109,6 +133,9 @@ export function StudentForm({
                 <Input
                   id="contact_email"
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
                   required
                   value={form.contact_email}
                   onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
@@ -130,6 +157,7 @@ export function StudentForm({
             </>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
+            {mode === "create" && <div><Label htmlFor="admission_number">Admission number</Label><Input id="admission_number" placeholder="Optional — auto-generated if blank" value={form.admission_number} onChange={(e) => setForm({ ...form, admission_number: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "") })} /><p className="mt-1 text-xs text-slate/60">Optional. A unique admission number will be generated if left blank.</p></div>}
             <div>
               <Label htmlFor="roll_number">Roll number</Label>
               <Input
@@ -175,11 +203,17 @@ export function StudentForm({
           </div>
           <div>
             <Label htmlFor="mobile_number">Mobile number</Label>
-            <Input
-              id="mobile_number"
-              value={form.mobile_number}
-              onChange={(e) => setForm({ ...form, mobile_number: e.target.value })}
-            />
+                <Input
+                  id="mobile_number"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  pattern="[6-9][0-9]{9}"
+                  maxLength={10}
+                  value={form.mobile_number}
+                  onChange={(e) => setForm({ ...form, mobile_number: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                />
+              <p className="mt-1 text-xs text-slate/60">Optional · enter a valid 10-digit mobile number starting with 6–9.</p>
           </div>
           <div>
             <Label htmlFor="address">Address</Label>
@@ -233,7 +267,7 @@ export function StudentForm({
               <Label htmlFor="class_id">Class</Label>
               <select
                 id="class_id"
-                required
+                required={mode === "edit"}
                 className="mt-1 w-full rounded-md border border-ink-100 px-3 py-2 text-sm"
                 value={form.class_id}
                 onChange={(e) => setForm({ ...form, class_id: e.target.value, section_id: "" })}
@@ -247,11 +281,11 @@ export function StudentForm({
               </select>
             </div>
             <div>
-              <Label htmlFor="section_id">Section</Label>
+              <Label htmlFor="section_id" className={mode === "create" ? "hidden" : ""}>Section</Label>
               <select
                 id="section_id"
-                required
-                className="mt-1 w-full rounded-md border border-ink-100 px-3 py-2 text-sm"
+                required={mode === "edit"}
+                className={`mt-1 w-full rounded-md border border-ink-100 px-3 py-2 text-sm ${mode === "create" ? "hidden" : ""}`}
                 value={form.section_id}
                 onChange={(e) => setForm({ ...form, section_id: e.target.value })}
                 disabled={!form.class_id}

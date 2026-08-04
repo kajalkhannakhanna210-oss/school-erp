@@ -11,6 +11,7 @@ type StudentInput = {
   contact_email: string;
   temporary_password: string;
   roll_number: string;
+  admission_number: string;
   father_name: string;
   mother_name: string;
   gender: string;
@@ -26,6 +27,10 @@ type StudentInput = {
 
 export async function createStudent(input: StudentInput) {
   await requireSuperAdmin();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.contact_email.trim())) return { error: "Enter a valid email address." };
+  if (input.mobile_number && !/^[6-9]\d{9}$/.test(input.mobile_number.trim())) return { error: "Mobile number must be a valid 10-digit number starting with 6–9." };
+  if (input.admission_number && !/^[A-Z0-9-]{3,30}$/.test(input.admission_number.trim().toUpperCase())) return { error: "Admission number may contain only letters, numbers, and hyphens." };
 
   if (input.temporary_password.length < 8) {
     return { error: "Temporary password must be at least 8 characters." };
@@ -49,6 +54,7 @@ export async function createStudent(input: StudentInput) {
   const supabase = await createClient();
   const { error: insertError } = await supabase.from("students").insert({
     id: created.user.id,
+    admission_number: input.admission_number.trim() ? input.admission_number.trim().toUpperCase() : null,
     contact_email: input.contact_email,
     roll_number: input.roll_number || null,
     father_name: input.father_name || null,
@@ -71,7 +77,7 @@ export async function createStudent(input: StudentInput) {
   }
 
   revalidatePath("/students");
-  redirect(`/students/${created.user.id}`);
+  return { error: null, id: created.user.id };
 }
 
 type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email" | "temporary_password">> & {
@@ -84,6 +90,7 @@ export async function updateStudent(id: string, input: StudentUpdateInput) {
   // Login credentials are creation-only. Drop them from an edit payload so
   // they can never be written to the student record.
   const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, ...studentFields } = input;
+  if (studentFields.mobile_number && !/^[6-9]\d{9}$/.test(studentFields.mobile_number.trim())) return { error: "Mobile number must be a valid 10-digit number starting with 6–9." };
   const supabase = await createClient();
 
   const [{ error: profileError }, { error: studentError }] = await Promise.all([
@@ -103,6 +110,16 @@ export async function setStudentActive(id: string, isActive: boolean) {
   const { error } = await supabase.from("students").update({ is_active: isActive }).eq("id", id);
   revalidatePath("/students");
   revalidatePath(`/students/${id}`);
+  return { error: error?.message ?? null };
+}
+
+export async function allotAdmissionNumber(studentId: string, admissionNumber: string, sectionId?: string) {
+  await requireSuperAdmin();
+  const value = admissionNumber.trim().toUpperCase();
+  if (!/^[A-Z0-9-]{3,30}$/.test(value)) return { error: "Admission number may contain only letters, numbers, and hyphens." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("students").update({ admission_number: value, ...(sectionId ? { section_id: sectionId } : {}) }).eq("id", studentId);
+  revalidatePath("/students"); revalidatePath(`/students/${studentId}`);
   return { error: error?.message ?? null };
 }
 

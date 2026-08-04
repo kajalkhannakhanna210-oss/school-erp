@@ -8,11 +8,13 @@ import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart } fr
 const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
     "Total Students",
+    "New Admissions",
+    "With Admission No",
+    "Without Admission No",
     "Total Staff",
     "Today's Collection",
     "Monthly Collection",
     "Pending Fees",
-    "New Admissions",
   ],
   staff: ["My Students", "Attendance to Mark Today", "Notices"],
   student: ["Fee Status", "Attendance Summary", "Notices"],
@@ -38,6 +40,9 @@ export default async function DashboardPage() {
     role === "super_admin" || role === "staff"
       ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true)
       : { count: null };
+
+  const { count: withAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true).not("admission_number", "is", null) : { count: null };
+  const { count: withoutAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true).is("admission_number", null) : { count: null };
 
   const { count: staffCount } =
     role === "super_admin"
@@ -189,6 +194,8 @@ export default async function DashboardPage() {
 
   const values: Record<string, string> = {
     "Total Students": studentCount != null ? String(studentCount) : "—",
+    "With Admission No": withAdmissionCount != null ? String(withAdmissionCount) : "—",
+    "Without Admission No": withoutAdmissionCount != null ? String(withoutAdmissionCount) : "—",
     "My Students": studentCount != null ? String(studentCount) : "—",
     "Total Staff": staffCount != null ? String(staffCount) : "—",
     "Attendance to Mark Today": attendanceToMarkToday ?? "—",
@@ -203,12 +210,14 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-ink-700">Welcome, {profile?.full_name}</h1>
-      <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {widgets.map((w) => (
-          <Card key={w}>
-            <p className="text-xs uppercase tracking-wide text-slate/50">{w}</p>
-            <p className="mt-2 font-display text-3xl text-ink-700">{values[w] ?? "—"}</p>
+      <h1 className="font-sans text-3xl font-extrabold tracking-tight text-[#071b41] sm:text-4xl">Welcome, {profile?.full_name}</h1>
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {widgets.map((w, index) => (
+          <Card key={w} className="rounded-xl border-[#dce5f5] bg-white p-2.5 shadow-[0_8px_24px_rgba(30,42,74,0.06)]">
+            <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#eef4ff] text-sm font-bold text-[#1261e8]">{w.includes("Fee") || w.includes("Collection") ? "₹" : w.includes("Admission") ? "✓" : ["▣", "◌", "✓", "◫", "↗"][index % 5]}</div>
+            <p className="mt-1 truncate text-xs font-medium text-[#60749a]">{w}</p>
+            <p className="font-display text-xl font-bold tracking-tight text-[#071b41]">{values[w] ?? "—"}</p>
+            <p className="truncate text-[10px] text-[#60749a]">{w === "With Admission No" ? "Assigned records" : w === "Without Admission No" ? "Needs assignment" : w === "Total Students" ? "Active records" : "Dashboard summary"}</p>
           </Card>
         ))}
       </div>
@@ -242,7 +251,7 @@ export default async function DashboardPage() {
             <AdmissionComparisonChart data={admissionComparison} />
             <Card><p className="text-xs uppercase tracking-wide text-slate/50">Today&apos;s attendance</p><p className="mt-2 font-display text-4xl text-ink-700">{todayAttendance}</p><p className="mt-1 text-sm text-slate/60">Present and late students / marked attendance</p></Card>
           </div>
-          <Card className="mt-6"><p className="text-xs uppercase tracking-wide text-slate/50">Website content</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{websiteStats.map((item) => <div key={item.label} className="rounded-lg bg-ink-50 p-4"><p className="text-sm text-slate/70">{item.label}</p><p className="mt-1 font-display text-3xl text-ink-700">{item.count}</p><p className="mt-1 text-xs text-slate/50">Last update: {item.updated}</p></div>)}</div></Card>
+          <Card className="mt-6 border-[#d5e2f7] bg-[#f1f6ff] shadow-[0_8px_24px_rgba(30,42,74,0.06)]"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#1261e8]">Website content</p><p className="mt-1 text-sm text-[#60749a]">Content published across the public website</p></div><span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#1261e8] shadow-sm">LIVE</span></div><div className="mt-4 grid gap-3 sm:grid-cols-3">{websiteStats.map((item, index) => <div key={item.label} className="rounded-xl border border-[#d5e2f7] bg-white/80 p-3"><div className="flex items-center justify-between"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#eef4ff] text-sm font-bold text-[#1261e8]">{["▦", "◉", "! "][index]}</span><span className="text-xs font-semibold text-[#60749a]">Live</span></div><p className="mt-3 truncate text-xs font-bold uppercase tracking-wide text-[#60749a]">{item.label}</p><p className="mt-0.5 font-sans text-2xl font-extrabold text-[#071b41]">{item.count}</p><p className="mt-1 truncate text-[10px] text-[#60749a]">Updated {item.updated}</p></div>)}</div></Card>
 
           <Card className="mt-6">
             <p className="text-xs uppercase tracking-wide text-slate/50">Recent Payments</p>

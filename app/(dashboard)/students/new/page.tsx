@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { StudentForm } from "../student-form";
 
 export default async function NewStudentPage() {
@@ -11,6 +12,7 @@ export default async function NewStudentPage() {
 
   return (
     <div>
+      <div className="flex justify-end"><Link href="/students" className="inline-flex min-h-10 items-center rounded-lg bg-ink-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-gold-600">← Back to students</Link></div>
       <h1 className="font-display text-2xl text-ink-700">Add Student</h1>
       <p className="mt-1 text-sm text-slate/60">
         Creates the student&apos;s login directly without sending an email invitation.
