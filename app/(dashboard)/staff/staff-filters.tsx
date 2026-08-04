@@ -8,7 +8,7 @@ export function StaffFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [q, setQ] = useState(searchParams.get("q") ?? "");
+  const [q, setQ] = useState(searchParams?.get("q") ?? "");
 
   function applyFilters(e: FormEvent) {
     e.preventDefault();

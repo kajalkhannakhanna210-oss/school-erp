@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 import { withPublicDataTimeout } from "@/lib/supabase/public";
 import { MobileNavigation } from "./mobile-navigation";
+import { ScrollToTop } from "./scroll-to-top";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -63,7 +64,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
 
   return (
     <div className="flex min-h-screen flex-col bg-paper">
-      <header className="relative z-20 bg-white shadow-[0_1px_0_rgba(30,42,74,0.08)]">
+      <header className="fixed inset-x-0 top-0 z-40 bg-white shadow-[0_1px_0_rgba(30,42,74,0.08)]">
         <div className="hidden border-b border-white/10 bg-ink-900 text-paper md:block">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 text-[11px] font-medium uppercase tracking-[0.13em] text-paper/70">
             <span>Learning with purpose · Growing with confidence</span>
@@ -100,7 +101,9 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pt-[5.5rem] md:pt-[7.5rem] lg:pt-[5.5rem]">{children}</main>
+
+      <ScrollToTop />
 
       <footer className="border-t border-ink-100 bg-ink-900 text-paper">
         <div className="mx-auto max-w-7xl px-6 py-14">

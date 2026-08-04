@@ -46,7 +46,7 @@ export default async function EventsPage() {
               <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Latest event</p>
               <h2 className="mt-4 font-display text-4xl leading-tight text-ink-700">{featuredEvent.title}</h2>
               <p className="mt-5 whitespace-pre-line leading-7 text-slate/75">{featuredEvent.description || "More details about this school event will be shared soon."}</p>
-              <Link href="/contact" className="mt-7 inline-flex w-fit rounded-lg bg-ink-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink-600">Ask about this event <span className="ml-2" aria-hidden="true">→</span></Link>
+              <Link href={`/events/${featuredEvent.id}`} className="mt-7 inline-flex min-h-11 w-full items-center justify-between rounded-lg bg-ink-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-gold-600 sm:w-fit">View event <span className="ml-4 text-lg" aria-hidden="true">→</span></Link>
             </div>
           </section>
         ) : (
@@ -74,14 +74,14 @@ export default async function EventsPage() {
             <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">More to explore</p><h2 className="mt-3 font-display text-4xl text-ink-700">On the calendar</h2></div><p className="text-sm text-slate/60">{eventItems.length - 1} more {eventItems.length === 2 ? "event" : "events"}</p></div>
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {eventItems.slice(1).map((event) => (
-                <article key={event.id} className="group overflow-hidden rounded-xl border border-ink-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-[0_18px_34px_-24px_rgba(34,47,87,.45)]">
+                <Link href={`/events/${event.id}`} key={event.id} className="group overflow-hidden rounded-xl border border-ink-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-gold-300 hover:shadow-[0_18px_34px_-24px_rgba(34,47,87,.45)]">
                   <div className="relative aspect-[16/10] overflow-hidden bg-ink-700">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={imageUrl(event.image_path)} alt={event.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                     <time className="absolute bottom-4 left-4 rounded bg-white/95 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-700">{formatDate(event.event_date)}</time>
                   </div>
-                  <div className="p-6"><h3 className="font-display text-2xl leading-tight text-ink-700">{event.title}</h3><p className="mt-3 line-clamp-3 whitespace-pre-line leading-7 text-slate/70">{event.description || "More details about this school event will be shared soon."}</p></div>
-                </article>
+                  <div className="p-6"><h3 className="font-display text-2xl leading-tight text-ink-700">{event.title}</h3><p className="mt-3 line-clamp-3 whitespace-pre-line leading-7 text-slate/70">{event.description || "More details about this school event will be shared soon."}</p><span className="mt-4 flex min-h-11 w-full items-center justify-between rounded-lg bg-ink-700 px-4 py-2.5 text-sm font-semibold text-white transition group-hover:bg-gold-600"><span>View event</span><span aria-hidden="true" className="text-lg leading-none">→</span></span></div>
+                </Link>
               ))}
             </div>
           </section>

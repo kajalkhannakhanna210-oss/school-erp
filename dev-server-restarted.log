@@ -435,3 +435,6 @@ Require stack:
  ✓ Compiled in 863ms (513 modules)
  ✓ Compiled in 2.2s (513 modules)
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\KAJAL\Downloads\school-management-phase1-9\school-management\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 567ms (513 modules)
+ ✓ Compiled in 593ms (513 modules)
+ ✓ Compiled in 921ms (513 modules)

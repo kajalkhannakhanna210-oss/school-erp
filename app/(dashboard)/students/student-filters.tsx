@@ -16,9 +16,9 @@ export function StudentFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [q, setQ] = useState(searchParams.get("q") ?? "");
-  const [classId, setClassId] = useState(searchParams.get("class") ?? "");
-  const [sectionId, setSectionId] = useState(searchParams.get("section") ?? "");
+  const [q, setQ] = useState(searchParams?.get("q") ?? "");
+  const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
+  const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
 
   const filteredSections = sections.filter((s) => !classId || s.class_id === classId);
 

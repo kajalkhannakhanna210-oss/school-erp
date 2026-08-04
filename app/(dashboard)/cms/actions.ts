@@ -59,13 +59,32 @@ export async function deleteNotice(id: string) {
   return { error: error?.message ?? null };
 }
 
-export async function createAlbum(title: string) {
+export async function createAlbum(input: { title: string; description: string; gallery_date: string }) {
+  const title = input.title.trim();
+  const description = input.description.trim();
+  if (!title) return { error: "Gallery title is required.", id: null };
+  if (title.length > 120) return { error: "Gallery title must be 120 characters or fewer.", id: null };
+  if (description.length > 500) return { error: "Gallery description must be 500 characters or fewer.", id: null };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.gallery_date)) return { error: "A valid gallery date is required.", id: null };
   const supabase = await createClient();
-  const { data, error } = await supabase.from("gallery_albums").insert({ title }).select("id").single();
+  const { data, error } = await supabase.from("gallery_albums").insert({ title, description, gallery_date: input.gallery_date }).select("id").single();
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
   return { error: error?.message ?? null, id: data?.id ?? null };
+}
+
+export async function updateAlbum(id: string, input: { title: string; description: string; gallery_date: string }) {
+  const title = input.title.trim();
+  const description = input.description.trim();
+  if (!title) return { error: "Gallery title is required." };
+  if (title.length > 120) return { error: "Gallery title must be 120 characters or fewer." };
+  if (description.length > 500) return { error: "Gallery description must be 500 characters or fewer." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.gallery_date)) return { error: "A valid gallery date is required." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("gallery_albums").update({ title, description, gallery_date: input.gallery_date, updated_at: new Date().toISOString() }).eq("id", id);
+  revalidatePath("/cms"); revalidatePath("/"); revalidatePath("/gallery");
+  return { error: error?.message ?? null };
 }
 
 export async function deleteAlbum(id: string) {
@@ -97,6 +116,13 @@ export async function deleteGalleryImage(id: string) {
   return { error: error?.message ?? null };
 }
 
+export async function updateGalleryImage(id: string, caption: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("gallery_images").update({ caption: caption.trim() || null }).eq("id", id);
+  revalidatePath("/cms"); revalidatePath("/gallery");
+  return { error: error?.message ?? null };
+}
+
 export async function createEvent(input: { title: string; description: string; event_date: string; image_path?: string }) {
   const supabase = await createClient();
   const { data, error } = await supabase.from("events").insert({
@@ -116,6 +142,20 @@ export async function addEventImage(eventId: string, path: string, caption: stri
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
+  return { error: error?.message ?? null };
+}
+
+export async function updateEvent(id: string, input: { title: string; description: string; event_date: string; image_path?: string }) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("events").update({ ...input, title: input.title.trim(), description: input.description.trim(), image_path: input.image_path?.trim() || null }).eq("id", id);
+  revalidatePath("/cms"); revalidatePath("/"); revalidatePath("/events");
+  return { error: error?.message ?? null };
+}
+
+export async function updateEventImage(id: string, caption: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("event_images").update({ caption: caption.trim() || null, updated_at: new Date().toISOString() }).eq("id", id);
+  revalidatePath("/cms"); revalidatePath("/events");
   return { error: error?.message ?? null };
 }
 

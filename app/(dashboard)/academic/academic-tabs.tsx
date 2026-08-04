@@ -38,7 +38,7 @@ export function AcademicTabs({
   designations?: MasterRow[];
 }) {
   const searchParams = useSearchParams();
-  const requestedTab = searchParams.get("tab");
+  const requestedTab = searchParams?.get("tab");
   const selectedTab = ["classes", "sections", "departments", "designations"].includes(requestedTab ?? "") ? requestedTab as "classes" | "sections" | "departments" | "designations" : "sessions";
   const [tab, setTab] = useState<"sessions" | "classes" | "sections" | "departments" | "designations">(selectedTab);
 

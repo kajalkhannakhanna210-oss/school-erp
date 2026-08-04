@@ -3,7 +3,7 @@ import { Button, Card } from "@/components/ui";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/types";
-import { ClassStrengthChart, CollectionTrendChart } from "./dashboard-charts";
+import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart } from "./dashboard-charts";
 
 const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
@@ -111,6 +111,9 @@ export default async function DashboardPage() {
   let recentPayments: { name: string; amount: number; paid_at: string; fee_head: string }[] = [];
   let classStrength: { class: string; students: number }[] = [];
   let collectionTrend: { month: string; total: number }[] = [];
+  let admissionComparison: { month: string; current: number; previous: number }[] = [];
+  let websiteStats: { label: string; count: number; updated: string }[] = [];
+  let todayAttendance = "0%";
 
   if (role === "super_admin") {
     const [{ data: pendingTotal }, { data: todayPayments }, { data: monthPayments }, { count: admissionsCount }] =
@@ -167,6 +170,21 @@ export default async function DashboardPage() {
       const key = d.toISOString().slice(0, 7);
       return { month: d.toLocaleString("default", { month: "short" }), total: trendMap.get(key) ?? 0 };
     });
+
+    const [{ count: galleryCount }, { count: eventCount }, { count: noticeCount }, { data: latestRows }] = await Promise.all([
+      supabase.from("gallery_images").select("*", { count: "exact", head: true }),
+      supabase.from("events").select("*", { count: "exact", head: true }),
+      supabase.from("notices").select("*", { count: "exact", head: true }),
+      supabase.from("site_pages").select("updated_at").order("updated_at", { ascending: false }).limit(1),
+    ]);
+    const latest = latestRows?.[0]?.updated_at ? new Date(latestRows[0].updated_at).toLocaleDateString() : "—";
+    websiteStats = [{ label: "Gallery images", count: galleryCount ?? 0, updated: latest }, { label: "Events", count: eventCount ?? 0, updated: latest }, { label: "Notices", count: noticeCount ?? 0, updated: latest }];
+    const { data: attendance } = await supabase.from("attendance_records").select("status").eq("attendance_date", today);
+    const marked = attendance ?? []; const present = marked.filter((r) => r.status === "present" || r.status === "late").length;
+    todayAttendance = marked.length ? `${Math.round((present / marked.length) * 100)}%` : "—";
+    const currentYear = new Date().getFullYear();
+    const { data: admissions } = await supabase.from("students").select("admission_date").gte("admission_date", `${currentYear - 1}-04-01`);
+    admissionComparison = [...Array(12)].map((_, i) => { const month = new Date(2020, i + 3, 1); const key = `${String(month.getMonth() + 1).padStart(2, "0")}`; return { month: month.toLocaleString("default", { month: "short" }), current: (admissions ?? []).filter((a) => a.admission_date?.startsWith(`${currentYear}-${key}`)).length, previous: (admissions ?? []).filter((a) => a.admission_date?.startsWith(`${currentYear - 1}-${key}`)).length }; });
   }
 
   const values: Record<string, string> = {
@@ -221,7 +239,10 @@ export default async function DashboardPage() {
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <ClassStrengthChart data={classStrength} />
             <CollectionTrendChart data={collectionTrend} />
+            <AdmissionComparisonChart data={admissionComparison} />
+            <Card><p className="text-xs uppercase tracking-wide text-slate/50">Today&apos;s attendance</p><p className="mt-2 font-display text-4xl text-ink-700">{todayAttendance}</p><p className="mt-1 text-sm text-slate/60">Present and late students / marked attendance</p></Card>
           </div>
+          <Card className="mt-6"><p className="text-xs uppercase tracking-wide text-slate/50">Website content</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{websiteStats.map((item) => <div key={item.label} className="rounded-lg bg-ink-50 p-4"><p className="text-sm text-slate/70">{item.label}</p><p className="mt-1 font-display text-3xl text-ink-700">{item.count}</p><p className="mt-1 text-xs text-slate/50">Last update: {item.updated}</p></div>)}</div></Card>
 
           <Card className="mt-6">
             <p className="text-xs uppercase tracking-wide text-slate/50">Recent Payments</p>

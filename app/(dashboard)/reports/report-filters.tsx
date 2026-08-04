@@ -22,11 +22,11 @@ export function ReportFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [from, setFrom] = useState(searchParams.get("from") ?? monthStart);
-  const [to, setTo] = useState(searchParams.get("to") ?? today);
-  const [groupBy, setGroupBy] = useState(searchParams.get("groupBy") ?? "month");
-  const [classId, setClassId] = useState(searchParams.get("class") ?? "");
-  const [sectionId, setSectionId] = useState(searchParams.get("section") ?? "");
+  const [from, setFrom] = useState(searchParams?.get("from") ?? monthStart);
+  const [to, setTo] = useState(searchParams?.get("to") ?? today);
+  const [groupBy, setGroupBy] = useState(searchParams?.get("groupBy") ?? "month");
+  const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
+  const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
 
   const needsDateRange = type === "collection" || type === "attendance";
   const needsClass = type === "pending-fees" || type === "concessions" || type === "late-fees" || type === "attendance";
