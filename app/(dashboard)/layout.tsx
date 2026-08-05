@@ -63,7 +63,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             <DashboardMobileNavigation items={visibleNav} />
           </div>
         </div>
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100/80 bg-white px-4 py-3 sm:px-5 sm:py-4 lg:px-8">
+        <header className="relative z-0 flex flex-wrap items-center justify-between gap-3 border-b border-ink-100/80 bg-white px-4 py-3 sm:px-5 sm:py-4 lg:z-50 lg:px-8">
           <div>
             <p className="text-sm text-slate/60">Signed in as</p>
             <p className="font-medium text-ink-700">{profile.full_name}</p>

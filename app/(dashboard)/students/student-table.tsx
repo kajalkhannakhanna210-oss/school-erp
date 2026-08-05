@@ -55,7 +55,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
         <tbody>
           {students.map((s) => (
             <tr key={s.id} className="border-b border-ink-100 transition hover:bg-gold-50/30 last:border-0">
-              <td className="px-4 py-3 font-mono">{s.admission_number}</td>
+              <td className="px-4 py-3 font-mono">{s.admission_number || "Not assigned"}</td>
               <td className="px-4 py-3">
                 <Link href={`/students/${s.id}`} className="flex items-center gap-3 font-semibold text-ink-700 hover:text-gold-600">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{(s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span><span className="truncate">{s.profiles?.full_name}</span>
@@ -99,6 +99,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
               <Link href={`/students/${s.id}`} className="flex min-w-0 items-center gap-3 font-semibold text-ink-700">
                 <span className="block truncate text-sm font-semibold">{s.profiles?.full_name || "Unnamed student"}</span>
               </Link>
+              <p className="truncate text-xs font-mono text-slate/70">Admission: {s.admission_number || "Not assigned"}</p>
               <p className="mt-1 truncate text-xs text-slate/70">{s.mobile_number || "No mobile number"}</p>
               <p className="truncate text-xs text-slate/60">{s.classes?.name || "No class"}{s.sections?.name && ` · ${s.sections.name}`}</p>
             </div>

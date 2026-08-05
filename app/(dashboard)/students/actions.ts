@@ -87,12 +87,15 @@ type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email" | "temporar
 };
 
 export async function updateStudent(id: string, input: StudentUpdateInput) {
+  const supabase = await createClient();
   // Login credentials are creation-only. Drop them from an edit payload so
   // they can never be written to the student record.
   const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, ...studentFields } = input;
   if (studentFields.mobile_number && !/^[6-9]\d{9}$/.test(studentFields.mobile_number.trim())) return { error: "Mobile number must be a valid 10-digit number starting with 6–9." };
-  const supabase = await createClient();
-
+  if (studentFields.admission_number?.trim()) {
+    const { data: duplicate } = await supabase.from("students").select("id").eq("admission_number", studentFields.admission_number.trim()).neq("id", id).maybeSingle();
+    if (duplicate) return { error: "This admission number is already assigned to another student." };
+  }
   const [{ error: profileError }, { error: studentError }] = await Promise.all([
     full_name
       ? supabase.from("profiles").update({ full_name }).eq("id", id)

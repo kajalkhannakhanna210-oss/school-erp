@@ -33,6 +33,7 @@ export default async function EditStudentPage({ params }: { params: { id: string
           studentId={s.id}
           initial={{
             full_name: s.profiles?.full_name ?? "",
+            admission_number: s.admission_number ?? "",
             roll_number: s.roll_number ?? "",
             father_name: s.father_name ?? "",
             mother_name: s.mother_name ?? "",

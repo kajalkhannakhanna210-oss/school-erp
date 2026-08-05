@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import { createStudent, updateStudent } from "./actions";
@@ -51,6 +51,7 @@ export function StudentForm({
   const [pending, startTransition] = useTransition();
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(existingPhotoUrl ?? null);
+  const admissionInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!photo) return;
@@ -106,6 +107,9 @@ export function StudentForm({
       const result = await updateStudent(studentId!, form);
       if (result.error) {
         push(result.error, "error");
+        if (result.error.toLowerCase().includes("admission number")) {
+          requestAnimationFrame(() => admissionInputRef.current?.focus());
+        }
         return;
       }
       if (photo) {
@@ -118,7 +122,6 @@ export function StudentForm({
       }
       push("Student updated successfully");
       router.refresh();
-      router.push(`/students/${studentId}`);
     });
   }
 
@@ -170,6 +173,7 @@ export function StudentForm({
           )}
           <div className="grid gap-4 sm:grid-cols-2">
             {mode === "create" && <div><Label htmlFor="admission_number">Admission number</Label><Input id="admission_number" placeholder="Optional — auto-generated if blank" value={form.admission_number} onChange={(e) => setForm({ ...form, admission_number: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "") })} /><p className="mt-1 text-xs text-slate/60">Optional. A unique admission number will be generated if left blank.</p></div>}
+            {mode === "edit" && <div><Label htmlFor="admission_number_edit">Admission number</Label><Input ref={admissionInputRef} id="admission_number_edit" value={form.admission_number} onChange={(e) => setForm({ ...form, admission_number: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "") })} /><p className="mt-1 text-xs text-slate/60">Update or assign the admission number.</p></div>}
             <div>
               <Label htmlFor="roll_number">Roll number</Label>
               <Input

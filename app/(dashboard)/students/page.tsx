@@ -68,13 +68,13 @@ export default async function StudentsPage({
 
   return (
     <div className="min-w-0">
-      <div className="flex flex-col gap-2 rounded-lg border border-ink-100 border-l-4 border-l-gold-500 bg-white px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
-        <div>
+      <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-ink-100 border-l-4 border-l-gold-500 bg-white px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
+        <div className="min-w-0">
           <p className="hidden font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-gold-700 sm:block">Student directory</p>
           <p className="hidden font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-gold-700 sm:hidden">Directory</p>
           <h1 className="mt-0.5 font-display text-lg font-semibold text-ink-700 sm:text-xl">Students</h1>
         </div>
-        <div className="grid w-full grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-end sm:gap-2">
+        <div className="grid min-w-0 w-full grid-cols-3 gap-1.5 sm:flex sm:w-auto sm:flex-wrap sm:justify-end sm:gap-2">
           <StudentFilterToggle />
           <StudentDirectoryMenu>
             <StudentDirectoryMenuItem>
@@ -89,7 +89,7 @@ export default async function StudentsPage({
           {canManage && (
             <>
               <Link href="/students/new" className="min-w-0">
-              <Button className="h-10 min-h-10 w-full min-w-[150px] whitespace-nowrap px-4 text-xs sm:w-auto sm:text-sm">Add student</Button>
+              <Button className="h-10 min-h-10 w-full whitespace-nowrap px-2 text-xs sm:min-w-[150px] sm:w-auto sm:px-4 sm:text-sm">Add student</Button>
               </Link>
             </>
           )}

@@ -113,6 +113,33 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 .hero-content-in { animation: hero-content-in .75s .15s cubic-bezier(.2,.7,.2,1) both; }
 .hero-float { animation: hero-float 5s ease-in-out infinite; }
 
+@media (max-width: 767px) {
+  [class*="bg-ink-50/70"] {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .5rem;
+  }
+  [class*="bg-ink-50/70"] h2 {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+  [class*="bg-ink-50/70"] button {
+    width: 100%;
+  }
+  [class*="divide-y"][class*="md:hidden"] > div {
+    margin: 0.75rem;
+    border: 1px solid #DCE2F0;
+    border-radius: 0.75rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(34, 47, 87, .06);
+  }
+  [class*="divide-y"][class*="md:hidden"] > div:has(input[type="checkbox"]:checked) {
+    border-color: #F7C200;
+    background: #FFF9DF;
+    box-shadow: 0 0 0 2px rgba(247, 194, 0, .2);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-image-in, .hero-content-in, .hero-float, .mobile-menu-backdrop, .mobile-menu-drawer { animation: none; }
 }

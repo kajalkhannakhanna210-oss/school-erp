@@ -32,5 +32,5 @@ export function StudentDirectoryMenu({ children }: { children: ReactNode }) {
 }
 
 export function StudentDirectoryMenuItem({ children }: { children: ReactNode }) {
-  return <div role="menuitem" className="block rounded-md px-2 py-1 text-sm text-ink-700 hover:bg-ink-50 sm:inline-flex sm:h-10 sm:min-h-10 sm:min-w-[150px] sm:items-center sm:justify-center sm:whitespace-nowrap sm:rounded-lg sm:bg-ink-700 sm:px-4 sm:py-2 sm:font-semibold sm:text-white sm:shadow-sm sm:hover:bg-ink-600 sm:[&_a]:text-white sm:[&_button]:text-white">{children}</div>;
+  return <div role="menuitem" className="block rounded-lg px-0 py-0 text-sm text-ink-700 hover:bg-ink-50 [&>a]:flex [&>a]:min-h-10 [&>a]:w-full [&>a]:items-center [&>a]:justify-start [&>a]:rounded-lg [&>a]:px-4 [&>a]:py-2.5 [&>a]:font-semibold [&>button]:min-h-10 [&>button]:w-full [&>button]:justify-start sm:inline-flex sm:h-10 sm:min-h-10 sm:min-w-[150px] sm:items-center sm:justify-center sm:whitespace-nowrap sm:rounded-lg sm:bg-ink-700 sm:px-4 sm:py-2 sm:font-semibold sm:text-white sm:shadow-sm sm:hover:bg-ink-600 sm:[&_a]:text-white sm:[&_button]:text-white">{children}</div>;
 }
