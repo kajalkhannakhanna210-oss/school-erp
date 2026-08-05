@@ -210,13 +210,13 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="font-sans text-3xl font-extrabold tracking-tight text-[#071b41] sm:text-4xl">Welcome, {profile?.full_name}</h1>
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <h1 className="max-w-full break-words font-sans text-2xl font-extrabold leading-tight tracking-tight text-[#071b41] sm:text-4xl">Welcome, {profile?.full_name}</h1>
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-5">
         {widgets.map((w, index) => (
-          <Card key={w} className="rounded-xl border-[#dce5f5] bg-white p-2.5 shadow-[0_8px_24px_rgba(30,42,74,0.06)]">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#eef4ff] text-sm font-bold text-[#1261e8]">{w.includes("Fee") || w.includes("Collection") ? "₹" : w.includes("Admission") ? "✓" : ["▣", "◌", "✓", "◫", "↗"][index % 5]}</div>
-            <p className="mt-1 truncate text-xs font-medium text-[#60749a]">{w}</p>
-            <p className="font-display text-xl font-bold tracking-tight text-[#071b41]">{values[w] ?? "—"}</p>
+          <Card key={w} className="min-w-0 rounded-xl border-[#dce5f5] bg-white p-2 shadow-[0_8px_24px_rgba(30,42,74,0.06)] sm:p-2.5">
+            <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#eef4ff] text-xs font-bold text-[#1261e8]">{w.includes("Fee") || w.includes("Collection") ? "₹" : w.includes("Admission") ? "✓" : ["▣", "◌", "✓", "◫", "↗"][index % 5]}</div>
+            <p className="mt-1 truncate text-[10px] font-medium text-[#60749a] sm:text-xs">{w}</p>
+            <p className="font-display text-lg font-bold tracking-tight text-[#071b41] sm:text-xl">{values[w] ?? "—"}</p>
             <p className="truncate text-[10px] text-[#60749a]">{w === "With Admission No" ? "Assigned records" : w === "Without Admission No" ? "Needs assignment" : w === "Total Students" ? "Active records" : "Dashboard summary"}</p>
           </Card>
         ))}

@@ -33,6 +33,7 @@ export function StudentForm({
   mode,
   studentId,
   initial,
+  existingPhotoUrl,
   classes,
   sections,
   sessions,
@@ -40,6 +41,7 @@ export function StudentForm({
   mode: "create" | "edit";
   studentId?: string;
   initial?: Partial<FormState>;
+  existingPhotoUrl?: string | null;
   classes: Option[];
   sections: (Option & { class_id: string })[];
   sessions: Option[];
@@ -48,10 +50,10 @@ export function StudentForm({
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
   const [photo, setPhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(existingPhotoUrl ?? null);
 
   useEffect(() => {
-    if (!photo) { setPhotoPreview(null); return; }
+    if (!photo) return;
     const url = URL.createObjectURL(photo);
     setPhotoPreview(url);
     return () => URL.revokeObjectURL(url);
@@ -106,7 +108,16 @@ export function StudentForm({
         push(result.error, "error");
         return;
       }
-      push("Student updated");
+      if (photo) {
+        if (!photo.type.startsWith("image/") || photo.size > 5 * 1024 * 1024) { push("Photo must be an image up to 5 MB.", "error"); return; }
+        const path = `${studentId}/${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+        const { error: uploadError } = await createClient().storage.from("student-photos").upload(path, photo, { upsert: true });
+        if (uploadError) { push(uploadError.message, "error"); return; }
+        const photoResult = await setStudentPhoto(studentId!, path);
+        if (photoResult.error) { push(photoResult.error, "error"); return; }
+      }
+      push("Student updated successfully");
+      router.refresh();
       router.push(`/students/${studentId}`);
     });
   }
@@ -117,6 +128,7 @@ export function StudentForm({
         <h2 className="font-display text-lg text-ink-700">Basic details</h2>
         <div className="mt-4 space-y-4">
           {mode === "create" && <div><Label htmlFor="student-photo">Student photo</Label><div className="mt-1.5 flex flex-col gap-4 rounded-xl border border-gold-300 bg-gold-50/40 p-3 shadow-sm sm:flex-row sm:items-center"><div className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-gold-200 bg-white text-center text-xs text-slate/50">{photoPreview ? <img src={photoPreview} alt="Selected student preview" className="h-full w-full object-cover" /> : "Photo preview"}</div><div className="min-w-0 flex-1"><input id="student-photo" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} className="block w-full text-sm text-slate" /><p className="mt-1 text-xs text-slate/60">Optional · JPG, PNG, or WebP up to 5 MB</p></div></div></div>}
+          {mode === "edit" && <div className="rounded-xl border border-gold-300 bg-gold-50/40 p-3"><Label htmlFor="student-photo-edit">Replace student photo</Label><input id="student-photo-edit" type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setPhoto(e.target.files?.[0] ?? null)} className="mt-2 block w-full text-sm text-slate" /><p className="mt-1 text-xs text-slate/60">Optional · JPG, PNG, or WebP up to 5 MB</p>{photoPreview && <img src={photoPreview} alt="Selected student preview" className="mt-2 h-20 w-20 rounded-lg object-cover" />}</div>}
           <div>
             <Label htmlFor="full_name">Student name</Label>
             <Input

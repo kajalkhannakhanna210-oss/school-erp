@@ -9,6 +9,7 @@ import { setStudentActive } from "./actions";
 
 export type StudentRow = {
   id: string;
+  photo_url: string | null;
   admission_number: string;
   roll_number: string | null;
   mobile_number: string | null;
@@ -38,8 +39,9 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white shadow-sm">
-      <table className="w-full text-sm">
+    <div className="rounded-xl border border-ink-100 bg-white shadow-sm">
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-ink-100 bg-ink-50/70 text-left text-xs font-bold uppercase tracking-[0.12em] text-slate/60">
             <th className="px-4 py-3">Admission No</th>
@@ -84,7 +86,27 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
             </tr>
           )}
         </tbody>
-      </table>
+        </table>
+      </div>
+
+      <div className="divide-y divide-ink-100 bg-white md:hidden">
+        {students.map((s) => (
+          <article key={s.id} className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
+            <Link href={`/students/${s.id}`} className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-ink-100 text-[11px] font-bold text-ink-700">
+              {s.photo_url ? <img src={s.photo_url} alt={s.profiles?.full_name || "Student"} className="h-full w-full object-cover" /> : (s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
+            </Link>
+            <div className="min-w-0 flex-1">
+              <Link href={`/students/${s.id}`} className="flex min-w-0 items-center gap-3 font-semibold text-ink-700">
+                <span className="block truncate text-sm font-semibold">{s.profiles?.full_name || "Unnamed student"}</span>
+              </Link>
+              <p className="mt-1 truncate text-xs text-slate/70">{s.mobile_number || "No mobile number"}</p>
+              <p className="truncate text-xs text-slate/60">{s.classes?.name || "No class"}{s.sections?.name && ` · ${s.sections.name}`}</p>
+            </div>
+            {canManage && <a href={`/students/${s.id}/edit`} aria-label={`Edit ${s.profiles?.full_name || "student"}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-100 text-ink-600 hover:bg-ink-50"><span aria-hidden="true" className="text-base font-bold">✎</span></a>}
+          </article>
+        ))}
+        {students.length === 0 && <p className="rounded-2xl bg-white px-4 py-10 text-center text-sm text-slate/50">No students match this view.</p>}
+      </div>
       <ConfirmDialog
         open={!!archiveTarget}
         title={archiveTarget?.is_active ? "Archive student?" : "Restore student?"}

@@ -57,7 +57,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </nav>
       </aside>
       <div className="min-w-0">
-        <div className="lg:hidden" style={{ backgroundColor: "#222F57" }}>
+        <div className="sticky top-0 z-40 lg:hidden" style={{ backgroundColor: "#222F57" }}>
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2 text-white"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold text-xs font-bold text-ink-900">R</div><span className="truncate font-display font-bold">Registrar</span></div>
             <DashboardMobileNavigation items={visibleNav} />

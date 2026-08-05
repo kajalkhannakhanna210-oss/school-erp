@@ -11,8 +11,8 @@ export function DashboardMobileNavigation({ items }: { items: NavItem[] }) {
 
   return (
     <div className="lg:hidden">
-      <button type="button" aria-label="Open dashboard menu" aria-expanded={open} onClick={() => setOpen(true)} className="grid h-10 w-10 place-items-center rounded-lg border border-white/25 text-white transition hover:bg-white/10">
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[2]"><path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" /></svg>
+      <button type="button" aria-label="Open dashboard menu" aria-expanded={open} onClick={() => setOpen(true)} className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/25 px-3 text-sm font-semibold text-white transition hover:bg-white/10">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[2]"><path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" /></svg><span>Menu</span>
       </button>
       {open && <div className="fixed inset-0 z-50">
         <button type="button" aria-label="Close dashboard menu" onClick={() => setOpen(false)} className="mobile-menu-backdrop absolute inset-0 bg-ink-900/60" />

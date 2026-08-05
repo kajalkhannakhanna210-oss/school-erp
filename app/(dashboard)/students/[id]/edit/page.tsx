@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { StudentForm } from "../../student-form";
 
@@ -14,10 +15,18 @@ export default async function EditStudentPage({ params }: { params: { id: string
 
   if (!student) notFound();
   const s = student as any;
+  let existingPhotoUrl: string | null = null;
+  if (s.photo_path) {
+    const { data: signed } = await supabase.storage.from("student-photos").createSignedUrl(s.photo_path, 60 * 10);
+    existingPhotoUrl = signed?.signedUrl ?? null;
+  }
 
   return (
     <div>
-      <h1 className="font-display text-2xl text-ink-700">Edit Student</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-2xl text-ink-700">Edit Student</h1>
+        <Link href="/students" className="inline-flex min-h-10 items-center rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-ink-700 shadow-sm">← Back to student list</Link>
+      </div>
       <div className="mt-6">
         <StudentForm
           mode="edit"
@@ -37,6 +46,7 @@ export default async function EditStudentPage({ params }: { params: { id: string
             session_id: s.session_id ?? "",
             admission_date: s.admission_date ?? "",
           }}
+          existingPhotoUrl={existingPhotoUrl}
           classes={classes ?? []}
           sections={sections ?? []}
           sessions={sessions ?? []}
