@@ -2,7 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { ExportCsvButton } from "./export-csv-button";
+import { ExportExcelButton } from "./export-excel-button";
 import { StaffFilters } from "./staff-filters";
 import { StaffTable, type StaffRow } from "./staff-table";
 
@@ -14,6 +16,7 @@ export default async function StaffPage({
   searchParams: { q?: string; page?: string };
 }) {
   const supabase = await createClient();
+  const admin = createAdminClient();
 
   const {
     data: { user },
@@ -46,19 +49,35 @@ export default async function StaffPage({
 
   const { data: staff, count } = await query.range(from, to);
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
-  const rows = (staff ?? []) as unknown as StaffRow[];
+  const rows = await Promise.all(
+    (staff ?? []).map(async (s) => {
+      const { data: signed } = s.photo_path
+        ? await admin.storage.from("staff-photos").createSignedUrl(s.photo_path, 60 * 10)
+        : { data: null };
+      return { ...s, photo_url: signed?.signedUrl ?? null };
+    }),
+  ) as unknown as StaffRow[];
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-ink-100 bg-white/80 px-5 py-4 shadow-sm">
+        <div className="flex items-baseline gap-3">
           <h1 className="font-display text-2xl text-ink-700">Staff</h1>
-          <p className="mt-1 text-sm text-slate/60">
+          <p className="rounded-full bg-ink-50 px-2.5 py-1 text-xs font-semibold text-slate/70">
             {count ?? 0} staff member{count === 1 ? "" : "s"}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex flex-nowrap items-center justify-end gap-2 overflow-x-auto">
           <ExportCsvButton
+            rows={rows.map((s) => ({
+              employee_id: s.employee_id,
+              full_name: s.profiles?.full_name ?? "",
+              department: s.department,
+              designation: s.designation,
+              mobile_number: s.mobile_number,
+            }))}
+          />
+          <ExportExcelButton
             rows={rows.map((s) => ({
               employee_id: s.employee_id,
               full_name: s.profiles?.full_name ?? "",
@@ -73,11 +92,11 @@ export default async function StaffPage({
         </div>
       </div>
 
-      <div className="mt-6">
-        <StaffFilters />
+      <div className="mt-3">
+        <StaffFilters showFilterButton={false} />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-0">
         <StaffTable staff={rows} />
       </div>
 

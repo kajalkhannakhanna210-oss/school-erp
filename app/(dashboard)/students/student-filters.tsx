@@ -50,13 +50,6 @@ export function StudentFilters({
 
   return (
     <form onSubmit={applyFilters} className="flex flex-wrap items-end gap-2">
-      <div className="w-full">
-        <Input className="mt-0 min-h-10" 
-          placeholder="Search name, admission no, mobile"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
-      </div>
       <div className={`${filtersOpen ? "flex" : "hidden"} w-full flex-wrap items-end gap-2 md:flex md:w-auto`}>
         <select
           className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm md:w-auto"
@@ -80,6 +73,13 @@ export function StudentFilters({
         </select>
         <Button type="submit" className="min-h-10 flex-1">Apply</Button>
         <Button type="button" variant="ghost" className="min-h-10 flex-1 bg-white" onClick={clearFilters}>Clear</Button>
+      </div>
+      <div className="w-full">
+        <Input className="mt-0 min-h-10"
+          placeholder="Search name, admission no, mobile"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
       </div>
     </form>
   );

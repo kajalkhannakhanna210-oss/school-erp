@@ -10,6 +10,7 @@ export const navItems: NavItem[] = [
   { key: "sections", label: "Sections", href: "/master?tab=sections", roles: ["super_admin"] },
   { key: "class_teachers", label: "Class Teachers", href: "/academic/class-teachers", roles: ["super_admin"] },
   { key: "students", label: "Students", href: "/students", roles: ["super_admin", "staff"] },
+  { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"] },
   { key: "staff", label: "Staff", href: "/staff", roles: ["super_admin"] },
   { key: "attendance", label: "Attendance", href: "/attendance", roles: ["super_admin", "staff", "student"] },
   { key: "exams", label: "Exams", href: "/exams", roles: ["super_admin", "staff", "student"] },

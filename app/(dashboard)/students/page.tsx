@@ -83,7 +83,7 @@ export default async function StudentsPage({
             {canManage && <>
               <StudentDirectoryMenuItem><BulkStudentUpdate ids={rows.map((student) => student.id)} classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} /></StudentDirectoryMenuItem>
               <StudentDirectoryMenuItem><Link className="block py-2" href="/students/promote">Promote students</Link></StudentDirectoryMenuItem>
-              <StudentDirectoryMenuItem><Link className="block py-2" href="/students/admission-allotment">Admission allotment</Link></StudentDirectoryMenuItem>
+              <StudentDirectoryMenuItem><Link className="block py-2" href="/students/admission-allotment">Admission Allotment</Link></StudentDirectoryMenuItem>
             </>}
           </StudentDirectoryMenu>
           {canManage && (

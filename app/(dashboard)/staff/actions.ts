@@ -16,6 +16,7 @@ type StaffInput = {
   mobile_number: string;
   salary: string;
   joining_date: string;
+  photo_file?: File | null;
 };
 
 export async function createStaff(input: StaffInput) {
@@ -44,20 +45,29 @@ export async function createStaff(input: StaffInput) {
     return { error: createError?.message ?? "Could not create the staff member's account" };
   }
 
-  const { error: insertError } = await admin.from("staff").insert({
-    id: created.user.id,
-    contact_email: input.contact_email,
-    department: input.department || null,
-    designation: input.designation || null,
-    qualification: input.qualification || null,
-    mobile_number: mobileDigits,
-    salary: input.salary ? Number(input.salary) : null,
-    joining_date: input.joining_date,
-  });
+  const photoPath = input.photo_file?.size ? `${created.user.id}/${Date.now()}-${input.photo_file.name}` : null;
+  const [photoResult, insertResult] = await Promise.all([
+    photoPath && input.photo_file
+      ? admin.storage.from("staff-photos").upload(photoPath, input.photo_file, { upsert: true })
+      : Promise.resolve({ error: null }),
+    admin.from("staff").insert({
+      id: created.user.id,
+      contact_email: input.contact_email,
+      department: input.department || null,
+      designation: input.designation || null,
+      qualification: input.qualification || null,
+      mobile_number: mobileDigits,
+      salary: input.salary ? Number(input.salary) : null,
+      joining_date: input.joining_date,
+      photo_path: photoPath,
+    }),
+  ]);
+  const photoError = photoResult.error;
+  const insertError = insertResult.error;
 
-  if (insertError) {
+  if (photoError || insertError) {
     await admin.auth.admin.deleteUser(created.user.id);
-    return { error: insertError.message };
+    return { error: photoError?.message ?? insertError?.message ?? "Could not save staff member." };
   }
 
   revalidatePath("/staff");
@@ -75,15 +85,17 @@ function staffInputFromForm(formData: FormData): StaffInput {
     mobile_number: String(formData.get("mobile_number") ?? ""),
     salary: String(formData.get("salary") ?? ""),
     joining_date: String(formData.get("joining_date") ?? ""),
+    photo_file: formData.get("photo_file") instanceof File ? formData.get("photo_file") as File : null,
   };
 }
 
 // Native form fallback: records still save when the client bundle is delayed
 // or unavailable, rather than submitting a GET request to /staff/new?.
-export async function createStaffFromForm(formData: FormData) {
-  const result = await createStaff(staffInputFromForm(formData));
-  if (result.error) redirect(`/staff/new?error=${encodeURIComponent(result.error)}`);
-  redirect(`/staff/${result.id}?saved=created`);
+export async function createStaffFromForm(_previousState: unknown, formData: FormData) {
+  const input = staffInputFromForm(formData);
+  const photo = formData.get("photo_file");
+  const result = await createStaff({ ...input, photo_file: photo instanceof File ? photo : null });
+  return result.error ? result : { ...result, message: "Staff member saved successfully." };
 }
 
 type StaffUpdateInput = Partial<Omit<StaffInput, "contact_email" | "temporary_password">> & {
@@ -96,7 +108,7 @@ export async function updateStaff(id: string, input: StaffUpdateInput) {
   // Same guard as updateStudent: contact_email is only set at invite time
   // and isn't on the edit form, so it's dropped here rather than trusted
   // from the client.
-  const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, salary, ...rest } = input as StaffUpdateInput & { temporary_password?: string };
+  const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, photo_file, salary, ...rest } = input as StaffUpdateInput & { temporary_password?: string; photo_file?: File | null };
   if (!id || !full_name?.trim() || !rest.joining_date) {
     return { error: "Name and joining date are required." };
   }
@@ -106,6 +118,12 @@ export async function updateStaff(id: string, input: StaffUpdateInput) {
   const mobileDigits = (rest.mobile_number ?? "").replace(/\D/g, "");
   if (mobileDigits.length !== 10) return { error: "Enter a valid 10-digit mobile number." };
   const admin = createAdminClient();
+  let photoPath: string | undefined;
+  if (photo_file?.size) {
+    photoPath = `${id}/${Date.now()}-${photo_file.name}`;
+    const { error } = await admin.storage.from("staff-photos").upload(photoPath, photo_file, { upsert: true });
+    if (error) return { error: error.message };
+  }
 
   const [{ error: profileError }, { error: staffError }] = await Promise.all([
     full_name
@@ -113,20 +131,24 @@ export async function updateStaff(id: string, input: StaffUpdateInput) {
       : Promise.resolve({ error: null }),
     admin
       .from("staff")
-      .update({ ...rest, mobile_number: mobileDigits, salary: salary ? Number(salary) : null })
+      .update({ ...rest, mobile_number: mobileDigits, salary: salary ? Number(salary) : null, ...(photoPath ? { photo_path: photoPath } : {}) })
       .eq("id", id),
   ]);
 
   revalidatePath(`/staff/${id}`);
+  revalidatePath(`/staff/${id}/edit`);
   revalidatePath("/staff");
   return { error: profileError?.message ?? staffError?.message ?? null };
 }
 
-export async function updateStaffFromForm(id: string, formData: FormData) {
+export async function updateStaffFromForm(id: string, _previousState: unknown, formData: FormData) {
   const { temporary_password: _temporaryPassword, contact_email: _contactEmail, ...input } = staffInputFromForm(formData);
-  const result = await updateStaff(id, input);
-  if (result.error) redirect(`/staff/${id}/edit?error=${encodeURIComponent(result.error)}`);
-  redirect(`/staff/${id}?saved=updated`);
+  const photo = formData.get("photo_file");
+  const result = await updateStaff(id, {
+    ...input,
+    photo_file: photo instanceof File && photo.size > 0 ? photo : null,
+  });
+  return result.error ? result : { ...result, message: "Staff member updated successfully." };
 }
 
 export async function setStaffActive(id: string, isActive: boolean) {

@@ -1,9 +1,11 @@
 import { StaffForm } from "../staff-form";
+import Link from "next/link";
+import { Button } from "@/components/ui";
 
 export default function NewStaffPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
     <div>
-      <h1 className="font-display text-2xl text-ink-700">Add Staff</h1>
+      <div className="flex items-center justify-between gap-3"><h1 className="font-display text-2xl text-ink-700">Add Staff</h1><Link href="/staff"><Button type="button" variant="ghost" className="bg-ink-700 text-white hover:bg-ink-600">Back to Staff List</Button></Link></div>
       <p className="mt-1 text-sm text-slate/60">
         Creates the staff member&apos;s login using the temporary password you provide.
       </p>
