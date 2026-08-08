@@ -26,7 +26,12 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/admin/login") ||
     pathname.startsWith("/forgot-password");
 
-  const isPublicPage = PUBLIC_PAGE_PATHS.has(pathname);
+  // Public detail pages are dynamic, so they cannot be represented by the
+  // exact-path set above. Keep them out of the auth refresh round-trip too.
+  const isPublicPage =
+    PUBLIC_PAGE_PATHS.has(pathname) ||
+    pathname.startsWith("/gallery/") ||
+    pathname.startsWith("/events/");
   const isApiRoute = pathname.startsWith("/api/");
 
   // Public pages do not require auth refresh
@@ -74,6 +79,9 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // getUser validates the token with Supabase and also refreshes the session
+  // cookies when needed. This prevents the dashboard from treating a freshly
+  // authenticated browser as anonymous.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -82,14 +90,6 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isAuthRoute && !isApiRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-
-    return NextResponse.redirect(url);
-  }
-
-  // Logged-in users should not see login pages
-  if (user && isAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
 
     return NextResponse.redirect(url);
   }

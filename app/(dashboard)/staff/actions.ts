@@ -92,10 +92,14 @@ function staffInputFromForm(formData: FormData): StaffInput {
 // Native form fallback: records still save when the client bundle is delayed
 // or unavailable, rather than submitting a GET request to /staff/new?.
 export async function createStaffFromForm(_previousState: unknown, formData: FormData) {
-  const input = staffInputFromForm(formData);
-  const photo = formData.get("photo_file");
-  const result = await createStaff({ ...input, photo_file: photo instanceof File ? photo : null });
-  return result.error ? result : { ...result, message: "Staff member saved successfully." };
+  try {
+    const input = staffInputFromForm(formData);
+    const photo = formData.get("photo_file");
+    const result = await createStaff({ ...input, photo_file: photo instanceof File ? photo : null });
+    return result.error ? result : { ...result, message: "Staff member saved successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save staff member." };
+  }
 }
 
 type StaffUpdateInput = Partial<Omit<StaffInput, "contact_email" | "temporary_password">> & {
@@ -152,8 +156,13 @@ export async function updateStaffFromForm(id: string, _previousState: unknown, f
 }
 
 export async function setStaffActive(id: string, isActive: boolean) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("staff").update({ is_active: isActive }).eq("id", id);
+  const user = await requireSuperAdmin();
+  const admin = createAdminClient();
+  const { error } = await admin.from("staff").update({
+    is_active: isActive,
+    inactive_date: isActive ? null : new Date().toISOString(),
+    inactive_by: isActive ? null : user?.id ?? null,
+  }).eq("id", id);
   revalidatePath("/staff");
   revalidatePath(`/staff/${id}`);
   return { error: error?.message ?? null };

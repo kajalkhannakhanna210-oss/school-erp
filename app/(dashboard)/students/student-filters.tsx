@@ -71,10 +71,10 @@ export function StudentFilters({
           <option value="">All sections</option>
           {filteredSections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <Button type="submit" className="min-h-10 flex-1">Apply</Button>
-        <Button type="button" variant="ghost" className="min-h-10 flex-1 bg-white" onClick={clearFilters}>Clear</Button>
+        <Button type="submit" className="min-h-10">Apply</Button>
+        <Button type="button" variant="ghost" className="min-h-10 bg-white" onClick={clearFilters}>Clear</Button>
       </div>
-      <div className="w-full">
+      <div className="order-last w-full md:order-none md:ml-auto md:w-72">
         <Input className="mt-0 min-h-10"
           placeholder="Search name, admission no, mobile"
           value={q}

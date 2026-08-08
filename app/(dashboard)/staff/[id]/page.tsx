@@ -6,6 +6,18 @@ import { ArchiveControl } from "./archive-control";
 import { PermissionsEditor } from "./permissions-editor";
 import { PhotoUpload } from "./photo-upload";
 
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(`${value.slice(0, 10)}T00:00:00`);
+  return `${String(date.getDate()).padStart(2, "0")} ${date.toLocaleString("en-US", { month: "short" })} ${date.getFullYear()}`;
+}
+
+function formatDateTime(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return `${String(date.getDate()).padStart(2, "0")} ${date.toLocaleString("en-US", { month: "short" })} ${date.getFullYear()} ${date.toLocaleString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`;
+}
+
 export default async function StaffDetailPage({ params, searchParams }: { params: { id: string }; searchParams: { saved?: string } }) {
   const supabase = await createClient();
 
@@ -88,8 +100,11 @@ export default async function StaffDetailPage({ params, searchParams }: { params
             <Field label="Qualification" value={s.qualification} />
             <Field label="Mobile" value={s.mobile_number} />
             <Field label="Contact email" value={s.contact_email} />
-            <Field label="Joining date" value={s.joining_date} />
+            <Field label="Joining date" value={formatDate(s.joining_date)} />
+            <Field label="Created date" value={formatDateTime(s.created_at)} />
             <Field label="Salary" value={s.salary != null ? `₹${s.salary}` : null} />
+            <Field label="Inactive date" value={s.inactive_date ? new Date(s.inactive_date).toLocaleString() : null} />
+            <Field label="Inactive by" value={s.inactive_by} />
           </dl>
         </Card>
 

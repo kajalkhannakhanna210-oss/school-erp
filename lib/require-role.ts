@@ -7,8 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function requireSuperAdmin() {
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   if (!user) throw new Error("Not signed in");
 

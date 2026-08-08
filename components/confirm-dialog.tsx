@@ -36,3 +36,5 @@ export function ConfirmDialog({
     </div>
   );
 }
+
+export default ConfirmDialog;

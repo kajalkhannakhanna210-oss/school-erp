@@ -96,27 +96,18 @@ export default async function StudentsPage({
         </div>
       </div>
 
-      <div className="mt-3 grid max-w-lg grid-cols-3 gap-2">
-        <div className="flex items-center gap-2 rounded-lg border border-ink-100 bg-white px-2.5 py-2 shadow-sm">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-ink-700" aria-hidden="true" />
-          <div className="min-w-0">
-            <p className="text-[10px] font-medium leading-tight text-slate/60">Total students</p>
-            <p className="mt-0.5 text-base font-bold leading-none text-ink-700">{count ?? 0}</p>
-          </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="h-16 rounded-xl border border-ink-100 bg-white px-2 py-1 shadow-sm sm:h-auto sm:px-4 sm:py-3">
+          <p className="flex items-center gap-1.5 text-[10px] leading-tight text-slate/70 sm:gap-2 sm:text-xs"><span className="h-2 w-2 shrink-0 rounded-full bg-ink-700 sm:h-2.5 sm:w-2.5" aria-hidden="true" />Total students</p>
+          <p className="mt-0.5 text-sm font-bold text-ink-700 sm:mt-1 sm:text-xl">{count ?? 0}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-ink-100 bg-white px-2.5 py-2 shadow-sm">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
-          <div className="min-w-0">
-            <p className="text-[10px] font-medium leading-tight text-slate/60">With admission no.</p>
-            <p className="mt-0.5 text-base font-bold leading-none text-ink-700">{assignedCount ?? 0}</p>
-          </div>
+        <div className="h-16 rounded-xl border border-ink-100 bg-white px-2 py-1 shadow-sm sm:h-auto sm:px-4 sm:py-3">
+          <p className="flex items-center gap-1.5 text-[10px] leading-tight text-slate/70 sm:gap-2 sm:text-xs"><span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 sm:h-2.5 sm:w-2.5" aria-hidden="true" />With adm. no.</p>
+          <p className="mt-0.5 text-sm font-bold text-ink-700 sm:mt-1 sm:text-xl">{assignedCount ?? 0}</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-ink-100 bg-white px-2.5 py-2 shadow-sm">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" />
-          <div className="min-w-0">
-            <p className="text-[10px] font-medium leading-tight text-slate/60">Without admission no.</p>
-            <p className="mt-0.5 text-base font-bold leading-none text-ink-700">{unassignedCount ?? 0}</p>
-          </div>
+        <div className="h-16 rounded-xl border border-ink-100 bg-white px-2 py-1 shadow-sm sm:h-auto sm:px-4 sm:py-3">
+          <p className="flex items-center gap-1.5 text-[10px] leading-tight text-slate/70 sm:gap-2 sm:text-xs"><span className="h-2 w-2 shrink-0 rounded-full bg-amber-500 sm:h-2.5 sm:w-2.5" aria-hidden="true" />Without adm. no.</p>
+          <p className="mt-0.5 text-sm font-bold text-ink-700 sm:mt-1 sm:text-xl">{unassignedCount ?? 0}</p>
         </div>
       </div>
 

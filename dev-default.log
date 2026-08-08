@@ -1,0 +1,40 @@
+
+> school-management@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 1269ms (170 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 6s (672 modules)
+ GET /login 200 in 6512ms
+ ○ Compiling /[slug] ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: Unable to snapshot resolve dependencies
+ ✓ Compiled /[slug] in 5.5s (753 modules)
+ GET /favicon.ico 200 in 6430ms
+ GET /login 200 in 2431ms
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+[TypeError: fetch failed] {
+  [cause]: AggregateError [EACCES]: 
+      at internalConnectMultiple (node:net:1194:18)
+      at afterConnectMultiple (node:net:1784:7) {
+    code: 'EACCES',
+    [errors]: [ [Error], [Error] ]
+  }
+}
+ GET /favicon.ico 404 in 132ms
+ GET /login 200 in 43ms
