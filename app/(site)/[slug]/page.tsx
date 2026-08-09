@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
+import { getPageMetadata } from "@/lib/seo";
 
 const ALLOWED_SLUGS = new Set([
   "about",
@@ -9,6 +11,21 @@ const ALLOWED_SLUGS = new Set([
   "academics",
   "admissions",
 ]);
+
+const SEO: Record<string, { title: string; description: string }> = {
+  about: { title: "About the School", description: "Learn about our school community, educational values, and approach to student growth." },
+  "principal-message": { title: "Principal's Message", description: "Read the principal's message about our school's learning community and educational vision." },
+  "chairman-message": { title: "Chairman's Message", description: "Read the chairman's message about the school's purpose, values, and future." },
+  facilities: { title: "School Facilities", description: "Explore the learning, science, library, sports, arts, and campus facilities available at our school." },
+  academics: { title: "Academics", description: "Discover our academic approach, curriculum, and learning opportunities for students." },
+  admissions: { title: "School Admissions", description: "Find school admission information, application guidance, and important enrollment details." },
+};
+
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const seo = SEO[params.slug];
+  if (!seo) return {};
+  return getPageMetadata(`/${params.slug}`, { title: seo.title, description: seo.description, alternates: { canonical: `/${params.slug}` }, openGraph: { title: seo.title, description: seo.description, url: `/${params.slug}` } });
+}
 
 export default async function SitePage({ params }: { params: { slug: string } }) {
   if (!ALLOWED_SLUGS.has(params.slug)) notFound();

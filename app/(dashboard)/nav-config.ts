@@ -1,6 +1,6 @@
 import type { UserRole } from "@/lib/types";
 
-export type NavItem = { key: string; label: string; href: string; roles: UserRole[] };
+export type NavItem = { key: string; label: string; href: string; roles: UserRole[]; icon?: string };
 
 export const navItems: NavItem[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", roles: ["super_admin", "staff", "student"] },
@@ -12,6 +12,7 @@ export const navItems: NavItem[] = [
   { key: "students", label: "Students", href: "/students", roles: ["super_admin", "staff"] },
   { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"] },
   { key: "staff", label: "Staff", href: "/staff", roles: ["super_admin"] },
+  { key: "staff_sessions", label: "Staff Sessions", href: "/staff/session-management", roles: ["super_admin"] },
   { key: "attendance", label: "Attendance", href: "/attendance", roles: ["super_admin", "staff", "student"] },
   { key: "exams", label: "Exams", href: "/exams", roles: ["super_admin", "staff", "student"] },
   { key: "fees", label: "Fees", href: "/fees", roles: ["super_admin"] },

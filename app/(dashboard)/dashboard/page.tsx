@@ -3,7 +3,7 @@ import { Button, Card } from "@/components/ui";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/types";
-import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart } from "./dashboard-charts";
+import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, StaffSessionChart } from "./dashboard-charts";
 
 const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
@@ -116,7 +116,8 @@ export default async function DashboardPage() {
   let recentPayments: { name: string; amount: number; paid_at: string; fee_head: string }[] = [];
   let classStrength: { class: string; students: number }[] = [];
   let collectionTrend: { month: string; total: number }[] = [];
-  let admissionComparison: { month: string; current: number; previous: number }[] = [];
+  let admissionComparison: { session: string; current: number; previous: number }[] = [];
+  let staffSessionTrend: { session: string; newStaff: number; existingStaff: number; total: number }[] = [];
   let websiteStats: { label: string; count: number; updated: string }[] = [];
   let todayAttendance = "0%";
 
@@ -151,6 +152,13 @@ export default async function DashboardPage() {
       supabase.from("classes").select("id, name").order("sort_order"),
       supabase.from("students").select("class_id").eq("is_active", true),
     ]);
+    const [{ data: staffEnrollments }, { data: sessionRows }] = await Promise.all([
+      supabase.from("staff_enrollments").select("staff_id, session_id, created_at").order("created_at"),
+      supabase.from("academic_sessions").select("id, name").order("start_date"),
+    ]);
+    const firstSession = new Map<string, string>();
+    for (const enrollment of staffEnrollments ?? []) if (!firstSession.has(enrollment.staff_id)) firstSession.set(enrollment.staff_id, enrollment.session_id);
+    staffSessionTrend = (sessionRows ?? []).map((session) => { const members = (staffEnrollments ?? []).filter((e) => e.session_id === session.id); const newStaff = members.filter((e) => firstSession.get(e.staff_id) === session.id).length; return { session: session.name, newStaff, existingStaff: members.length - newStaff, total: members.length }; });
     const countByClass = new Map<string, number>();
     for (const s of students ?? []) countByClass.set(s.class_id, (countByClass.get(s.class_id) ?? 0) + 1);
     classStrength = (classes ?? []).map((c) => ({ class: c.name, students: countByClass.get(c.id) ?? 0 }));
@@ -187,9 +195,16 @@ export default async function DashboardPage() {
     const { data: attendance } = await supabase.from("attendance_records").select("status").eq("attendance_date", today);
     const marked = attendance ?? []; const present = marked.filter((r) => r.status === "present" || r.status === "late").length;
     todayAttendance = marked.length ? `${Math.round((present / marked.length) * 100)}%` : "—";
-    const currentYear = new Date().getFullYear();
-    const { data: admissions } = await supabase.from("students").select("admission_date").gte("admission_date", `${currentYear - 1}-04-01`);
-    admissionComparison = [...Array(12)].map((_, i) => { const month = new Date(2020, i + 3, 1); const key = `${String(month.getMonth() + 1).padStart(2, "0")}`; return { month: month.toLocaleString("default", { month: "short" }), current: (admissions ?? []).filter((a) => a.admission_date?.startsWith(`${currentYear}-${key}`)).length, previous: (admissions ?? []).filter((a) => a.admission_date?.startsWith(`${currentYear - 1}-${key}`)).length }; });
+    const [{ data: admissionSessions }, { data: admissionEnrollments }] = await Promise.all([
+      supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }).limit(2),
+      supabase.from("student_enrollments").select("session_id"),
+    ]);
+    const sessions = [...(admissionSessions ?? [])].reverse();
+    admissionComparison = sessions.map((session, index) => ({
+      session: session.name,
+      current: index === sessions.length - 1 ? (admissionEnrollments ?? []).filter((row) => row.session_id === session.id).length : 0,
+      previous: index === sessions.length - 2 ? (admissionEnrollments ?? []).filter((row) => row.session_id === session.id).length : 0,
+    }));
   }
 
   const values: Record<string, string> = {
@@ -210,16 +225,31 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="max-w-full break-words font-sans text-2xl font-extrabold leading-tight tracking-tight text-[#071b41] sm:text-4xl">Welcome, {profile?.full_name}</h1>
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-5">
-        {widgets.map((w, index) => (
-          <Card key={w} className="min-w-0 rounded-xl border-[#dce5f5] bg-white p-2 shadow-[0_8px_24px_rgba(30,42,74,0.06)] sm:p-2.5">
-            <div className="grid h-7 w-7 place-items-center rounded-lg bg-[#eef4ff] text-xs font-bold text-[#1261e8]">{w.includes("Fee") || w.includes("Collection") ? "₹" : w.includes("Admission") ? "✓" : ["▣", "◌", "✓", "◫", "↗"][index % 5]}</div>
-            <p className="mt-1 truncate text-[10px] font-medium text-[#60749a] sm:text-xs">{w}</p>
-            <p className="font-display text-lg font-bold tracking-tight text-[#071b41] sm:text-xl">{values[w] ?? "—"}</p>
-            <p className="truncate text-[10px] text-[#60749a]">{w === "With Admission No" ? "Assigned records" : w === "Without Admission No" ? "Needs assignment" : w === "Total Students" ? "Active records" : "Dashboard summary"}</p>
-          </Card>
-        ))}
+      <h1 className="max-w-full break-words font-sans text-xl font-extrabold leading-tight tracking-tight text-[#071b41] sm:text-3xl">Welcome, {profile?.full_name}</h1>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-3 xl:grid-cols-5">
+        {widgets.map((w, index) => {
+          const colors = [
+            { dot: "bg-blue-500", label: "bg-blue-100 text-blue-700" },
+            { dot: "bg-green-500", label: "bg-green-100 text-green-700" },
+            { dot: "bg-amber-500", label: "bg-amber-100 text-amber-700" },
+            { dot: "bg-purple-500", label: "bg-purple-100 text-purple-700" },
+            { dot: "bg-red-500", label: "bg-red-100 text-red-700" },
+          ];
+          const color = colors[index % 5];
+          
+          return (
+            <Card key={w} className="min-w-0 rounded-lg border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2 flex-1">
+                  <div className={`h-1.5 w-1.5 rounded-full ${color.dot}`} />
+                  <p className="text-xs font-semibold text-gray-600 truncate flex-1">{w}</p>
+                </div>
+              </div>
+              <p className="mt-2 font-display text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{values[w] ?? "—"}</p>
+              <p className="mt-0.5 text-xs text-gray-500">{w === "With Admission No" ? "Assigned" : w === "Without Admission No" ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p>
+            </Card>
+          );
+        })}
       </div>
 
       {(role === "staff" || role === "student") && (
@@ -245,10 +275,11 @@ export default async function DashboardPage() {
 
       {role === "super_admin" && (
         <>
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
             <ClassStrengthChart data={classStrength} />
             <CollectionTrendChart data={collectionTrend} />
             <AdmissionComparisonChart data={admissionComparison} />
+            <StaffSessionChart data={staffSessionTrend} />
             <Card><p className="text-xs uppercase tracking-wide text-slate/50">Today&apos;s attendance</p><p className="mt-2 font-display text-4xl text-ink-700">{todayAttendance}</p><p className="mt-1 text-sm text-slate/60">Present and late students / marked attendance</p></Card>
           </div>
           <Card className="mt-6 border-[#d5e2f7] bg-[#f1f6ff] shadow-[0_8px_24px_rgba(30,42,74,0.06)]"><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-extrabold uppercase tracking-[0.12em] text-[#1261e8]">Website content</p><p className="mt-1 text-sm text-[#60749a]">Content published across the public website</p></div><span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#1261e8] shadow-sm">LIVE</span></div><div className="mt-4 grid gap-3 sm:grid-cols-3">{websiteStats.map((item, index) => <div key={item.label} className="rounded-xl border border-[#d5e2f7] bg-white/80 p-3"><div className="flex items-center justify-between"><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#eef4ff] text-sm font-bold text-[#1261e8]">{["▦", "◉", "! "][index]}</span><span className="text-xs font-semibold text-[#60749a]">Live</span></div><p className="mt-3 truncate text-xs font-bold uppercase tracking-wide text-[#60749a]">{item.label}</p><p className="mt-0.5 font-sans text-2xl font-extrabold text-[#071b41]">{item.count}</p><p className="mt-1 truncate text-[10px] text-[#60749a]">Updated {item.updated}</p></div>)}</div></Card>

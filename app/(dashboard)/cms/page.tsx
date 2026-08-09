@@ -19,6 +19,7 @@ export default async function CmsPage() {
     { data: eventImages },
     { data: messages },
     { data: settingsRows },
+    { data: seoRows },
   ] = await Promise.all([
     supabase.from("site_pages").select("*").order("slug"),
     supabase.from("notices").select("*").order("publish_date", { ascending: false }),
@@ -28,6 +29,7 @@ export default async function CmsPage() {
     supabase.from("event_images").select("*").order("created_at", { ascending: false }),
     supabase.from("contact_messages").select("*").order("created_at", { ascending: false }),
     supabase.from("site_settings").select("key, value"),
+    supabase.from("site_seo_metadata").select("*").order("path"),
   ]);
 
   const settings = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
@@ -47,6 +49,7 @@ export default async function CmsPage() {
         eventImages={eventImages ?? []}
         messages={messages ?? []}
         settings={settings}
+        seo={seoRows ?? []}
       />
     </div>
   );

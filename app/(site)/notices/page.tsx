@@ -1,4 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
+import { getPageMetadata } from "@/lib/seo";
+const noticesMetadata: Metadata = { title: "School Notices", description: "Read current school notices, announcements, dates, and important information for families.", alternates: { canonical: "/notices" } };
+export async function generateMetadata() { return getPageMetadata("/notices", noticesMetadata); }
 
 // Notice visibility can change as scheduled publish dates arrive.
 export const dynamic = "force-dynamic";

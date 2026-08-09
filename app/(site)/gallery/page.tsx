@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import type { Metadata } from "next";
+import { getPageMetadata } from "@/lib/seo";
+const galleryMetadata: Metadata = { title: "School Gallery", description: "Explore photographs and moments from school life, learning, activities, and the wider school community.", alternates: { canonical: "/gallery" } };
+export async function generateMetadata() { return getPageMetadata("/gallery", galleryMetadata); }
 
 export const revalidate = 60;
 

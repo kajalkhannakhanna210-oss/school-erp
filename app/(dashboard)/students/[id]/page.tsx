@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import { Badge, Button, Card } from "@/components/ui";
 import { FeeSummary } from "@/app/(dashboard)/fees/fee-summary";
 import { PaymentHistory } from "@/app/(dashboard)/fees/payment-history";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
+import { DateValue } from "@/components/date-value";
 import { ArchiveControl } from "./archive-control";
 import { DocumentUpload, type DocumentRow } from "./document-upload";
 import { PhotoUpload } from "./photo-upload";
@@ -86,6 +88,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         </div>
         {canManage && (
           <div className="flex flex-col gap-2 rounded-xl border border-gold-200 bg-gold-50/60 p-2.5 sm:shrink-0"><p className="px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-700">Quick actions</p><div className="flex flex-wrap gap-2">
+            <Link href="/students"><Button variant="primary">← Back to student list</Button></Link>
             <Link href={`/students/${s.id}/edit`}>
               <Button>Edit student</Button>
             </Link>
@@ -124,7 +127,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <Field label="Mobile" value={s.mobile_number} />
             <Field label="Contact email" value={s.contact_email} />
             <Field label="Address" value={s.address} />
-            <Field label="Admission date" value={s.admission_date} />
+            <Field label="Admission date" value={<DateValue value={s.admission_date} />} />
           </dl>
         </Card>
 
@@ -157,7 +160,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   );
 }
 
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
+function Field({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="min-w-0 rounded-lg border border-ink-100 bg-ink-50/40 px-3 py-2.5">
       <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate/50">{label}</dt>

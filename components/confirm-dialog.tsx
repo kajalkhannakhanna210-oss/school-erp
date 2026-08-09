@@ -21,14 +21,14 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/40 p-4">
-      <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl">
+      <div className="w-full max-w-sm whitespace-normal overflow-hidden rounded-lg bg-white p-6 shadow-xl">
         <h2 className="font-display text-lg text-ink-700">{title}</h2>
-        <p className="mt-2 text-sm text-slate/70">{description}</p>
+        <p className="mt-2 whitespace-normal break-words text-sm leading-6 text-slate/70">{description}</p>
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={onCancel}>
+          <Button variant="ghost" className="!text-ink-700" onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={onConfirm}>
+          <Button variant="danger" className="!text-white" onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </div>

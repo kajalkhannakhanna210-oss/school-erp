@@ -2,10 +2,15 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { AdmissionAllotmentForm } from "./form";
 
-export default async function AdmissionAllotmentPage() {
+export default async function AdmissionAllotmentPage({ searchParams }: { searchParams: { session?: string } }) {
   const supabase = await createClient();
+  let enrollmentIds: string[] | null = null;
+  if (searchParams.session) {
+    const { data: enrollments } = await supabase.from("student_enrollments").select("student_id").eq("session_id", searchParams.session);
+    enrollmentIds = (enrollments ?? []).map((row) => row.student_id);
+  }
   const [{ data: students }, { data: sections }, { data: assignedStudents }] = await Promise.all([
-    supabase.from("students").select("id, admission_number, mobile_number, photo_path, class_id, section_id, profiles(full_name), classes(id, name), sections(name)").is("admission_number", null).order("admission_number"),
+    (() => { let query = supabase.from("students").select("id, admission_number, mobile_number, photo_path, class_id, section_id, profiles(full_name), classes(id, name), sections(name)").is("admission_number", null); if (searchParams.session) query = enrollmentIds?.length ? query.in("id", enrollmentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000"); return query.order("admission_number"); })(),
     supabase.from("sections").select("id, name, class_id").order("name"),
     supabase.from("students").select("admission_number").not("admission_number", "is", null),
   ]);

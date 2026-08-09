@@ -47,13 +47,16 @@ export async function createStudent(input: StudentInput) {
     user_metadata: { full_name: input.full_name, role: "student" },
   });
 
-  if (createError || !created.user) {
-    return { error: createError?.message ?? "Could not create the student's account" };
+  let userId = created.user?.id;
+  if (!userId && createError?.message.toLowerCase().includes("already been registered")) {
+    const { data: users } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    userId = users.users.find((user) => user.email?.toLowerCase() === input.contact_email.trim().toLowerCase())?.id;
   }
+  if (!userId) return { error: createError?.message ?? "Could not create the student's account" };
 
   const supabase = await createClient();
   const { error: insertError } = await supabase.from("students").insert({
-    id: created.user.id,
+    id: userId,
     admission_number: input.admission_number.trim() ? input.admission_number.trim().toUpperCase() : null,
     contact_email: input.contact_email,
     roll_number: input.roll_number || null,
@@ -64,20 +67,20 @@ export async function createStudent(input: StudentInput) {
     blood_group: input.blood_group || null,
     address: input.address || null,
     mobile_number: input.mobile_number || null,
-    class_id: input.class_id,
-    section_id: input.section_id,
-    session_id: input.session_id,
+    class_id: input.class_id || null,
+    section_id: input.section_id || null,
+    session_id: input.session_id || null,
     admission_date: input.admission_date,
   });
 
   if (insertError) {
     // Don't leave an orphaned login with no student record behind it.
-    await admin.auth.admin.deleteUser(created.user.id);
+    if (!createError) await admin.auth.admin.deleteUser(userId);
     return { error: insertError.message };
   }
 
   revalidatePath("/students");
-  return { error: null, id: created.user.id };
+  return { error: null, id: userId };
 }
 
 type StudentUpdateInput = Partial<Omit<StudentInput, "contact_email" | "temporary_password">> & {
@@ -91,6 +94,12 @@ export async function updateStudent(id: string, input: StudentUpdateInput) {
   // Login credentials are creation-only. Drop them from an edit payload so
   // they can never be written to the student record.
   const { full_name, contact_email: _contactEmail, temporary_password: _temporaryPassword, ...studentFields } = input;
+  const normalizedStudentFields = {
+    ...studentFields,
+    class_id: studentFields.class_id || null,
+    section_id: studentFields.section_id || null,
+    session_id: studentFields.session_id || null,
+  };
   if (studentFields.mobile_number && !/^[6-9]\d{9}$/.test(studentFields.mobile_number.trim())) return { error: "Mobile number must be a valid 10-digit number starting with 6–9." };
   if (studentFields.admission_number?.trim()) {
     const { data: duplicate } = await supabase.from("students").select("id").eq("admission_number", studentFields.admission_number.trim()).neq("id", id).maybeSingle();
@@ -100,7 +109,7 @@ export async function updateStudent(id: string, input: StudentUpdateInput) {
     full_name
       ? supabase.from("profiles").update({ full_name }).eq("id", id)
       : Promise.resolve({ error: null }),
-    supabase.from("students").update(studentFields).eq("id", id),
+    supabase.from("students").update(normalizedStudentFields).eq("id", id),
   ]);
 
   revalidatePath(`/students/${id}`);
@@ -116,13 +125,26 @@ export async function setStudentActive(id: string, isActive: boolean) {
   return { error: error?.message ?? null };
 }
 
+export async function deleteAllStudentRecords() {
+  const supabase = await createClient();
+  const { data: students, error: fetchError } = await supabase.from("students").select("id");
+  if (fetchError) return { error: `Student records could not be read: ${fetchError.message}`, count: 0 };
+  const ids = (students ?? []).map((student) => student.id);
+  if (!ids.length) return { error: null, count: 0 };
+  const { error, count: deletedCount } = await supabase.from("students").delete({ count: "exact" }).in("id", ids);
+  revalidatePath("/students");
+  if (error) return { error: `Student records could not be removed: ${error.message}`, count: 0 };
+  if (!deletedCount) return { error: "No student records were removed. Your account may not have permission to delete student data.", count: 0 };
+  return { error: null, count: deletedCount };
+}
+
 export async function allotAdmissionNumber(studentId: string, admissionNumber: string, sectionId?: string) {
   await requireSuperAdmin();
   const value = admissionNumber.trim().toUpperCase();
   if (!/^[A-Z0-9-]{3,30}$/.test(value)) return { error: "Admission number may contain only letters, numbers, and hyphens." };
   const supabase = await createClient();
-  const { error } = await supabase.from("students").update({ admission_number: value, ...(sectionId ? { section_id: sectionId } : {}) }).eq("id", studentId);
-  revalidatePath("/students"); revalidatePath(`/students/${studentId}`);
+  const { error } = await supabase.from("students").update({ admission_number: value, section_id: sectionId || null }).eq("id", studentId);
+  revalidatePath("/students"); revalidatePath("/students/admission-allotment"); revalidatePath(`/students/${studentId}`);
   return { error: error?.message ?? null };
 }
 
@@ -135,16 +157,12 @@ export async function promoteStudents(input: {
   to_session_id: string;
 }) {
   const supabase = await createClient();
-  const { error, count } = await supabase
-    .from("students")
-    .update(
-      { class_id: input.to_class_id, section_id: input.to_section_id, session_id: input.to_session_id },
-      { count: "exact" }
-    )
-    .eq("class_id", input.from_class_id)
-    .eq("section_id", input.from_section_id)
-    .eq("session_id", input.from_session_id)
-    .eq("is_active", true);
+  const { data: students, error: selectError } = await supabase.from("students").select("id").eq("class_id", input.from_class_id).eq("section_id", input.from_section_id).eq("session_id", input.from_session_id).eq("is_active", true);
+  if (selectError) return { error: selectError.message, count: 0 };
+  const { error, count } = await supabase.from("student_enrollments").upsert(
+    (students ?? []).map((student) => ({ student_id: student.id, session_id: input.to_session_id, class_id: input.to_class_id, section_id: input.to_section_id })),
+    { onConflict: "student_id,session_id", count: "exact" }
+  )
 
   revalidatePath("/students");
   return { error: error?.message ?? null, count: count ?? 0 };

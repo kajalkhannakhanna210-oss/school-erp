@@ -203,3 +203,16 @@ export async function saveSettings(values: Record<string, string>) {
   revalidatePath("/", "layout");
   return { error: error?.message ?? null };
 }
+
+export async function saveSeoMetadata(input: { path: string; title: string; description: string; canonical_path: string; og_title: string; og_description: string; og_image: string; indexable: boolean }) {
+  if (!input.path.startsWith("/")) return { error: "SEO path must start with /." };
+  const title = input.title.trim();
+  const description = input.description.trim();
+  if (title.length > 160) return { error: "SEO title must be 160 characters or fewer." };
+  if (description.length > 320) return { error: "Meta description must be 320 characters or fewer." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("site_seo_metadata").upsert({ ...input, title: title || null, description: description || null, canonical_path: input.canonical_path.trim() || input.path, og_title: input.og_title.trim() || null, og_description: input.og_description.trim() || null, og_image: input.og_image.trim() || null, updated_at: new Date().toISOString() }, { onConflict: "path" });
+  revalidatePath("/cms");
+  revalidatePath(input.path === "/" ? "/" : input.path);
+  return { error: error?.message ?? null };
+}

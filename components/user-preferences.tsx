@@ -18,7 +18,7 @@ export function UserPreferences() {
   }, [preferences]);
   return (
     <details className="relative text-sm">
-      <summary className="cursor-pointer rounded-md px-3 py-2 text-slate hover:bg-ink-50">Display</summary>
+      <summary className="cursor-pointer rounded-md px-3 py-2 text-white hover:bg-white/10">Display</summary>
       <div style={{ width: "min(16rem, calc(100vw - 2rem))" }} className="absolute left-0 top-full z-20 mt-2 max-w-[calc(100vw-2rem)] overflow-hidden rounded-lg border border-ink-100 bg-white p-3 shadow-lg sm:left-auto sm:right-0 sm:w-64 sm:p-4">
         <label className="block text-xs font-medium text-slate/60">Theme</label>
         <select className="mt-1 w-full rounded border border-ink-100 p-2" value={preferences.theme} onChange={(e) => setPreferences({ ...preferences, theme: e.target.value as Preferences["theme"] })}>

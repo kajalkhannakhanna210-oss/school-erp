@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { ContactForm } from "./contact-form";
+import type { Metadata } from "next";
+import { getPageMetadata } from "@/lib/seo";
+const contactMetadata: Metadata = { title: "Contact Us", description: "Contact the school office for admissions, academic information, fees, facilities, and general enquiries.", alternates: { canonical: "/contact" } };
+export async function generateMetadata() { return getPageMetadata("/contact", contactMetadata); }
 
 export default async function ContactPage() {
   const supabase = await createClient();

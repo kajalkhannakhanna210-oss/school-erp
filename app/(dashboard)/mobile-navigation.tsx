@@ -12,7 +12,7 @@ export function DashboardMobileNavigation({ items }: { items: NavItem[] }) {
   return (
     <div className="lg:hidden">
       <button type="button" aria-label="Open dashboard menu" aria-expanded={open} onClick={() => setOpen(true)} className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/25 px-3 text-sm font-semibold text-white transition hover:bg-white/10">
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[2]"><path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" /></svg><span>Menu</span>
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 shrink-0 fill-none stroke-current stroke-[2.5]"><path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" /></svg><span className="hidden sm:inline">Menu</span>
       </button>
       {open && <div className="fixed inset-0" style={{ zIndex: 9999 }}>
         <button type="button" aria-label="Close dashboard menu" onClick={() => setOpen(false)} className="mobile-menu-backdrop absolute inset-0 bg-ink-900/60" />
@@ -24,7 +24,7 @@ export function DashboardMobileNavigation({ items }: { items: NavItem[] }) {
           <div className="flex-1 overflow-y-auto p-4">
             <p className="mb-2 px-3 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-gold/80">Navigation</p>
             <div className="space-y-1">
-              {items.map((item) => <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={`block rounded-lg px-3 py-3 text-sm font-semibold transition ${pathname === item.href ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"}`}>{item.label}</Link>)}
+              {items.map((item) => <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold transition ${pathname === item.href ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"}`}><span aria-hidden="true" className="grid h-6 w-6 shrink-0 place-items-center text-lg leading-none">{item.icon ?? "•"}</span><span>{item.label}</span></Link>)}
             </div>
           </div>
         </nav>

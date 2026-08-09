@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent } from "react";
 import { Button, Input } from "@/components/ui";
 
 type Option = { id: string; name: string };
@@ -9,9 +9,11 @@ type Option = { id: string; name: string };
 export function StudentFilters({
   classes,
   sections,
+  sessions,
 }: {
   classes: Option[];
   sections: (Option & { class_id: string })[];
+  sessions: Option[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -19,8 +21,10 @@ export function StudentFilters({
   const [q, setQ] = useState(searchParams?.get("q") ?? "");
   const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
   const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
+  const [sessionId, setSessionId] = useState(searchParams?.get("session") ?? "");
   const [admission, setAdmission] = useState(searchParams?.get("admission") ?? "");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     const toggle = () => setFiltersOpen((open) => !open);
@@ -36,14 +40,16 @@ export function StudentFilters({
     if (q) params.set("q", q);
     if (classId) params.set("class", classId);
     if (sectionId) params.set("section", sectionId);
+    if (sessionId) params.set("session", sessionId);
     if (admission) params.set("admission", admission);
-    router.push(`/students?${params.toString()}`);
+    startTransition(() => router.push(`/students?${params.toString()}`));
   }
 
   function clearFilters() {
     setQ("");
     setClassId("");
     setSectionId("");
+    setSessionId("");
     setAdmission("");
     router.push("/students");
   }
@@ -62,6 +68,10 @@ export function StudentFilters({
           <option value="">All classes</option>
           {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
+        <select className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm md:w-auto" value={sessionId} onChange={(e) => setSessionId(e.target.value)} aria-label="Academic session">
+          <option value="">All sessions</option>
+          {sessions.map((session) => <option key={session.id} value={session.id}>{session.name}</option>)}
+        </select>
         <select className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm md:w-auto" value={admission} onChange={(e) => setAdmission(e.target.value)} aria-label="Admission number status">
           <option value="">All admission numbers</option>
           <option value="assigned">With admission number</option>
@@ -71,7 +81,7 @@ export function StudentFilters({
           <option value="">All sections</option>
           {filteredSections.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <Button type="submit" className="min-h-10">Apply</Button>
+        <Button type="submit" className="min-h-10" disabled={pending}>{pending ? "Applying…" : "Apply"}</Button>
         <Button type="button" variant="ghost" className="min-h-10 bg-white" onClick={clearFilters}>Clear</Button>
       </div>
       <div className="order-last w-full md:order-none md:ml-auto md:w-72">

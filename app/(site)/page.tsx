@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { createPublicClient, withPublicDataTimeout } from "@/lib/supabase/public";
 import { HeroSlider, type HeroSlide } from "./hero-slider";
+import { SafeImage } from "./safe-image";
+import { getPageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
+
+const homeMetadata: Metadata = {
+  title: "School ERP & School Management System",
+  description: "Manage students, teachers, fees, attendance, examinations, notices, reports, and school administration with a modern school ERP system.",
+  alternates: { canonical: "/" },
+};
+export async function generateMetadata() { return getPageMetadata("/", homeMetadata); }
 
 const HIGHLIGHTS = [
   { number: "01", title: "A considered education", text: "Learning that balances curiosity, confidence, and strong foundations." },
@@ -101,17 +111,6 @@ export default async function HomePage() {
       imageUrl,
       videoUrl: HERO_VIDEO_URL,
     },
-    ...(galleryImages ?? []).map((image, index) => ({
-      eyebrow: index === 0 ? "Life at school" : "Every day, something new",
-      title: image.caption || (index === 0 ? "Learning beyond the classroom." : "A community in motion."),
-      description:
-        index === 0
-          ? "Discover the moments, friendships, and experiences that make school memorable."
-          : "From first questions to lasting confidence, every day brings an opportunity to grow.",
-      imageUrl: image.image_path.startsWith("http")
-        ? image.image_path
-        : supabase.storage.from("site-media").getPublicUrl(image.image_path).data.publicUrl,
-    })),
   ];
 
   if (slides.length === 1) {
@@ -310,7 +309,7 @@ export default async function HomePage() {
               <article key={event.id} className="group overflow-hidden rounded-xl border border-ink-100 bg-white shadow-[0_12px_35px_-24px_rgba(30,42,74,0.55)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_-25px_rgba(30,42,74,0.5)]">
                 <div className="relative aspect-[16/10] overflow-hidden bg-ink-700">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={event.imageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                  <SafeImage src={event.imageUrl} alt={event.title} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-900/55 via-transparent to-transparent" />
                   <p className="absolute bottom-4 left-4 rounded-sm bg-white/95 px-3 py-1.5 font-mono text-[11px] font-medium uppercase tracking-wide text-ink-700 shadow-sm">{formatDate(event.event_date)}</p>
                 </div>

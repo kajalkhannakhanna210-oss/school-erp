@@ -14,7 +14,7 @@ const PAGE_SIZE = 10;
 export default async function StaffPage({
   searchParams,
 }: {
-    searchParams: { q?: string; status?: string; page?: string };
+    searchParams: { q?: string; status?: string; session?: string; page?: string };
 }) {
   const supabase = await createClient();
   const admin = createAdminClient();
@@ -37,11 +37,19 @@ export default async function StaffPage({
   const page = Math.max(1, Number(searchParams.page ?? "1"));
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  let enrollmentIds: string[] | null = null;
+  let enrollmentStatus = new Map<string, boolean>();
+  if (searchParams.session) {
+    const { data: enrollments } = await admin.from("staff_enrollments").select("staff_id, is_active").eq("session_id", searchParams.session);
+    enrollmentIds = (enrollments ?? []).map((row) => row.staff_id);
+    enrollmentStatus = new Map((enrollments ?? []).map((row) => [row.staff_id, row.is_active]));
+  }
 
   let query = admin
     .from("staff")
     .select("*, profiles!staff_id_fkey(full_name)", { count: "exact" })
     .order("employee_id");
+  if (searchParams.session) query = enrollmentIds?.length ? query.in("id", enrollmentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
 
   if (searchParams.q) {
     const q = searchParams.q.replace(/[,()]/g, "");
@@ -49,20 +57,23 @@ export default async function StaffPage({
     // Same limitation as the students list: name lives on the joined
     // `profiles` table, which .or() can't reach directly.
   }
-  if (searchParams.status === "active") query = query.eq("is_active", true);
-  if (searchParams.status === "inactive") query = query.eq("is_active", false);
+  if (searchParams.status === "active" && !searchParams.session) query = query.eq("is_active", true);
+  if (searchParams.status === "inactive" && !searchParams.session) query = query.eq("is_active", false);
 
   const { data: staff, count } = await query.range(from, to);
+  const sessionStaff = searchParams.session ? (staff ?? []).filter((member) => searchParams.status === "active" ? enrollmentStatus.get(member.id) : searchParams.status === "inactive" ? !enrollmentStatus.get(member.id) : true) : (staff ?? []);
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
   const rows = await Promise.all(
-    (staff ?? []).map(async (s) => {
+    sessionStaff.map(async (s) => {
       const { data: signed } = s.photo_path
         ? await admin.storage.from("staff-photos").createSignedUrl(s.photo_path, 60 * 10)
         : { data: null };
       return { ...s, photo_url: signed?.signedUrl ?? null };
     }),
   ) as unknown as StaffRow[];
-  const { data: allStaff } = await admin.from("staff").select("*, profiles!staff_id_fkey(full_name)").order("employee_id");
+  let allStaffQuery = admin.from("staff").select("*, profiles!staff_id_fkey(full_name)").order("employee_id");
+  if (searchParams.session) allStaffQuery = enrollmentIds?.length ? allStaffQuery.in("id", enrollmentIds) : allStaffQuery.eq("id", "00000000-0000-0000-0000-000000000000");
+  const { data: allStaff } = await allStaffQuery;
   const totalStaff = allStaff?.length ?? 0;
   const activeStaff = (allStaff ?? []).filter((member) => member.is_active).length;
   const inactiveStaff = totalStaff - activeStaff;

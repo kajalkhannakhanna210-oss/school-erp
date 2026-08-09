@@ -12,10 +12,12 @@ export function PromoteForm({
   classes,
   sections,
   sessions,
+  studentCounts,
 }: {
   classes: Option[];
   sections: (Option & { class_id: string })[];
   sessions: Option[];
+  studentCounts: Record<string, number>;
 }) {
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
@@ -31,6 +33,8 @@ export function PromoteForm({
 
   const fromSections = sections.filter((s) => s.class_id === form.from_class_id);
   const toSections = sections.filter((s) => s.class_id === form.to_class_id);
+  const sourceCount = studentCounts[`${form.from_class_id}:${form.from_section_id}:${form.from_session_id}`] ?? 0;
+  const targetCount = studentCounts[`${form.to_class_id}:${form.to_section_id}:${form.to_session_id}`] ?? 0;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -76,6 +80,7 @@ export function PromoteForm({
               options={fromSections}
               disabled={!form.from_class_id}
             />
+            <p className="rounded-lg bg-ink-50 px-3 py-2 text-sm font-semibold text-ink-700">Students to promote: {sourceCount}</p>
           </div>
         </Card>
         <Card>
@@ -100,6 +105,7 @@ export function PromoteForm({
               options={toSections}
               disabled={!form.to_class_id}
             />
+            <p className="rounded-lg bg-ink-50 px-3 py-2 text-sm font-semibold text-ink-700">Students currently in target section: {targetCount}</p>
           </div>
         </Card>
         <div className="lg:col-span-2">

@@ -7,6 +7,10 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
 import { setStudentActive } from "./actions";
 
+function formatStudentName(name?: string | null) {
+  return (name ?? "").trim().toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Unnamed student";
+}
+
 export type StudentRow = {
   id: string;
   photo_url: string | null;
@@ -23,6 +27,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
   const { push } = useToast();
   const [pending, startTransition] = useTransition();
   const [archiveTarget, setArchiveTarget] = useState<StudentRow | null>(null);
+  const [photoTarget, setPhotoTarget] = useState<StudentRow | null>(null);
 
   function handleArchive() {
     if (!archiveTarget) return;
@@ -58,7 +63,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
               <td className="px-4 py-3 font-mono">{s.admission_number || "Not assigned"}</td>
               <td className="px-4 py-3">
                 <Link href={`/students/${s.id}`} className="flex items-center gap-3 font-semibold text-ink-700 hover:text-gold-600">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink-100 text-xs font-bold text-ink-700">{(s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span><span className="truncate">{s.profiles?.full_name}</span>
+                  <span role={s.photo_url ? "button" : undefined} tabIndex={s.photo_url ? 0 : undefined} onClick={(e) => { if (s.photo_url) { e.preventDefault(); e.stopPropagation(); setPhotoTarget(s); } }} onKeyDown={(e) => { if (s.photo_url && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setPhotoTarget(s); } }} className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-ink-100 text-xs font-bold text-ink-700">{s.photo_url ? <img src={s.photo_url} alt={`${formatStudentName(s.profiles?.full_name)} photo`} className="h-full w-full cursor-zoom-in object-cover" /> : formatStudentName(s.profiles?.full_name).split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}</span><span className="truncate">{formatStudentName(s.profiles?.full_name)}</span>
                 </Link>
               </td>
               <td className="px-4 py-3 text-slate/70">
@@ -97,7 +102,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
             </Link>
             <div className="min-w-0 flex-1">
               <Link href={`/students/${s.id}`} className="flex min-w-0 items-center gap-3 font-semibold text-ink-700">
-                <span className="block truncate text-sm font-semibold">{s.profiles?.full_name || "Unnamed student"}</span>
+                <span className="block truncate text-sm font-semibold">{formatStudentName(s.profiles?.full_name)}</span>
               </Link>
               <p className="truncate text-xs font-mono text-slate/70">Admission: {s.admission_number || "Not assigned"}</p>
               <p className="mt-1 truncate text-xs text-slate/70">{s.mobile_number || "No mobile number"}</p>
@@ -120,6 +125,15 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
         onConfirm={handleArchive}
         onCancel={() => setArchiveTarget(null)}
       />
+      {photoTarget?.photo_url && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setPhotoTarget(null)}>
+          <div className="relative max-h-[90vh] max-w-lg rounded-xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <button type="button" aria-label="Close photo preview" onClick={() => setPhotoTarget(null)} className="absolute right-2 top-2 rounded-full bg-white px-3 py-1 text-lg text-ink-700 shadow">×</button>
+            <img src={photoTarget.photo_url} alt={`${photoTarget.profiles?.full_name ?? "Student"} photo`} className="max-h-[85vh] max-w-full rounded-lg object-contain" />
+            <p className="px-2 py-2 text-center text-sm font-semibold text-ink-700">{formatStudentName(photoTarget.profiles?.full_name)}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

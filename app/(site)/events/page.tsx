@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { SafeImage } from "../safe-image";
+import type { Metadata } from "next";
+import { getPageMetadata } from "@/lib/seo";
+const eventsMetadata: Metadata = { title: "School News & Events", description: "Read the latest school news, announcements, activities, and upcoming events.", alternates: { canonical: "/events" } };
+export async function generateMetadata() { return getPageMetadata("/events", eventsMetadata); }
 
 export const revalidate = 60;
 
@@ -38,7 +43,7 @@ export default async function EventsPage() {
           <section className="relative z-10 -mt-10 overflow-hidden rounded-2xl bg-white shadow-[0_22px_50px_-30px_rgba(34,47,87,.55)] lg:grid lg:grid-cols-[1.05fr_.95fr]">
             <div className="relative min-h-72 overflow-hidden bg-ink-700">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imageUrl(featuredEvent.image_path)} alt={featuredEvent.title} className="absolute inset-0 h-full w-full object-cover" />
+              <SafeImage src={imageUrl(featuredEvent.image_path)} alt={featuredEvent.title} className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink-900/60 via-transparent to-transparent" />
               <p className="absolute bottom-6 left-6 rounded-full bg-gold px-4 py-2 font-mono text-xs font-bold uppercase tracking-wide text-ink-900">{formatDate(featuredEvent.event_date)}</p>
             </div>
@@ -77,7 +82,7 @@ export default async function EventsPage() {
                 <Link href={`/events/${event.id}`} key={event.id} className="group overflow-hidden rounded-xl border border-ink-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-gold-300 hover:shadow-[0_18px_34px_-24px_rgba(34,47,87,.45)]">
                   <div className="relative aspect-[16/10] overflow-hidden bg-ink-700">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imageUrl(event.image_path)} alt={event.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                    <SafeImage src={imageUrl(event.image_path)} alt={event.title} loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                     <time className="absolute bottom-4 left-4 rounded bg-white/95 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-ink-700">{formatDate(event.event_date)}</time>
                   </div>
                   <div className="p-6"><h3 className="font-display text-2xl leading-tight text-ink-700">{event.title}</h3><p className="mt-3 line-clamp-3 whitespace-pre-line leading-7 text-slate/70">{event.description || "More details about this school event will be shared soon."}</p><span className="mt-4 flex min-h-11 w-full items-center justify-between rounded-lg bg-ink-700 px-4 py-2.5 text-sm font-semibold text-white transition group-hover:bg-gold-600"><span>View event</span><span aria-hidden="true" className="text-lg leading-none">→</span></span></div>

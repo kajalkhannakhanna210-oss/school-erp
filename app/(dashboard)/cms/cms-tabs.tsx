@@ -25,6 +25,7 @@ import {
   savePage,
   setMessageRead,
   setPageImage,
+  saveSeoMetadata,
 } from "./actions";
 
 type SitePage = { slug: string; title: string; content: string; image_path: string | null };
@@ -35,6 +36,7 @@ type EventRow = { id: string; title: string; description: string; event_date: st
 type EventImage = { id: string; event_id: string; image_path: string; caption: string | null };
 type ContactMessage = { id: string; name: string; email: string; phone: string | null; message: string; is_read: boolean; created_at: string };
 type Settings = Record<string, string>;
+type SeoRow = { path: string; title: string | null; description: string | null; canonical_path: string | null; og_title: string | null; og_description: string | null; og_image: string | null; indexable: boolean };
 
 const MAX_PAGE_IMAGE_SIZE = 5 * 1024 * 1024;
 const PAGE_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -56,10 +58,11 @@ function SelectedImagePreviews({ files, onRemove }: { files: File[]; onRemove: (
   return <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{files.map((file, index) => <div key={`${file.name}-${file.lastModified}-${index}`} className="group relative overflow-hidden rounded-lg border border-ink-100 bg-ink-50"><img src={urls[index]} alt={file.name} className="aspect-square w-full object-cover" /><button type="button" onClick={() => onRemove(index)} className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-ink-900/80 text-sm font-bold text-white opacity-100 transition hover:bg-danger sm:opacity-0 sm:group-hover:opacity-100" aria-label={`Remove ${file.name}`}>×</button><p className="truncate px-2 py-1.5 text-xs text-slate/60">{file.name}</p></div>)}</div>;
 }
 
-const TABS = ["pages", "notices", "gallery", "events", "messages", "settings"] as const;
+const TABS = ["pages", "seo", "notices", "gallery", "events", "messages", "settings"] as const;
 type Tab = (typeof TABS)[number];
 const TAB_LABELS: Record<Tab, string> = {
   pages: "Pages",
+  seo: "SEO",
   notices: "Notices",
   gallery: "Gallery",
   events: "Events",
@@ -76,6 +79,7 @@ export function CmsTabs({
   eventImages,
   messages,
   settings,
+  seo,
 }: {
   pages: SitePage[];
   notices: Notice[];
@@ -85,6 +89,7 @@ export function CmsTabs({
   eventImages: EventImage[];
   messages: ContactMessage[];
   settings: Settings;
+  seo: SeoRow[];
 }) {
   const [tab, setTab] = useState<Tab>("pages");
   const unreadCount = messages.filter((m) => !m.is_read).length;
@@ -107,6 +112,7 @@ export function CmsTabs({
       </div>
       <div className="mt-6">
         {tab === "pages" && <PagesTab pages={pages} />}
+        {tab === "seo" && <SeoTab rows={seo} />}
         {tab === "notices" && <NoticesTab notices={notices} />}
         {tab === "gallery" && <GalleryTab albums={albums} images={images} />}
         {tab === "events" && <EventsTab events={events} eventImages={eventImages} />}
@@ -115,6 +121,34 @@ export function CmsTabs({
       </div>
     </div>
   );
+}
+
+function SeoTab({ rows }: { rows: SeoRow[] }) {
+  const { push } = useToast();
+  const [pending, startTransition] = useTransition();
+  const [path, setPath] = useState(rows[0]?.path ?? "/");
+  const current = rows.find((row) => row.path === path);
+  const [form, setForm] = useState({ title: current?.title ?? "", description: current?.description ?? "", canonical_path: current?.canonical_path ?? path, og_title: current?.og_title ?? "", og_description: current?.og_description ?? "", og_image: current?.og_image ?? "", indexable: current?.indexable ?? true });
+
+  function selectPath(nextPath: string) {
+    const row = rows.find((item) => item.path === nextPath);
+    setPath(nextPath);
+    setForm({ title: row?.title ?? "", description: row?.description ?? "", canonical_path: row?.canonical_path ?? nextPath, og_title: row?.og_title ?? "", og_description: row?.og_description ?? "", og_image: row?.og_image ?? "", indexable: row?.indexable ?? true });
+  }
+
+  function save(event: FormEvent) {
+    event.preventDefault();
+    startTransition(async () => {
+      const result = await saveSeoMetadata({ path, ...form });
+      push(result.error ?? "SEO metadata saved", result.error ? "error" : "success");
+    });
+  }
+
+  if (!rows.length) return <Card><p className="text-sm text-slate/70">Run the SEO metadata migration before editing page SEO.</p></Card>;
+  return <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+    <Card><p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate/50">Public pages</p><div className="space-y-1">{rows.map((row) => <button key={row.path} type="button" onClick={() => selectPath(row.path)} className={`w-full rounded-md px-3 py-2 text-left text-sm ${row.path === path ? "bg-ink-50 font-medium text-ink-700" : "text-slate hover:bg-ink-50"}`}>{row.path === "/" ? "Homepage" : row.path}</button>)}</div></Card>
+    <Card><form onSubmit={save} className="space-y-4"><div><Label htmlFor="seo-title">SEO title</Label><Input id="seo-title" maxLength={160} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /><p className="mt-1 text-xs text-slate/50">Recommended: under 60 characters.</p></div><div><Label htmlFor="seo-description">Meta description</Label><textarea id="seo-description" maxLength={320} rows={4} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1 w-full rounded-md border border-ink-100 bg-white px-3 py-2 text-sm" /><p className="mt-1 text-xs text-slate/50">Recommended: 140–160 characters.</p></div><div><Label htmlFor="seo-canonical">Canonical path</Label><Input id="seo-canonical" value={form.canonical_path} onChange={(e) => setForm({ ...form, canonical_path: e.target.value })} placeholder="/about" /></div><div><Label htmlFor="seo-og-title">Social title</Label><Input id="seo-og-title" value={form.og_title} onChange={(e) => setForm({ ...form, og_title: e.target.value })} /></div><div><Label htmlFor="seo-og-description">Social description</Label><textarea id="seo-og-description" rows={3} value={form.og_description} onChange={(e) => setForm({ ...form, og_description: e.target.value })} className="mt-1 w-full rounded-md border border-ink-100 bg-white px-3 py-2 text-sm" /></div><div><Label htmlFor="seo-og-image">Open Graph image URL</Label><Input id="seo-og-image" value={form.og_image} onChange={(e) => setForm({ ...form, og_image: e.target.value })} placeholder="https://... or /about-school.jpg" /></div><label className="flex items-center gap-2 text-sm font-medium text-ink-700"><input type="checkbox" checked={form.indexable} onChange={(e) => setForm({ ...form, indexable: e.target.checked })} /> Allow search engines to index this page</label><Button type="submit" disabled={pending}>{pending ? "Saving…" : "Save SEO settings"}</Button></form></Card>
+  </div>;
 }
 
 function PagesTab({ pages }: { pages: SitePage[] }) {
