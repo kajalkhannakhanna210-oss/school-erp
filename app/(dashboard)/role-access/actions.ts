@@ -16,9 +16,19 @@ export async function updateRolePageAccess(role: UserRole, pageKeys: string[]) {
   if (deleteError) return { error: deleteError.message };
 
   if (uniqueKeys.length) {
+    const defaultIcons: Record<string, string> = {
+      dashboard: '⌂', master: '▦', sessions: '◷', classes: '▤', sections: '▥', class_teachers: '♙',
+      students: '♟', admission_allotment: '✓', staff: '♚', attendance: '◴', exams: '▣', fees: '₹',
+      payments: '₹', reports: '▥', cms: '◆', admissions: '♜', role_access: '⚙', profile: '●'
+    };
+
     const { error: insertError } = await supabase
       .from("role_page_access")
-      .insert(uniqueKeys.map((page_key) => ({ role, page_key })));
+      .insert(uniqueKeys.map((page_key) => ({
+        role,
+        page_key,
+        icon: navItems.find((i) => i.key === page_key)?.icon ?? defaultIcons[page_key] ?? '•',
+      })));
     if (insertError) return { error: insertError.message };
   }
 

@@ -27,6 +27,12 @@ export default function LoginPage() {
       const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
       if (profileError || !profile) { await supabase.auth.signOut(); setError("No matching profile was found for this account."); return; }
       if (isAdminLogin && profile.role !== "super_admin") { await supabase.auth.signOut(); setError(`This account is registered as ${profile.role.replace("_", " ")}, not Super Admin.`); return; }
+      const deviceStorageKey = "school_erp_device_id";
+      const auditStorageKey = "school_erp_login_audit_id";
+      const deviceId = window.localStorage.getItem(deviceStorageKey) ?? crypto.randomUUID();
+      window.localStorage.setItem(deviceStorageKey, deviceId);
+      const { data: audit } = await supabase.from("login_audit").insert({ user_id: data.user.id, login_identifier: identifier.trim().toLowerCase(), device_id: deviceId }).select("id").single();
+      if (audit?.id) window.localStorage.setItem(auditStorageKey, audit.id);
       // Force a fresh request so the server layout reads the session cookie
       // written by Supabase before deciding whether to redirect.
       window.location.assign("/dashboard");

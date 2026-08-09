@@ -34,6 +34,16 @@ export default async function ReportsPage({
     Object.entries(searchParams).filter(([k]) => k !== "type") as [string, string][]
   );
   const result = await getReport(supabase, type, filters);
+  let loginActivity: { id: string; user_id: string; login_identifier: string; device_id: string; login_at: string; logout_at: string | null }[] = [];
+  let profileNames = new Map<string, string>();
+  if ((await supabase.from("profiles").select("role").eq("id", (await supabase.auth.getUser()).data.user?.id ?? "").single()).data?.role === "super_admin") {
+    const [{ data: auditRows }, { data: profileRows }] = await Promise.all([
+      supabase.from("login_audit").select("id, user_id, login_identifier, device_id, login_at, logout_at").order("login_at", { ascending: false }).limit(200),
+      supabase.from("profiles").select("id, full_name"),
+    ]);
+    loginActivity = auditRows ?? [];
+    profileNames = new Map((profileRows ?? []).map((profile) => [profile.id, profile.full_name]));
+  }
 
   const exportQuery = new URLSearchParams({ ...filters }).toString();
 
@@ -104,6 +114,10 @@ export default async function ReportsPage({
           </table>
         </div>
       </Card>
+      {(loginActivity.length > 0 || profileNames.size > 0) && <Card className="mt-8">
+        <div className="mb-4 flex items-center justify-between"><div><h2 className="font-display text-xl text-ink-700">Login activity</h2><p className="text-sm text-slate/60">Recent sign-ins and sign-outs by user and device.</p></div><span className="text-xs text-slate/50">Last 200 records</span></div>
+        {loginActivity.length === 0 ? <p className="py-8 text-center text-sm text-slate/60">No login activity has been recorded yet. Sign out and sign in again to create the first record.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50"><th className="py-2 pr-4">User</th><th className="py-2 pr-4">Login ID</th><th className="py-2 pr-4">Device ID</th><th className="py-2 pr-4">Login time</th><th className="py-2 pr-4">Logout time</th><th className="py-2">Status</th></tr></thead><tbody>{loginActivity.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-2 pr-4"><span className="font-medium text-ink-700">{profileNames.get(row.user_id) ?? "Unknown user"}</span><span className="block font-mono text-[10px] text-slate/50">{row.user_id}</span></td><td className="py-2 pr-4">{row.login_identifier}</td><td className="max-w-44 truncate py-2 pr-4 font-mono text-xs" title={row.device_id}>{row.device_id}</td><td className="whitespace-nowrap py-2 pr-4">{new Date(row.login_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td><td className="whitespace-nowrap py-2 pr-4">{row.logout_at ? new Date(row.logout_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}</td><td className={row.logout_at ? "py-2 text-slate/60" : "py-2 font-semibold text-success"}>{row.logout_at ? "Logged out" : "Active"}</td></tr>)}</tbody></table></div>}
+      </Card>}
     </div>
   );
 }

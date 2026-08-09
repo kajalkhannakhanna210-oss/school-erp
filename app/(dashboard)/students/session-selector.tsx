@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
-export function SessionSelector({ sessions }: { sessions: { id: string; name: string }[] }) {
+export function SessionSelector({ sessions, className = "" }: { sessions: { id: string; name: string }[]; className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -22,7 +22,7 @@ export function SessionSelector({ sessions }: { sessions: { id: string; name: st
     });
   }
 
-  return <div className="flex items-center gap-2">
+  return <div className={`flex items-center gap-2 ${className}`}>
     <select aria-label="Academic session" value={value} disabled={pending} onChange={(e) => changeSession(e.target.value)} className="min-h-10 min-w-36 rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm disabled:cursor-wait disabled:opacity-60">
       {sessions.map((session) => <option key={session.id} value={session.id}>{session.name}</option>)}
     </select>

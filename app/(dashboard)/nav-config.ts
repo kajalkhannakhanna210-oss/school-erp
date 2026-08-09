@@ -18,6 +18,7 @@ export const navItems: NavItem[] = [
   { key: "fees", label: "Fees", href: "/fees", roles: ["super_admin"] },
   { key: "payments", label: "Payments", href: "/payments", roles: ["student"] },
   { key: "reports", label: "Reports", href: "/reports", roles: ["super_admin", "staff"] },
+  { key: "login_activity", label: "Login Activity", href: "/reports/login-activity", roles: ["super_admin"], icon: "◷" },
   { key: "cms", label: "Website CMS", href: "/cms", roles: ["super_admin"] },
   { key: "admissions", label: "Admissions & Alumni", href: "/admissions-admin", roles: ["super_admin"] },
   { key: "role_access", label: "Role Page Access", href: "/role-access", roles: ["super_admin"] },
