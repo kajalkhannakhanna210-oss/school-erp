@@ -1,7 +1,15 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { AssignForm } from "./assign-form";
 
 export default async function ClassTeachersPage() {
+  try {
+    await requirePageAccess("class_teachers");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const [
     { data: classes },
@@ -13,9 +21,6 @@ export default async function ClassTeachersPage() {
     supabase.from("classes").select("*").order("sort_order"),
     supabase.from("sections").select("*").order("name"),
     supabase.from("academic_sessions").select("*").order("start_date", { ascending: false }),
-    // Sourced from staff.is_active (not profiles.is_active) since that's the
-    // flag Staff Management's Archive button actually controls — using the
-    // wrong one would let an archived staff member stay assignable here.
     supabase.from("staff").select("id, profiles(full_name)").eq("is_active", true),
     supabase
       .from("class_teachers")

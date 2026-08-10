@@ -1,12 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { FeeSummary } from "@/app/(dashboard)/fees/fee-summary";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { ChangePasswordForm } from "./change-password-form";
 import { DateValue } from "@/components/date-value";
 
 export default async function ProfilePage() {
+  try {
+    await requirePageAccess("profile");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

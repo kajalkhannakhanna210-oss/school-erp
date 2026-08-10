@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 
 export default async function LoginActivityPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (profile?.role !== "super_admin") redirect("/reports");
+  try {
+    await requirePageAccess("login_activity");
+  } catch {
+    redirect("/dashboard");
+  }
 
+  const supabase = await createClient();
   const [{ data: activity }, { data: profiles }] = await Promise.all([
     supabase.from("login_audit").select("id, user_id, login_identifier, device_id, login_at, logout_at").order("login_at", { ascending: false }).limit(500),
     supabase.from("profiles").select("id, full_name"),

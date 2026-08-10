@@ -1,9 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Badge, Button, Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { ExamsTabs } from "./exams-tabs";
 
 export default async function ExamsPage() {
+  try {
+    await requirePageAccess("exams");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

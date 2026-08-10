@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { ExportCsvButton } from "./export-csv-button";
 import { StudentFilters } from "./student-filters";
 import { StudentTable, type StudentRow } from "./student-table";
@@ -17,6 +19,12 @@ export default async function StudentsPage({
 }: {
     searchParams: { q?: string; class?: string; section?: string; session?: string; admission?: string; page?: string; filters?: string };
 }) {
+  try {
+    await requirePageAccess("students");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
 
   const {
@@ -45,7 +53,6 @@ export default async function StudentsPage({
   if (searchParams.admission === "assigned") query = query.not("admission_number", "is", null).neq("admission_number", "");
   if (searchParams.admission === "unassigned") query = query.or("admission_number.is.null,admission_number.eq.");
   if (searchParams.q) {
-    // Strip characters that have special meaning in a PostgREST filter string.
     const q = searchParams.q.replace(/[,()]/g, "");
     query = query.or(`admission_number.ilike.%${q}%,mobile_number.ilike.%${q}%`);
     // Name lives on the joined `profiles` table, which .or() can't filter on

@@ -1,9 +1,17 @@
+import { redirect } from "next/navigation";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { FeeSummary } from "../fees/fee-summary";
 import { PaymentHistory } from "../fees/payment-history";
 
 export default async function PaymentsPage() {
+  try {
+    await requirePageAccess("payments");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

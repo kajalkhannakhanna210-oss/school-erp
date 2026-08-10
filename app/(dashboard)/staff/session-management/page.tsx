@@ -1,7 +1,15 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { StaffSessionManagementForm } from "../session-management-form";
 
 export default async function StaffSessionManagementPage() {
+  try {
+    await requirePageAccess("staff_sessions");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const { data: sessions } = await supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false });
   const { data: enrollments } = await supabase.from("staff_enrollments").select("session_id");

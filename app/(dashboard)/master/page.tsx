@@ -1,22 +1,16 @@
 import { redirect } from "next/navigation";
 import { AcademicTabs } from "../academic/academic-tabs";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 
 export default async function MasterDataPage() {
+  try {
+    await requirePageAccess("master");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/admin/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "super_admin") redirect("/dashboard");
 
   const [{ data: sessions }, { data: classes }, { data: sections }, { data: departments }, { data: designations }] = await Promise.all([
     supabase.from("academic_sessions").select("*").order("start_date", { ascending: false }),

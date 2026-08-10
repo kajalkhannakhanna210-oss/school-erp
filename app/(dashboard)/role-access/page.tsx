@@ -1,15 +1,16 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { RoleAccessForm } from "./role-access-form";
 
 export default async function RoleAccessPage() {
+  try {
+    await requirePageAccess("role_access");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/admin/login");
-
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (profile?.role !== "super_admin") redirect("/dashboard");
-
   const { data: access } = await supabase.from("role_page_access").select("role, page_key");
 
   return (

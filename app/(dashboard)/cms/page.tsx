@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { CmsTabs } from "./cms-tabs";
 
 export default async function CmsPage() {
+  try {
+    await requirePageAccess("cms");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
-  if (profile?.role !== "super_admin") redirect("/dashboard");
 
   const [
     { data: pages },

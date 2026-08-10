@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import type { UserRole } from "@/lib/types";
 import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, StaffSessionChart } from "./dashboard-charts";
 
@@ -21,6 +23,12 @@ const widgetsByRole: Record<UserRole, string[]> = {
 };
 
 export default async function DashboardPage() {
+  try {
+    await requirePageAccess("dashboard");
+  } catch {
+    redirect("/login");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

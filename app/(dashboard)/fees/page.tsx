@@ -1,7 +1,15 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { FeesTabs } from "./fees-tabs";
 
 export default async function FeesPage() {
+  try {
+    await requirePageAccess("fees");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const [{ data: feeHeads }, { data: classes }, { data: sessions }] = await Promise.all([
     supabase.from("fee_heads").select("id, name, is_active").order("name"),

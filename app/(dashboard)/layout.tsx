@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 import { navItems } from "./nav-config";
-import { SignOutButton } from "./sign-out-button";
 import { RoleSwitcher } from "./role-switcher";
 import { DashboardMobileNavigation } from "./mobile-navigation";
 import { DashboardSidebar } from "./dashboard-sidebar";

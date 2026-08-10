@@ -1,8 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { AdmissionAllotmentForm } from "./form";
 
 export default async function AdmissionAllotmentPage({ searchParams }: { searchParams: { session?: string } }) {
+  try {
+    await requirePageAccess("admission_allotment");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   let enrollmentIds: string[] | null = null;
   if (searchParams.session) {

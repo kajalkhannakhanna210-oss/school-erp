@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { Badge, Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import { AttendanceSheet } from "./attendance-sheet";
 import { ClassSectionPicker } from "./class-section-picker";
 
@@ -17,6 +19,12 @@ export default async function AttendancePage({
 }: {
   searchParams: { class?: string; section?: string; date?: string; month?: string };
 }) {
+  try {
+    await requirePageAccess("attendance");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

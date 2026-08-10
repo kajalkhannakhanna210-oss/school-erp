@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { NavItem } from "./nav-config";
+import { SignOutButton } from "./sign-out-button";
 
 export function DashboardMobileNavigation({ items }: { items: NavItem[] }) {
   const [open, setOpen] = useState(false);
@@ -26,6 +27,9 @@ export function DashboardMobileNavigation({ items }: { items: NavItem[] }) {
             <div className="space-y-1">
               {items.map((item) => { const itemPath = item.href.split("?")[0]; const active = item.key === "reports" ? pathname === "/reports" : pathname === itemPath; return <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-lg py-3 pr-3 text-sm font-semibold transition ${item.key === "login_activity" ? "pl-10" : "pl-3"} ${active ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"}`}><span aria-hidden="true" className="grid h-6 w-6 shrink-0 place-items-center text-lg leading-none">{item.icon ?? "•"}</span><span>{item.label}</span></Link>; })}
             </div>
+          </div>
+          <div className="border-t border-white/15 px-4 py-4 flex items-center justify-center">
+            <SignOutButton />
           </div>
         </nav>
       </div>}

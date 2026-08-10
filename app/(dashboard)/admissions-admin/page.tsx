@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 
 export default async function AdmissionsAdminPage() {
+  try {
+    await requirePageAccess("admissions");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  if (profile?.role !== "super_admin") redirect("/dashboard");
   const [{ data: applications = [] }, { data: alumni = [] }, { data: fees = [] }] = await Promise.all([
     supabase.from("admission_applications").select("*").order("created_at", { ascending: false }),
     supabase.from("alumni_registrations").select("*").order("created_at", { ascending: false }),

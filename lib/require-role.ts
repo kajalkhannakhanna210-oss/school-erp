@@ -22,6 +22,39 @@ export async function requireSuperAdmin() {
   return user;
 }
 
+// Check if user has access to a specific page based on role and role_page_access
+// All roles (including super_admin) must have explicit page access configured
+export async function requirePageAccess(pageKey: string): Promise<{ user: any; role: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  
+  if (!user) throw new Error("Not signed in");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.role) throw new Error("User profile not found");
+
+  // Check if page access is configured for this role (applies to all roles)
+  const { data: pageAccess } = await supabase
+    .from("role_page_access")
+    .select("page_key")
+    .eq("role", profile.role)
+    .eq("page_key", pageKey)
+    .maybeSingle();
+
+  if (!pageAccess) {
+    throw new Error(`Access denied to page: ${pageKey}`);
+  }
+
+  return { user, role: profile.role };
+}
+
 // Used by both the /reports page and the /api/reports export route — kept
 // in one place so the two can't quietly drift out of sync (e.g. someone
 // loosening the page's check without noticing the route needs the same

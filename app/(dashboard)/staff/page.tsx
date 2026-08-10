@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requirePageAccess } from "@/lib/require-role";
 import { ExportCsvButton } from "./export-csv-button";
 import { ExportExcelButton, type ExportRow } from "./export-excel-button";
 import { ExportPdfButton } from "./export-pdf-button";
@@ -16,23 +17,14 @@ export default async function StaffPage({
 }: {
     searchParams: { q?: string; status?: string; session?: string; page?: string };
 }) {
+  try {
+    await requirePageAccess("staff");
+  } catch {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
   const admin = createAdminClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const user = session?.user;
-  if (!user) redirect("/login");
-  const { data: viewerProfile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user!.id)
-    .single();
-
-  // Staff Management is Super-Admin-only — unlike Students, there's no
-  // "view_staff" permission or class-teacher-style exception.
-  if (viewerProfile?.role !== "super_admin") redirect("/dashboard");
 
   const page = Math.max(1, Number(searchParams.page ?? "1"));
   const from = (page - 1) * PAGE_SIZE;
@@ -54,8 +46,6 @@ export default async function StaffPage({
   if (searchParams.q) {
     const q = searchParams.q.replace(/[,()]/g, "");
     query = query.or(`employee_id.ilike.%${q}%,department.ilike.%${q}%,designation.ilike.%${q}%`);
-    // Same limitation as the students list: name lives on the joined
-    // `profiles` table, which .or() can't reach directly.
   }
   if (searchParams.status === "active" && !searchParams.session) query = query.eq("is_active", true);
   if (searchParams.status === "inactive" && !searchParams.session) query = query.eq("is_active", false);
