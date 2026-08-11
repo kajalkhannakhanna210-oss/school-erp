@@ -44,7 +44,7 @@ export function MobileNavigation({ organisationLinks, informationLinks, navLinks
             </div>)}
             {navLinks.map((link) => <Link key={link.href} href={link.href} onClick={closeMenu} className={`block border-b border-ink-100 py-4 text-sm font-semibold transition ${pathname === link.href ? "text-gold-600" : "text-ink-700 hover:text-gold-600"}`}>{link.label}</Link>)}
           </div>
-          <div className="border-t border-ink-100 p-4"><Link href="/admin/login" onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md bg-ink-700 px-4 text-sm font-semibold text-paper hover:bg-ink-600">Admin login</Link></div>
+          <div className="border-t border-ink-100 p-4"><Link href="/login" onClick={closeMenu} className="flex min-h-11 items-center justify-center rounded-md bg-ink-700 px-4 text-sm font-semibold text-paper hover:bg-ink-600">Login</Link></div>
         </nav>
       </div>}
     </div>

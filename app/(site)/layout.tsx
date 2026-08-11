@@ -93,10 +93,10 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
           </nav>
           <MobileNavigation organisationLinks={ORGANISATION_LINKS} informationLinks={INFORMATION_LINKS} navLinks={NAV_LINKS} />
           <Link
-            href="/admin/login"
+            href="/login"
             className="hidden rounded-md bg-ink-700 px-4 py-2.5 text-sm font-semibold text-paper shadow-sm transition hover:bg-ink-600 hover:shadow-md sm:inline-flex"
           >
-            Admin login
+            Login
           </Link>
         </div>
       </header>

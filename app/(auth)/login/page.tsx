@@ -77,7 +77,10 @@ export default function LoginPage() {
 
         if (!assignedRoles.has(activeTab)) {
           await supabase.auth.signOut();
-          const readableRole = profile.role.replace("_", " ");
+          let readableRole = profile.role.replace("_", " ");
+          if (readableRole === "super admin") {
+            readableRole = "staff";
+          }
           setError(
             `This account is registered as ${readableRole}, not ${activeTab}. Please select the ${readableRole} tab to sign in.`
           );

@@ -5,7 +5,7 @@ import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import type { UserRole } from "@/lib/types";
-import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, StaffSessionChart } from "./dashboard-charts";
+import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, StaffSessionChart, StudentSessionChart } from "./dashboard-charts";
 
 const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
@@ -125,6 +125,7 @@ export default async function DashboardPage() {
   let classStrength: { class: string; students: number }[] = [];
   let collectionTrend: { month: string; total: number }[] = [];
   let admissionComparison: { session: string; current: number; previous: number }[] = [];
+  let studentSessionData: { session: string; new: number; old: number }[] = [];
   let staffSessionTrend: { session: string; newStaff: number; existingStaff: number; total: number }[] = [];
   let websiteStats: { label: string; count: number; updated: string }[] = [];
   let todayAttendance = "0%";
@@ -213,6 +214,37 @@ export default async function DashboardPage() {
       current: index === sessions.length - 1 ? (admissionEnrollments ?? []).filter((row) => row.session_id === session.id).length : 0,
       previous: index === sessions.length - 2 ? (admissionEnrollments ?? []).filter((row) => row.session_id === session.id).length : 0,
     }));
+
+    // Get new vs old students by session
+    const { data: allStudents } = await supabase
+      .from("students")
+      .select("id, created_at, is_new_student")
+      .eq("is_active", true);
+    
+    const { data: studentEnrollments } = await supabase
+      .from("student_enrollments")
+      .select("student_id, session_id");
+
+    const studentSessionMap = new Map<string, Set<string>>();
+    for (const enrollment of studentEnrollments ?? []) {
+      if (!studentSessionMap.has(enrollment.session_id)) {
+        studentSessionMap.set(enrollment.session_id, new Set());
+      }
+      studentSessionMap.get(enrollment.session_id)?.add(enrollment.student_id);
+    }
+
+    studentSessionData = (admissionSessions ?? []).reverse().map((session) => {
+      const studentsInSession = studentSessionMap.get(session.id) ?? new Set();
+      const newCount = (allStudents ?? []).filter(
+        (s) => studentsInSession.has(s.id) && s.is_new_student === true
+      ).length;
+      const oldCount = studentsInSession.size - newCount;
+      return {
+        session: session.name,
+        new: newCount,
+        old: oldCount,
+      };
+    });
   }
 
   const values: Record<string, string> = {
@@ -287,6 +319,7 @@ export default async function DashboardPage() {
             <ClassStrengthChart data={classStrength} />
             <CollectionTrendChart data={collectionTrend} />
             <AdmissionComparisonChart data={admissionComparison} />
+            <StudentSessionChart data={studentSessionData} />
             <StaffSessionChart data={staffSessionTrend} />
             <Card><p className="text-xs uppercase tracking-wide text-slate/50">Today&apos;s attendance</p><p className="mt-2 font-display text-4xl text-ink-700">{todayAttendance}</p><p className="mt-1 text-sm text-slate/60">Present and late students / marked attendance</p></Card>
           </div>

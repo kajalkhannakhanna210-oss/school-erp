@@ -20,7 +20,6 @@
 html {
   color-scheme: light;
   scroll-behavior: smooth;
-  overflow-x: hidden;
 }
 
 body {
@@ -29,7 +28,6 @@ body {
   background-attachment: fixed;
   @apply font-sans text-slate antialiased;
   min-width: 320px;
-  overflow-x: hidden;
 }
 
 /* Public About page: formal, highly legible school-profile typography using

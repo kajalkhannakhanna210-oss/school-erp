@@ -72,40 +72,52 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   return (
     <div className="min-w-0">
-      <div className="flex flex-col gap-4 rounded-xl border border-ink-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <div className="min-w-0"><p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Student profile</p>
-          <h1 className="mt-2 break-words font-display text-3xl font-semibold text-ink-700">{s.profiles?.full_name}</h1>
-          <p className="mt-2 break-words text-sm text-slate/60">
-            <span className="font-mono">{s.admission_number}</span> · {s.classes?.name}
-            {s.sections?.name && ` - ${s.sections.name}`} · {s.academic_sessions?.name}
-            {!s.is_active && (
-              <>
-                {" "}
-                · <Badge>Archived</Badge>
-              </>
-            )}
-          </p>
+      <div className="rounded-xl border border-ink-100 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-gold-600">Student profile</p>
+            <h1 className="mt-2 break-words font-display text-2xl font-semibold text-ink-700 sm:text-3xl">{s.profiles?.full_name}</h1>
+            <p className="mt-2 break-words text-xs text-slate/60 sm:text-sm">
+              <span className="font-mono">{s.admission_number}</span> · {s.classes?.name}
+              {s.sections?.name && ` - ${s.sections.name}`} · {s.academic_sessions?.name}
+              {!s.is_active && (
+                <>
+                  {" "}
+                  · <Badge>Archived</Badge>
+                </>
+              )}
+            </p>
+          </div>
         </div>
         {canManage && (
-          <div className="flex flex-col gap-2 rounded-xl border border-gold-200 bg-gold-50/60 p-2.5 sm:shrink-0"><p className="px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-gold-700">Quick actions</p><div className="flex flex-wrap gap-2">
-            <Link href="/students"><Button variant="primary">← Back to student list</Button></Link>
-            <Link href={`/students/${s.id}/edit`}>
-              <Button>Edit student</Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+            <Link href="/students" className="flex-1 sm:flex-none">
+              <Button variant="primary" className="w-full sm:w-auto">← Back to student list</Button>
             </Link>
-            <ArchiveControl studentId={s.id} isActive={s.is_active} />
-          </div></div>
+            <Link href={`/students/${s.id}/edit`} className="flex-1 sm:flex-none">
+              <Button className="w-full sm:w-auto">Edit student</Button>
+            </Link>
+            <div className="flex-1 sm:flex-none">
+              <ArchiveControl studentId={s.id} isActive={s.is_active} />
+            </div>
+          </div>
         )}
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <Card className="border-ink-100 shadow-sm lg:col-span-1">
+      <div className="mt-6 grid gap-6 grid-cols-1 md:grid-cols-3">
+        <Card className="border-ink-100 shadow-sm md:col-span-1">
           <h2 className="font-display text-xl font-semibold text-ink-700">Student photo</h2>
-          <div className="mx-auto mt-5 flex aspect-square w-full max-w-56 items-center justify-center overflow-hidden rounded-xl border border-gold-200 bg-gold-50/40">
+          <div className="mx-auto mt-5 w-full max-w-full md:max-w-56 overflow-hidden rounded-xl border border-gold-200 bg-gold-50/40" style={{ aspectRatio: "1/1" }}>
             {photoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={photoUrl} alt={s.profiles?.full_name} className="h-full w-full object-cover" />
+              <img 
+                src={photoUrl} 
+                alt={s.profiles?.full_name} 
+                className="h-full w-full object-cover object-center" 
+                loading="lazy"
+              />
             ) : (
-              <span className="text-xs text-slate/40">No photo</span>
+              <div className="flex h-full w-full items-center justify-center"><span className="text-xs text-slate/40">No photo</span></div>
             )}
           </div>
           {canManage && (
@@ -115,7 +127,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           )}
         </Card>
 
-        <Card className="border-ink-100 shadow-sm lg:col-span-2">
+        <Card className="border-ink-100 shadow-sm md:col-span-2">
           <h2 className="font-display text-xl font-semibold text-ink-700">Student details</h2>
           <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
             <Field label="Roll number" value={s.roll_number} />
@@ -131,7 +143,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           </dl>
         </Card>
 
-        <Card className="border-ink-100 shadow-sm lg:col-span-3">
+        <Card className="border-ink-100 shadow-sm md:col-span-3">
           <h2 className="font-display text-xl font-semibold text-ink-700">Documents</h2>
           <div className="mt-4">
             <DocumentUpload studentId={s.id} documents={documentsWithUrls} canManage={canManage} />
@@ -139,7 +151,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         </Card>
 
         {canViewFees && (
-          <div className="lg:col-span-3">
+          <div className="md:col-span-3">
             <h2 className="font-display text-lg text-ink-700">Fees</h2>
             <div className="mt-4">
               <FeeSummary studentId={s.id} lines={feeLines} canManage={canManage} />
@@ -148,7 +160,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         )}
 
         {canViewFees && (
-          <div className="lg:col-span-3">
+          <div className="md:col-span-3">
             <h2 className="font-display text-lg text-ink-700">Payment History</h2>
             <div className="mt-4">
               <PaymentHistory studentId={s.id} />

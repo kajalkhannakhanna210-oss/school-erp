@@ -15,12 +15,7 @@ export function SignOutButton({ collapsed = false }: { collapsed?: boolean }) {
     setIsLoading(true);
     try {
       const supabase = createClient();
-      const auditId = window.localStorage.getItem("school_erp_login_audit_id");
-      if (auditId) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) await supabase.from("login_audit").update({ logout_at: new Date().toISOString() }).eq("id", auditId).eq("user_id", user.id);
-        window.localStorage.removeItem("school_erp_login_audit_id");
-      }
+      await fetch("/api/auth/login-audit", { method: "DELETE" });
       await supabase.auth.signOut();
       router.push("/login");
       router.refresh();

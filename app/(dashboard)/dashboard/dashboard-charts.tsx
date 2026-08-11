@@ -146,3 +146,39 @@ export function StaffSessionChart({
     </Card>
   );
 }
+
+export function StudentSessionChart({
+  data,
+}: {
+  data: { session: string; new: number; old: number }[];
+}) {
+  return (
+    <Card>
+      <p className="text-xs uppercase tracking-wide text-slate/50">
+        Admissions: Current vs Previous Session
+      </p>
+      <div className="mt-4 h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={data} barCategoryGap="20%">
+            <CartesianGrid strokeDasharray="3 3" stroke="#EEF1F7" />
+            <XAxis dataKey="session" tick={{ fontSize: 11 }} />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+            <Tooltip />
+            <Bar
+              dataKey="new"
+              name="New Students"
+              fill="#C99A3B"
+              radius={[4, 4, 0, 0]}
+            />
+            <Bar
+              dataKey="old"
+              name="Old Students"
+              fill="#1E2A4A"
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}

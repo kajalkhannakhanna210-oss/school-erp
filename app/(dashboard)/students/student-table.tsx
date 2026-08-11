@@ -97,9 +97,14 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
       <div className="divide-y divide-ink-100 bg-white md:hidden">
         {students.map((s) => (
           <article key={s.id} className="flex min-w-0 items-center gap-2.5 px-3 py-2.5">
-            <Link href={`/students/${s.id}`} className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-ink-100 text-[11px] font-bold text-ink-700">
-              {s.photo_url ? <img src={s.photo_url} alt={s.profiles?.full_name || "Student"} className="h-full w-full object-cover" /> : (s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
-            </Link>
+            <button
+              type="button"
+              onClick={() => s.photo_url && setPhotoTarget(s)}
+              className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg bg-ink-100 text-[11px] font-bold text-ink-700"
+              aria-label={`View ${s.profiles?.full_name || "student"} photo`}
+            >
+              {s.photo_url ? <img src={s.photo_url} alt={s.profiles?.full_name || "Student"} className={`h-full w-full object-cover ${s.photo_url ? "cursor-pointer" : ""}`} /> : (s.profiles?.full_name ?? "S").split(" ").map((part) => part[0]).slice(0, 2).join("").toUpperCase()}
+            </button>
             <div className="min-w-0 flex-1">
               <Link href={`/students/${s.id}`} className="flex min-w-0 items-center gap-3 font-semibold text-ink-700">
                 <span className="block truncate text-sm font-semibold">{formatStudentName(s.profiles?.full_name)}</span>
