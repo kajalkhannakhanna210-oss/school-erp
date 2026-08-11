@@ -26,7 +26,7 @@ export function DashboardSidebarNavigation({ items, collapsed = false }: { items
         active = pathname === itemPath && currentTab === itemTab;
       } else {
         // Default logic for items without query params
-        active = pathname === itemPath || (itemPath !== "/dashboard" && itemPath !== "/students" && pathname?.startsWith(`${itemPath}/`));
+        active = pathname === itemPath || (itemPath !== "/dashboard" && itemPath !== "/students" && (pathname?.startsWith(`${itemPath}/`) ?? false));
       }
       
       const href = selectedSession ? `${item.href}${item.href.includes("?") ? "&" : "?"}session=${selectedSession}` : item.href;
