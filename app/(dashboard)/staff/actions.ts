@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSuperAdmin } from "@/lib/require-role";
+import { sanitizeStorageFileName, validateImageUpload } from "@/lib/security/uploads";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -45,7 +46,13 @@ export async function createStaff(input: StaffInput) {
     return { error: createError?.message ?? "Could not create the staff member's account" };
   }
 
-  const photoPath = input.photo_file?.size ? `${created.user.id}/${Date.now()}-${input.photo_file.name}` : null;
+  const photoValidationError = input.photo_file?.size ? validateImageUpload(input.photo_file) : null;
+  if (photoValidationError) {
+    await admin.auth.admin.deleteUser(created.user.id);
+    return { error: photoValidationError };
+  }
+
+  const photoPath = input.photo_file?.size ? `${created.user.id}/${Date.now()}-${sanitizeStorageFileName(input.photo_file.name)}` : null;
   const [photoResult, insertResult] = await Promise.all([
     photoPath && input.photo_file
       ? admin.storage.from("staff-photos").upload(photoPath, input.photo_file, { upsert: true })
@@ -124,7 +131,9 @@ export async function updateStaff(id: string, input: StaffUpdateInput) {
   const admin = createAdminClient();
   let photoPath: string | undefined;
   if (photo_file?.size) {
-    photoPath = `${id}/${Date.now()}-${photo_file.name}`;
+    const photoValidationError = validateImageUpload(photo_file);
+    if (photoValidationError) return { error: photoValidationError };
+    photoPath = `${id}/${Date.now()}-${sanitizeStorageFileName(photo_file.name)}`;
     const { error } = await admin.storage.from("staff-photos").upload(photoPath, photo_file, { upsert: true });
     if (error) return { error: error.message };
   }
@@ -169,6 +178,7 @@ export async function setStaffActive(id: string, isActive: boolean) {
 }
 
 export async function setStaffPhoto(id: string, path: string) {
+  if (!path.startsWith(`${id}/`)) return { error: "Invalid photo path." };
   const supabase = await createClient();
   const { error } = await supabase.from("staff").update({ photo_path: path }).eq("id", id);
   revalidatePath(`/staff/${id}`);

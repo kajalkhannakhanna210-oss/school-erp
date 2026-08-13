@@ -31,7 +31,9 @@ export function ChangePasswordForm() {
           id="new-password"
           type="password"
           required
-          minLength={8}
+          minLength={10}
+          maxLength={128}
+          autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />

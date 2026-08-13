@@ -85,28 +85,29 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* Right Column: Form Area & Mobile Top Image Header */}
-      <div className="lg:col-span-5 flex min-h-[100dvh] flex-col justify-between bg-[linear-gradient(180deg,#f8fafc_0%,#ffffff_38%,#f8fafc_100%)] p-3 sm:p-8 lg:h-auto lg:min-h-screen lg:max-h-[100dvh] lg:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_28rem),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] lg:p-12 z-10">
+      <div className="lg:col-span-5 flex h-[100dvh] min-h-[100dvh] flex-col justify-between overflow-hidden bg-[linear-gradient(180deg,#f3f6fb_0%,#ffffff_48%,#f6f8fb_100%)] p-4 sm:p-8 lg:h-auto lg:min-h-screen lg:max-h-[100dvh] lg:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_28rem),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] lg:p-12 z-10">
         {/* Mobile Top Hero Header with Organic Bottom Curve */}
-        <div className="lg:hidden -mx-4 -mt-4 sm:-mx-8 sm:-mt-8 relative shrink-0 overflow-hidden rounded-b-[2rem] bg-slate-950 text-white shadow-xl shadow-slate-900/10">
-          <div className="relative h-[190px] w-full sm:h-[240px]">
+        <div className="lg:hidden -mx-4 -mt-4 sm:-mx-8 sm:-mt-8 relative shrink-0 overflow-hidden rounded-b-[1.75rem] bg-slate-950 text-white shadow-[0_18px_36px_rgba(15,23,42,0.16)]">
+          <div className="relative h-[148px] w-full sm:h-[220px]">
             <Image
               src="/students-hero.jpg"
               alt="School Students"
               fill
-              className="object-cover object-center opacity-80"
+              className="object-cover object-center opacity-85"
               priority
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/65 via-slate-950/25 to-slate-950/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/25 to-slate-950/82" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/35 via-transparent to-slate-950/15" />
 
             {/* Header Branding overlaid on top mobile banner */}
-            <div className="absolute left-5 right-5 top-5 z-10 flex items-center justify-between">
+            <div className="absolute left-5 right-5 top-4 z-10 flex items-center justify-between">
               <Link href="/login" className="inline-flex items-center gap-2">
                 <div className="grid h-10 w-10 place-items-center rounded-2xl border border-white/15 bg-slate-950/85 shadow-lg shadow-slate-950/30 backdrop-blur">
                   <span className="font-display text-base font-black text-amber-400">R</span>
                 </div>
                 <div>
-                  <span className="font-display text-lg font-black tracking-tight text-white">Registrar</span>
-                  <span className="ml-2 inline-flex items-center rounded-full border border-amber-300/30 bg-amber-300/15 px-2 py-0.5 text-[9px] font-black text-amber-200">
+                  <span className="font-display text-lg font-black tracking-tight text-white drop-shadow-sm">Registrar</span>
+                  <span className="ml-2 inline-flex items-center rounded-full border border-amber-300/35 bg-amber-300/18 px-2 py-0.5 text-[9px] font-black text-amber-100 backdrop-blur">
                     ERP 2.0
                   </span>
                 </div>
@@ -114,12 +115,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Mobile Banner Bottom Text & Student Portrait */}
-            <div className="absolute bottom-7 left-5 right-5 z-10 flex items-end justify-between">
+            <div className="absolute bottom-5 left-5 right-5 z-10 flex items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-black leading-tight text-white">School Management System</p>
-                <p className="mt-1 text-[11px] font-semibold text-amber-200">2,450+ Students & Staff</p>
+                <p className="text-[15px] font-black leading-tight text-white drop-shadow-sm">School Management System</p>
+                <p className="mt-1 text-[11px] font-semibold text-amber-100">2,450+ Students & Staff</p>
               </div>
-              <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/35 shadow-lg shadow-slate-950/30">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-2xl border border-white/40 shadow-lg shadow-slate-950/30">
                 <Image src="/student-avatar.jpg" alt="Student" fill className="object-cover" />
               </div>
             </div>
@@ -161,12 +162,12 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         {/* Form Body */}
-        <div className="relative z-20 -mt-6 flex w-full max-w-[520px] flex-1 flex-col justify-start overflow-visible pb-2 sm:-mt-10 sm:pb-6 lg:my-auto lg:mt-0 lg:grow lg:justify-center lg:py-6 mx-auto">
+        <div className="relative z-20 -mt-2 flex w-full max-w-[350px] flex-1 flex-col justify-start overflow-hidden rounded-[1.5rem] border border-slate-200/70 bg-white/95 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.10)] backdrop-blur sm:-mt-8 sm:max-w-[440px] sm:p-6 lg:my-auto lg:mt-0 lg:grow lg:justify-center lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:py-6 lg:shadow-none mx-auto">
           {children}
         </div>
 
         {/* Footer */}
-        <div className="pt-3 sm:pt-4 border-t border-slate-200/70 flex flex-row items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-400 shrink-0">
+        <div className="pt-2 sm:pt-4 border-t border-slate-200/70 flex flex-row items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-400 shrink-0">
           <p>© {new Date().getFullYear()} Registrar ERP.</p>
           <div className="flex items-center gap-1.5 text-slate-400">
             <svg className="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

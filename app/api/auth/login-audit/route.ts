@@ -46,7 +46,12 @@ function verifyToken(token: string | undefined, secret: string) {
     return null;
   }
 
-  const payload = JSON.parse(decode(encodedPayload)) as { value?: unknown };
+  let payload: { value?: unknown };
+  try {
+    payload = JSON.parse(decode(encodedPayload)) as { value?: unknown };
+  } catch {
+    return null;
+  }
   return typeof payload.value === "string" && payload.value ? payload.value : null;
 }
 

@@ -13,6 +13,7 @@ import { useToast } from "@/components/toaster";
 import { createStudent, updateStudent } from "./actions";
 import { createClient } from "@/lib/supabase/client";
 import { setStudentPhoto } from "./actions";
+import { sanitizeStorageFileName, validateImageUpload } from "@/lib/security/uploads";
 
 type Option = { id: string; name: string };
 
@@ -103,14 +104,12 @@ export function StudentForm({
           return;
         }
         if (photo && result?.id) {
-          if (
-            !photo.type.startsWith("image/") ||
-            photo.size > 5 * 1024 * 1024
-          ) {
-            push("Photo must be an image up to 5 MB.", "error");
+          const validationError = validateImageUpload(photo);
+          if (validationError) {
+            push(validationError, "error");
             return;
           }
-          const path = `${result.id}/${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+          const path = `${result.id}/${Date.now()}-${sanitizeStorageFileName(photo.name)}`;
           const { error: uploadError } = await createClient()
             .storage.from("student-photos")
             .upload(path, photo, { upsert: true });
@@ -158,11 +157,12 @@ export function StudentForm({
         return;
       }
       if (photo) {
-        if (!photo.type.startsWith("image/") || photo.size > 5 * 1024 * 1024) {
-          push("Photo must be an image up to 5 MB.", "error");
+        const validationError = validateImageUpload(photo);
+        if (validationError) {
+          push(validationError, "error");
           return;
         }
-        const path = `${studentId}/${Date.now()}-${photo.name.replace(/[^a-zA-Z0-9._-]/g, "-")}`;
+        const path = `${studentId}/${Date.now()}-${sanitizeStorageFileName(photo.name)}`;
         const { error: uploadError } = await createClient()
           .storage.from("student-photos")
           .upload(path, photo, { upsert: true });

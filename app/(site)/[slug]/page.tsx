@@ -84,7 +84,7 @@ function AboutPage({ imageUrl }: { imageUrl: string }) {
       <section className="relative isolate overflow-hidden bg-ink-900 py-20 text-paper sm:py-28">
         <div
           className="absolute inset-0 -z-10 bg-cover bg-center"
-          style={{ backgroundImage: "linear-gradient(120deg, rgba(34, 47, 87, .97), rgba(34, 47, 87, .72)), url('https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1800&q=85')" }}
+          style={{ backgroundImage: "linear-gradient(120deg, rgba(34, 47, 87, .97), rgba(34, 47, 87, .72)), url('/remote-images/photo-1509062522246-3755977927d7.jpg')" }}
         />
         <div className="mx-auto max-w-6xl px-6">
           <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-gold">Welcome to our school</p>

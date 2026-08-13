@@ -5,6 +5,7 @@ import { Button } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
 import { createClient } from "@/lib/supabase/client";
+import { sanitizeStorageFileName, validateDocumentUpload } from "@/lib/security/uploads";
 import { addStudentDocument, removeStudentDocument } from "../actions";
 
 export type DocumentRow = { id: string; file_name: string; signedUrl: string | null };
@@ -26,8 +27,14 @@ export function DocumentUpload({
   function handleUpload() {
     if (!file) return;
     startTransition(async () => {
+      const validationError = validateDocumentUpload(file);
+      if (validationError) {
+        push(validationError, "error");
+        return;
+      }
       const supabase = createClient();
-      const path = `${studentId}/${Date.now()}-${file.name}`;
+      const safeFileName = sanitizeStorageFileName(file.name);
+      const path = `${studentId}/${Date.now()}-${safeFileName}`;
       const { error: uploadError } = await supabase.storage
         .from("student-documents")
         .upload(path, file);
@@ -37,7 +44,7 @@ export function DocumentUpload({
         return;
       }
 
-      const { error } = await addStudentDocument(studentId, path, file.name);
+      const { error } = await addStudentDocument(studentId, path, safeFileName);
       if (error) {
         push(error, "error");
         return;
@@ -83,7 +90,7 @@ export function DocumentUpload({
       </ul>
       {canManage && (
         <div className="mt-4 flex items-center gap-3">
-          <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
+          <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="text-sm" />
           <Button onClick={handleUpload} disabled={!file || pending} variant="ghost">
             {pending ? "Uploading…" : "Upload"}
           </Button>

@@ -37,8 +37,19 @@ export default async function ContactPage() {
               <div className="rounded-xl border border-ink-100 bg-white p-4 shadow-sm"><dt className="font-mono text-[11px] font-bold uppercase tracking-wider text-gold-600">Phone</dt><dd className="mt-2"><a href={`tel:${contactPhone.replace(/\s/g, "")}`} className="font-semibold text-ink-700 hover:text-gold-600">{contactPhone}</a></dd></div>
               <div className="rounded-xl border border-ink-100 bg-white p-4 shadow-sm"><dt className="font-mono text-[11px] font-bold uppercase tracking-wider text-gold-600">Email</dt><dd className="mt-2 break-all"><a href={`mailto:${contactEmail}`} className="font-semibold text-ink-700 hover:text-gold-600">{contactEmail}</a></dd></div>
           </dl>
-          <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-sm">
-            <iframe title="School location map" src={`https://www.google.com/maps?q=${encodeURIComponent(contactAddress)}&output=embed`} className="h-72 w-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+          <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-sm">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-wider text-gold-600">Directions</p>
+            <p className="mt-3 text-sm leading-7 text-slate/75">
+              The school location is listed above. Use the address to navigate with your preferred maps app.
+            </p>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactAddress)}`}
+              className="mt-4 inline-flex rounded-lg bg-ink-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-600"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open map in browser
+            </a>
           </div>
         </div>
       </div>

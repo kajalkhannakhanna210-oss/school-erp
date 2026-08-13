@@ -1,28 +1,38 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Button, Input, Label } from "@/components/ui";
-import { submitContactMessage } from "./actions";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 
 export function ContactForm() {
-  const [pending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", website: "" });
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (pending) return;
     setError(null);
-    startTransition(async () => {
+    setPending(true);
+    void (async () => {
       try {
-        const result = await submitContactMessage(form);
-        if (result.error) {
-          setError(result.error);
+        const response = await fetch("/api/contact", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...form, captchaToken }),
+        });
+        const result = (await response.json().catch(() => ({}))) as { error?: string };
+        if (!response.ok) {
+          setError(result.error ?? "We could not submit your message. Please try again in a moment.");
           return;
         }
         setSent(true);
       } catch {
         setError("We could not connect to the school server. Please try again in a moment.");
+      } finally {
+        setPending(false);
       }
     });
   }
@@ -35,8 +45,7 @@ export function ContactForm() {
         <h2 className="mt-3 font-display text-3xl font-bold text-ink-700">Thank you for contacting us</h2>
         <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-slate/70">Your enquiry has been sent successfully. Our school office will review it and get back to you shortly.</p>
         <p className="mt-3 text-xs text-slate/50">Please allow one working day for a response.</p>
-        Thanks — your message has been sent. We&apos;ll get back to you soon.
-        <Button type="button" variant="ghost" className="mt-7" onClick={() => { setSent(false); setError(null); setForm({ name: "", email: "", phone: "", message: "" }); }}>Send another message</Button>
+        <Button type="button" variant="ghost" className="mt-7" onClick={() => { setSent(false); setError(null); setCaptchaToken(""); setForm({ name: "", email: "", phone: "", message: "", website: "" }); }}>Send another message</Button>
       </div>
     );
   }
@@ -47,6 +56,16 @@ export function ContactForm() {
       <div>
         <Label htmlFor="name">Name</Label>
         <Input id="name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      </div>
+      <div className="hidden" aria-hidden="true">
+        <Label htmlFor="website">Website</Label>
+        <Input
+          id="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.website}
+          onChange={(e) => setForm({ ...form, website: e.target.value })}
+        />
       </div>
       <div>
         <Label htmlFor="email">Email</Label>
@@ -73,9 +92,10 @@ export function ContactForm() {
           onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
       </div>
+      <TurnstileWidget onTokenChange={setCaptchaToken} />
       {error && <p className="text-sm text-danger">{error}</p>}
-      <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-        {pending ? "Sending…" : "Send message"}
+      <Button type="submit" disabled={pending || !captchaToken} className="w-full sm:w-auto">
+        {pending ? "Sending..." : "Send message"}
       </Button>
     </form>
   );

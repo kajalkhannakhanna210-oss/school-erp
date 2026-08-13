@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Button, Input, Label } from "@/components/ui";
-import { createClient } from "@/lib/supabase/client";
+import { genericResetMessage } from "@/lib/security/auth-inputs";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -16,14 +16,16 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/profile`,
+    const response = await fetch("/api/auth/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
     });
+    const result = (await response.json().catch(() => ({}))) as { message?: string };
 
     setLoading(false);
-    if (error) {
-      setError(error.message);
+    if (!response.ok) {
+      setError(result.message ?? "Too many reset requests. Please try again later.");
       return;
     }
     setSent(true);
@@ -37,7 +39,7 @@ export default function ForgotPasswordPage() {
             Check Your Email
           </h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            We've sent a password reset link to <span className="font-semibold text-slate-950">{email}</span>. Check your inbox and follow the link to reset your password.
+            {genericResetMessage}
           </p>
         </div>
 

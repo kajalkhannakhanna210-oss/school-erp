@@ -35,10 +35,10 @@ insert into public.gallery_images (album_id, image_path, caption)
 select album.id, sample.image_path, sample.caption
 from public.gallery_albums album
 cross join (values
-  ('https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80', 'Learning together'),
-  ('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80', 'Curiosity in action'),
-  ('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80', 'Creative expression'),
-  ('https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&q=80', 'School community')
+  ('/remote-images/photo-1509062522246-3755977927d7.jpg', 'Learning together'),
+  ('/remote-images/photo-1523050854058-8df90110c9f1.jpg', 'Curiosity in action'),
+  ('/remote-images/photo-1503676260728-1c00da094a0b.jpg', 'Creative expression'),
+  ('/remote-images/photo-1498243691581-b145c3f54a5a.jpg', 'School community')
 ) as sample(image_path, caption)
 where album.title = 'Campus Life'
   and not exists (

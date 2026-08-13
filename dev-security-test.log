@@ -1,0 +1,22 @@
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3002
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.2s
+ ○ Compiling /middleware ...
+ ✓ Compiled /middleware in 550ms (170 modules)
+ ○ Compiling /api/contact ...
+ ✓ Compiled /api/contact in 843ms (154 modules)
+ POST /api/contact 400 in 2298ms
+ POST /api/contact 400 in 28ms
+ POST /api/contact 400 in 646ms
+ POST /api/contact 400 in 21ms
+ POST /api/contact 400 in 639ms
+ POST /api/contact 400 in 663ms
+ POST /api/contact 400 in 681ms
+ POST /api/contact 400 in 695ms
+ POST /api/contact 400 in 589ms
+ POST /api/contact 400 in 890ms
+ ✓ Compiled in 57ms
+[?25h

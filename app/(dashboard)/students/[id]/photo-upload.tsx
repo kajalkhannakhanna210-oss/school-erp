@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import { createClient } from "@/lib/supabase/client";
+import { sanitizeStorageFileName, validateImageUpload } from "@/lib/security/uploads";
 import { setStudentPhoto } from "../actions";
 
 export function PhotoUpload({ studentId }: { studentId: string }) {
@@ -14,8 +15,13 @@ export function PhotoUpload({ studentId }: { studentId: string }) {
   function handleUpload() {
     if (!file) return;
     startTransition(async () => {
+      const validationError = validateImageUpload(file);
+      if (validationError) {
+        push(validationError, "error");
+        return;
+      }
       const supabase = createClient();
-      const path = `${studentId}/${Date.now()}-${file.name}`;
+      const path = `${studentId}/${Date.now()}-${sanitizeStorageFileName(file.name)}`;
       const { error: uploadError } = await supabase.storage
         .from("student-photos")
         .upload(path, file, { upsert: true });

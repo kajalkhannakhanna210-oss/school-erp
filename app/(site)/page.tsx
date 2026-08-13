@@ -26,28 +26,27 @@ const SCHOOL_STATS = [
 ];
 
 const FACILITIES = [
-  { icon: "⌘", title: "Smart classrooms", text: "Well-equipped spaces that make every lesson engaging and interactive.", image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=900&q=80" },
-  { icon: "⌁", title: "Science laboratories", text: "Safe, practical labs for discovery, observation, and experimentation.", image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=900&q=80" },
-  { icon: "◈", title: "Library & reading", text: "A welcoming collection of books and digital resources for every learner.", image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=900&q=80" },
-  { icon: "◎", title: "Sports & fitness", text: "Open play spaces and structured activities that build confidence and teamwork.", image: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=900&q=80" },
-  { icon: "✦", title: "Creative arts", text: "Dedicated opportunities for music, art, performance, and self-expression.", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=900&q=80" },
-  { icon: "↗", title: "Safe campus", text: "A caring, secure environment with attentive staff and clear student support.", image: "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=900&q=80" },
+  { icon: "⌘", title: "Smart classrooms", text: "Well-equipped spaces that make every lesson engaging and interactive.", image: "/remote-images/photo-1509062522246-3755977927d7.jpg" },
+  { icon: "⌁", title: "Science laboratories", text: "Safe, practical labs for discovery, observation, and experimentation.", image: "/remote-images/photo-1532094349884-543bc11b234d.jpg" },
+  { icon: "◈", title: "Library & reading", text: "A welcoming collection of books and digital resources for every learner.", image: "/remote-images/photo-1524995997946-a1c2e315a42f.jpg" },
+  { icon: "◎", title: "Sports & fitness", text: "Open play spaces and structured activities that build confidence and teamwork.", image: "/remote-images/photo-1526232761682-d26e03ac148e.jpg" },
+  { icon: "✦", title: "Creative arts", text: "Dedicated opportunities for music, art, performance, and self-expression.", image: "/remote-images/photo-1513364776144-60967b0f800f.jpg" },
+  { icon: "↗", title: "Safe campus", text: "A caring, secure environment with attentive staff and clear student support.", image: "/remote-images/photo-1562774053-701939374585.jpg" },
 ];
 
 const ACHIEVERS = [
-  { name: "Aarav Sharma", achievement: "National Science Quiz — Gold Medal", activity: "Science & innovation", image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=700&q=80" },
-  { name: "Ananya Verma", achievement: "State Art Showcase — First Place", activity: "Visual arts", image: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=700&q=80" },
-  { name: "Kabir Singh", achievement: "Inter-school Athletics — Champion", activity: "Sports & leadership", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=700&q=80" },
+  { name: "Aarav Sharma", achievement: "National Science Quiz — Gold Medal", activity: "Science & innovation", image: "/remote-images/photo-1508214751196-bcfd4ca60f91.jpg" },
+  { name: "Ananya Verma", achievement: "State Art Showcase — First Place", activity: "Visual arts", image: "/remote-images/photo-1544717305-2782549b5136.jpg" },
+  { name: "Kabir Singh", achievement: "Inter-school Athletics — Champion", activity: "Sports & leadership", image: "/remote-images/photo-1544005313-94ddf0286df2.jpg" },
 ];
 
 const PLACEHOLDER_IMAGES = [
-  "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=80",
-  "https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=1200&q=80",
+  "/remote-images/photo-1509062522246-3755977927d7.jpg",
+  "/remote-images/photo-1523050854058-8df90110c9f1.jpg",
+  "/remote-images/photo-1503676260728-1c00da094a0b.jpg",
+  "/remote-images/photo-1498243691581-b145c3f54a5a.jpg",
 ];
 
-const HERO_VIDEO_URL = "https://videos.pexels.com/video-files/3209298/3209298-hd_1920_1080_25fps.mp4";
 const DEFAULT_ABOUT_TITLE = "A community where every child can thrive.";
 const DEFAULT_ABOUT_CONTENT =
   "We provide a balanced education that helps students grow academically, creatively, socially, and emotionally. Our teachers create a supportive space where children are encouraged to ask questions, build confidence, and discover their strengths.";
@@ -109,7 +108,6 @@ export default async function HomePage() {
       title,
       description: intro,
       imageUrl,
-      videoUrl: HERO_VIDEO_URL,
     },
   ];
 

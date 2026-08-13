@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -54,7 +55,12 @@ function verifyToken(token: string, secret: string): RememberDevicePayload | nul
     return null;
   }
 
-  const payload = JSON.parse(decode(encodedPayload)) as Partial<RememberDevicePayload>;
+  let payload: Partial<RememberDevicePayload>;
+  try {
+    payload = JSON.parse(decode(encodedPayload)) as Partial<RememberDevicePayload>;
+  } catch {
+    return null;
+  }
   if (
     typeof payload.identifier !== "string" ||
     !isRoleId(payload.role) ||
@@ -118,6 +124,15 @@ export async function POST(req: NextRequest) {
   const secret = tokenSecret();
   if (!secret) {
     return NextResponse.json({ error: "Remember-device token secret is not configured." }, { status: 500 });
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
   const body = (await req.json()) as { identifier?: unknown; role?: unknown };

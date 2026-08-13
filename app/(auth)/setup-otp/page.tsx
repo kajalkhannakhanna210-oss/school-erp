@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function SetupOtpPage() {
   const router = useRouter();
-  const [phone, setPhone] = useState("+919999999999");
+  const [phone, setPhone] = useState("");
   const [factorId, setFactorId] = useState<string | null>(null);
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [code, setCode] = useState("");
@@ -68,7 +68,6 @@ export default function SetupOtpPage() {
       ) : (
         <form onSubmit={verifyCode} className="mt-8 space-y-4">
           <div><Label htmlFor="code">SMS verification code</Label><Input id="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} /></div>
-          <p className="text-xs text-slate/60">Local test code: 123456</p>
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button className="w-full" disabled={loading}>{loading ? "Verifying…" : "Complete setup"}</Button>
         </form>

@@ -178,6 +178,7 @@ export async function bulkUpdateStudents(ids: string[], input: { class_id?: stri
 }
 
 export async function setStudentPhoto(id: string, path: string) {
+  if (!path.startsWith(`${id}/`)) return { error: "Invalid photo path." };
   const supabase = await createClient();
   const { error } = await supabase.from("students").update({ photo_path: path }).eq("id", id);
   revalidatePath(`/students/${id}`);
@@ -185,6 +186,8 @@ export async function setStudentPhoto(id: string, path: string) {
 }
 
 export async function addStudentDocument(studentId: string, filePath: string, fileName: string) {
+  if (!filePath.startsWith(`${studentId}/`)) return { error: "Invalid document path." };
+  if (!fileName || fileName.length > 180) return { error: "Invalid document name." };
   const supabase = await createClient();
   const { error } = await supabase
     .from("student_documents")
