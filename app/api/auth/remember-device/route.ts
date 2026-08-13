@@ -16,7 +16,7 @@ type RememberDevicePayload = {
 };
 
 function tokenSecret() {
-  return process.env.REMEMBER_DEVICE_TOKEN_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return process.env.REMEMBER_DEVICE_TOKEN_SECRET;
 }
 
 function isRoleId(value: unknown): value is RoleId {

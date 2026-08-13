@@ -30,7 +30,7 @@ type SecurityEventInput = {
 };
 
 function secret() {
-  return process.env.RATE_LIMIT_SECRET ?? process.env.REMEMBER_DEVICE_TOKEN_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return process.env.RATE_LIMIT_SECRET ?? process.env.REMEMBER_DEVICE_TOKEN_SECRET;
 }
 
 function hmac(value: string) {

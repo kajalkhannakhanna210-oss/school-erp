@@ -1,6 +1,8 @@
 import { createHmac, randomUUID, timingSafeEqual } from "crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { recordLoginActivity } from "@/lib/security/login-activity";
 
 export const runtime = "nodejs";
 
@@ -9,7 +11,7 @@ const auditCookieName = "school_erp_login_audit_token";
 const maxAgeSeconds = 60 * 60 * 24 * 365;
 
 function tokenSecret() {
-  return process.env.REMEMBER_DEVICE_TOKEN_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return process.env.REMEMBER_DEVICE_TOKEN_SECRET;
 }
 
 function encode(value: string) {
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
   }
 
   const deviceId = verifyToken(req.cookies.get(deviceCookieName)?.value, secret) ?? randomUUID();
-  const { data: audit } = await supabase
+  const { data: audit } = await createAdminClient()
     .from("login_audit")
     .insert({ user_id: user.id, login_identifier: identifier, device_id: deviceId })
     .select("id")
@@ -120,11 +122,13 @@ export async function DELETE(req: NextRequest) {
 
   if (!user) return response;
 
-  await supabase
+  await createAdminClient()
     .from("login_audit")
     .update({ logout_at: new Date().toISOString() })
     .eq("id", auditId)
     .eq("user_id", user.id);
+
+  await recordLoginActivity({ eventType: "logout", status: "success", userId: user.id, request: req, logoutAt: new Date().toISOString(), sessionId: auditId });
 
   return response;
 }

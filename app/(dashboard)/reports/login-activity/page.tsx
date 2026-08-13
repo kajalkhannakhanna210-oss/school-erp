@@ -1,23 +1,50 @@
 import { redirect } from "next/navigation";
 import { Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { requirePageAccess } from "@/lib/require-role";
+import { requireSuperAdmin } from "@/lib/require-role";
+import { LoginActivityTable } from "../login-activity-table";
+
+export type LoginActivityRow = {
+  id: string;
+  user_id: string | null;
+  user_name: string | null;
+  email: string | null;
+  role: "super_admin" | "staff" | "student" | null;
+  event_type: string;
+  status: "success" | "failed" | "blocked";
+  ip_address: string | null;
+  browser: string | null;
+  operating_system: string | null;
+  device_type: string | null;
+  user_agent: string | null;
+  failure_reason: string | null;
+  login_at: string | null;
+  logout_at: string | null;
+  session_duration_seconds: number | null;
+  created_at: string;
+};
 
 export default async function LoginActivityPage() {
   try {
-    await requirePageAccess("login_activity");
+    await requireSuperAdmin();
   } catch {
     redirect("/dashboard");
   }
 
   const supabase = await createClient();
-  const [{ data: activity }, { data: profiles }] = await Promise.all([
-    supabase.from("login_audit").select("id, user_id, login_identifier, device_id, login_at, logout_at").order("login_at", { ascending: false }).limit(500),
-    supabase.from("profiles").select("id, full_name"),
-  ]);
-  const names = new Map((profiles ?? []).map((item) => [item.id, item.full_name]));
-  const rows = activity ?? [];
-  const dateTime = (value: string | null) => value ? new Date(value).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—";
+  const { data: activity } = await supabase
+    .from("login_activities")
+    .select("id, user_id, user_name, email, role, event_type, status, ip_address, browser, operating_system, device_type, user_agent, failure_reason, login_at, logout_at, session_duration_seconds, created_at")
+    .order("created_at", { ascending: false })
+    .limit(1000);
+  const rows = (activity ?? []) as LoginActivityRow[];
 
-  return <div><h1 className="font-display text-2xl text-ink-700">Login Activity</h1><p className="mt-1 text-sm text-slate/60">Track account sign-ins, devices, and sign-out times.</p><Card className="mt-6"><div className="overflow-x-auto">{rows.length === 0 ? <p className="py-10 text-center text-sm text-slate/60">No login activity recorded yet. Sign out and sign in again to create a record.</p> : <table className="w-full text-sm"><thead><tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50"><th className="py-3 pr-4">User</th><th className="py-3 pr-4">Login ID</th><th className="py-3 pr-4">Device ID</th><th className="py-3 pr-4">Login time</th><th className="py-3 pr-4">Logout time</th><th className="py-3">Status</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-3 pr-4"><span className="font-medium text-ink-700">{names.get(row.user_id) ?? "Unknown user"}</span><span className="block font-mono text-[10px] text-slate/50">{row.user_id}</span></td><td className="py-3 pr-4">{row.login_identifier}</td><td className="max-w-48 truncate py-3 pr-4 font-mono text-xs" title={row.device_id}>{row.device_id}</td><td className="whitespace-nowrap py-3 pr-4">{dateTime(row.login_at)}</td><td className="whitespace-nowrap py-3 pr-4">{dateTime(row.logout_at)}</td><td className={row.logout_at ? "py-3 text-slate/60" : "py-3 font-semibold text-success"}>{row.logout_at ? "Logged out" : "Active"}</td></tr>)}</tbody></table>}</div></Card></div>;
+  return (
+    <div className="max-w-full">
+      <h1 className="font-sans text-2xl font-normal tracking-tight text-[#0b2c61] sm:text-3xl">Login Activity</h1>
+      <p className="mt-1 text-sm text-slate/60 sm:text-base">Track account sign-ins, devices, and sign-out times.</p>
+
+      <Card className="mt-4 overflow-hidden p-0 sm:p-0"><LoginActivityTable rows={rows} /></Card>
+    </div>
+  );
 }

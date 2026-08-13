@@ -20,6 +20,12 @@ export default async function ProfilePage() {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user!.id).single();
+  const { data: loginHistory } = await supabase
+    .from("login_activities")
+    .select("id, event_type, status, device_type, browser, operating_system, login_at, logout_at, session_duration_seconds, created_at")
+    .eq("user_id", user!.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
 
   const { data: studentRecord } =
     profile?.role === "student"
@@ -130,6 +136,13 @@ export default async function ProfilePage() {
       <Card className="mt-6">
         <h2 className="font-display text-lg text-ink-700">Change password</h2>
         <ChangePasswordForm />
+      </Card>
+      <Card className="mt-6">
+        <div className="flex items-center justify-between gap-3">
+          <div><h2 className="font-display text-lg text-ink-700">Login History</h2><p className="mt-1 text-sm text-slate/60">Recent authentication activity for your account.</p></div>
+          <span className="text-xs text-slate/50">{loginHistory?.length ?? 0} records</span>
+        </div>
+        {(loginHistory ?? []).length === 0 ? <p className="py-8 text-center text-sm text-slate/60">No login history available yet.</p> : <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[680px] text-sm"><thead><tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50"><th className="py-3 pr-4">Date and time</th><th className="py-3 pr-4">Event</th><th className="py-3 pr-4">Device</th><th className="py-3 pr-4">Browser</th><th className="py-3 pr-4">Status</th><th className="py-3">Session</th></tr></thead><tbody>{loginHistory?.map((item) => <tr key={item.id} className="border-b border-ink-100 last:border-0"><td className="whitespace-nowrap py-3 pr-4">{new Date(item.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td><td className="py-3 pr-4 capitalize">{item.event_type.replaceAll("_", " ")}</td><td className="py-3 pr-4">{item.device_type ?? "—"}</td><td className="py-3 pr-4">{item.browser ?? "—"}</td><td className={item.status === "success" ? "py-3 font-semibold text-success" : "py-3 font-semibold text-amber-700"}>{item.status}</td><td className="py-3">{item.session_duration_seconds == null ? "—" : `${Math.floor(item.session_duration_seconds / 60)}m ${item.session_duration_seconds % 60}s`}</td></tr>)}</tbody></table></div>}
       </Card>
     </div>
   );

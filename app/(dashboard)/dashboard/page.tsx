@@ -22,6 +22,22 @@ const widgetsByRole: Record<UserRole, string[]> = {
   student: ["Fee Status", "Attendance Summary", "Notices"],
 };
 
+function DashboardMetricIcon({ name }: { name: string }) {
+  const paths: Record<string, string> = {
+    "Total Students": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M22 21v-2a4 4 0 0 0-3-7.75 M16 3.13a4 4 0 0 1 0 7.75",
+    "New Admissions": "M15 19a4 4 0 0 0-8 0 M11 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M19 8v6 M22 11h-6",
+    "With Admission No": "M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z M9 12l2 2 4-4",
+    "Without Admission No": "M12 3 4 7v5c0 5 3.5 8 8 9 4.5-1 8-4 8-9V7l-8-4Z M12 9v4 M12 16h.01",
+    "Total Staff": "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8",
+  };
+
+  return (
+    <svg aria-hidden="true" className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d={paths[name] ?? paths["Total Students"]} />
+    </svg>
+  );
+}
+
 export default async function DashboardPage() {
   try {
     await requirePageAccess("dashboard");
@@ -281,7 +297,9 @@ export default async function DashboardPage() {
             <Card key={w} className="min-w-0 rounded-lg border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 flex-1">
-                  <div className={`h-1.5 w-1.5 rounded-full ${color.dot}`} />
+                  <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${color.label}`}>
+                    <DashboardMetricIcon name={w} />
+                  </div>
                   <p className="text-xs font-semibold text-gray-600 truncate flex-1">{w}</p>
                 </div>
               </div>

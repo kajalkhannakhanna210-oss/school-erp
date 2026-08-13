@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { recordLoginActivity } from "@/lib/security/login-activity";
 
 // RLS already blocks non-admins from writing to admin-only tables through the
 // regular server client. This guard exists specifically for actions that use
@@ -49,6 +50,7 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
     .maybeSingle();
 
   if (!pageAccess) {
+    await recordLoginActivity({ eventType: "role_access_denied", status: "blocked", userId: user.id, failureReason: "page_not_allowed", metadata: { pageKey } });
     throw new Error(`Access denied to page: ${pageKey}`);
   }
 

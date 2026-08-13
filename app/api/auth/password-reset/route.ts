@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { genericResetMessage, isValidEmail } from "@/lib/security/auth-inputs";
 import { checkRateLimit, logSecurityEvent } from "@/lib/security/server";
 import { createClient } from "@/lib/supabase/server";
+import { recordLoginActivity } from "@/lib/security/login-activity";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
       request: req,
       metadata: error ? { code: error.code } : {},
     });
+    await recordLoginActivity({ eventType: error ? "failed_login" : "password_reset_requested", status: error ? "failed" : "success", identifier: email, request: req, failureReason: error ? "provider_error" : null, authenticationMethod: "password_reset" });
   }
 
   return NextResponse.json({ message: genericResetMessage });
