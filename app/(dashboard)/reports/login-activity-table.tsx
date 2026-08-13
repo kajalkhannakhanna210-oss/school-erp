@@ -70,6 +70,61 @@ export function LoginActivityTable({ rows }: Props) {
     ["Access denied", rows.filter((row) => row.event_type === "unauthorized_access_attempt" || row.event_type === "role_access_denied").length, "#be123c"],
   ] as const;
 
+  function applyCardFilter(label: string) {
+    setPage(1);
+    switch (label) {
+      case "Total attempts":
+        setStatus("all");
+        setEventType("all");
+        setRole("all");
+        setQuery("");
+        break;
+      case "Successful logins":
+        setStatus("success");
+        setEventType("successful_login");
+        break;
+      case "Failed logins":
+        setStatus("failed");
+        setEventType("failed_login");
+        break;
+      case "Unique users":
+        setQuery("");
+        setStatus("all");
+        setEventType("all");
+        break;
+      case "Active users":
+        setEventType("successful_login");
+        break;
+      case "Suspicious":
+        setEventType("suspicious_login_attempt");
+        break;
+      case "New devices":
+        setEventType("new_device_login");
+        break;
+      case "Access denied":
+        setEventType("role_access_denied");
+        break;
+      default:
+        break;
+    }
+    setTimeout(() => {
+      const el = document.querySelector("[data-login-table]");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
+
+  function isStatActive(label: string) {
+    if (label === "Total attempts") return status === "all" && eventType === "all" && query === "";
+    if (label === "Successful logins") return status === "success" || eventType === "successful_login";
+    if (label === "Failed logins") return status === "failed" || eventType === "failed_login";
+    if (label === "Unique users") return false;
+    if (label === "Active users") return eventType === "successful_login";
+    if (label === "Suspicious") return eventType === "suspicious_login_attempt";
+    if (label === "New devices") return eventType === "new_device_login";
+    if (label === "Access denied") return eventType === "role_access_denied";
+    return false;
+  }
+
   function resetFilters() {
     setQuery("");
     setStatus("all");
@@ -96,12 +151,20 @@ export function LoginActivityTable({ rows }: Props) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3 border-b border-transparent bg-gradient-to-r from-white/60 to-white p-4 sm:grid-cols-4 sm:px-6 xl:grid-cols-8">
-        {summary.map(([label, value, color]) => (
-          <div key={label} className="rounded-2xl bg-white/70 backdrop-blur-sm p-4 shadow-md border border-gray-100 flex flex-col">
-            <div className="text-xs text-gray-500 uppercase tracking-wide">{label}</div>
-            <div className="mt-2 text-2xl sm:text-3xl font-extrabold" style={{ color }}>{value}</div>
-          </div>
-        ))}
+        {summary.map(([label, value, color]) => {
+          const active = isStatActive(label);
+          return (
+            <button
+              key={label}
+              onClick={() => applyCardFilter(label)}
+              aria-pressed={active}
+              className={`text-left rounded-2xl p-4 flex flex-col transition-shadow focus:outline-none ${active ? "ring-2 ring-indigo-300 shadow-lg bg-white" : "bg-white/70 backdrop-blur-sm shadow-md border border-gray-100"}`}
+            >
+              <div className="text-xs text-gray-500 uppercase tracking-wide">{label}</div>
+              <div className="mt-2 text-2xl sm:text-3xl font-extrabold" style={{ color }}>{value}</div>
+            </button>
+          );
+        })}
       </div>
       <div className="border-b border-[#d8e1ef] bg-[#f8fafc] px-5 py-4 sm:px-8">
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -139,7 +202,7 @@ export function LoginActivityTable({ rows }: Props) {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" data-login-table>
         {filteredRows.length === 0 ? (
           <p className="px-6 py-16 text-center text-sm text-slate/60">No login activity matches the selected filters.</p>
         ) : (
