@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { ChangePasswordForm } from "./change-password-form";
 import { DateValue } from "@/components/date-value";
+import { DocumentPanel } from "@/components/documents/document-panel";
+import { listDocumentCategories, listDocumentsForSubject } from "@/lib/documents";
 
 export default async function ProfilePage() {
   try {
@@ -46,6 +48,17 @@ export default async function ProfilePage() {
           .eq("id", user!.id)
           .single()
       : { data: null };
+
+  const documentSubjectType = profile?.role === "student" ? "student" : profile?.role === "staff" ? "staff" : null;
+  let documentCategories: Awaited<ReturnType<typeof listDocumentCategories>> = [];
+  let ownDocuments: Awaited<ReturnType<typeof listDocumentsForSubject>> = [];
+  if (documentSubjectType) {
+    [documentCategories, ownDocuments] = await Promise.all([
+      listDocumentCategories(documentSubjectType),
+      listDocumentsForSubject(documentSubjectType, user!.id),
+    ]);
+    documentCategories = documentCategories.filter((category) => category.subject_visible);
+  }
 
   return (
     <div className="max-w-3xl">
@@ -131,6 +144,23 @@ export default async function ProfilePage() {
               </dd>
             </div>
           </dl>
+        </Card>
+      )}
+      {documentSubjectType && (
+        <Card className="mt-6">
+          <h2 className="font-display text-lg text-ink-700">My Documents</h2>
+          <p className="mt-1 text-sm text-slate/60">Approved records shared with your account. Official documents cannot be edited here.</p>
+          <div className="mt-4">
+            <DocumentPanel
+              subjectType={documentSubjectType}
+              subjectId={user!.id}
+              documents={ownDocuments}
+              categories={documentCategories}
+              canManage={false}
+              canDelete={false}
+              canViewAudit={false}
+            />
+          </div>
         </Card>
       )}
       <Card className="mt-6">

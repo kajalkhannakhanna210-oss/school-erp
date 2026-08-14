@@ -29,7 +29,11 @@ const compile = spawnSync(
     "--esModuleInterop",
     "--skipLibCheck",
     "tests/public-forms-core.test.ts",
+    "tests/super-admin-session.test.ts",
+    "tests/documents-security.test.ts",
     "lib/security/public-forms-core.ts",
+    "lib/security/super-admin-session.ts",
+    "lib/security/documents.ts",
   ],
   { cwd: projectRoot, stdio: "inherit" }
 );
@@ -39,7 +43,11 @@ if (compile.status !== 0) {
 }
 
 const node = process.execPath;
-const testFile = resolve(outDir, "tests", "public-forms-core.test.js");
-const run = spawnSync(node, ["--test", testFile], { cwd: projectRoot, stdio: "inherit" });
+const testFiles = [
+  resolve(outDir, "tests", "public-forms-core.test.js"),
+  resolve(outDir, "tests", "super-admin-session.test.js"),
+  resolve(outDir, "tests", "documents-security.test.js"),
+];
+const run = spawnSync(node, ["--test", ...testFiles], { cwd: projectRoot, stdio: "inherit" });
 
 process.exit(run.status ?? 1);

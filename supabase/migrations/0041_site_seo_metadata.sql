@@ -11,7 +11,9 @@ create table if not exists public.site_seo_metadata (
 );
 
 alter table public.site_seo_metadata enable row level security;
+drop policy if exists "site_seo_public_read" on public.site_seo_metadata;
 create policy "site_seo_public_read" on public.site_seo_metadata for select using (true);
+drop policy if exists "site_seo_admin_write" on public.site_seo_metadata;
 create policy "site_seo_admin_write" on public.site_seo_metadata for all using (public.is_super_admin()) with check (public.is_super_admin());
 
 insert into public.site_seo_metadata (path, title, description)

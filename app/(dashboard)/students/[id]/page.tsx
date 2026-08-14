@@ -8,8 +8,9 @@ import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import { DateValue } from "@/components/date-value";
 import { ArchiveControl } from "./archive-control";
-import { DocumentUpload, type DocumentRow } from "./document-upload";
 import { PhotoUpload } from "./photo-upload";
+import { DocumentPanel } from "@/components/documents/document-panel";
+import { canManageDocument, canViewDocumentAudit, getDocumentActor, listDocumentActivity, listDocumentCategories, listDocumentsForSubject } from "@/lib/documents";
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createClient();
@@ -45,20 +46,16 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   const feeLines = canViewFees ? await getStudentFeeLines(supabase, params.id) : [];
 
-  const { data: documents } = await supabase
-    .from("student_documents")
-    .select("id, file_name, file_path")
-    .eq("student_id", params.id)
-    .order("uploaded_at", { ascending: false });
-
-  const documentsWithUrls: DocumentRow[] = await Promise.all(
-    (documents ?? []).map(async (d) => {
-      const { data: signed } = await supabase.storage
-        .from("student-documents")
-        .createSignedUrl(d.file_path, 60 * 10);
-      return { id: d.id, file_name: d.file_name, signedUrl: signed?.signedUrl ?? null };
-    })
-  );
+  const [documentActor, documentCategories, studentDocuments] = await Promise.all([
+    getDocumentActor(),
+    listDocumentCategories("student"),
+    listDocumentsForSubject("student", params.id),
+  ]);
+  const canManageDocuments = Boolean(documentActor && documentCategories.some((category) => canManageDocument(documentActor, "student", category)));
+  const hasDocumentAuditAccess = Boolean(documentActor && canViewDocumentAudit(documentActor));
+  const documentActivity = hasDocumentAuditAccess
+    ? Object.fromEntries(await Promise.all(studentDocuments.map(async (document) => [document.id, await listDocumentActivity("student", document.id)])))
+    : {};
 
   let photoUrl: string | null = null;
   if ((student as any).photo_path) {
@@ -146,7 +143,16 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         <Card className="border-ink-100 shadow-sm md:col-span-3">
           <h2 className="font-display text-xl font-semibold text-ink-700">Documents</h2>
           <div className="mt-4">
-            <DocumentUpload studentId={s.id} documents={documentsWithUrls} canManage={canManage} />
+            <DocumentPanel
+              subjectType="student"
+              subjectId={s.id}
+              documents={studentDocuments}
+              categories={documentCategories}
+              canManage={canManageDocuments}
+              canDelete={documentActor?.role === "super_admin"}
+              canViewAudit={hasDocumentAuditAccess}
+              activityByDocument={documentActivity}
+            />
           </div>
         </Card>
 

@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { recordLoginActivity } from "@/lib/security/login-activity";
+import {
+  SUPER_ADMIN_SESSION_COOKIE_NAME,
+  superAdminSessionCookieOptions,
+} from "@/lib/security/super-admin-session";
 
 export const runtime = "nodejs";
 
@@ -109,6 +113,7 @@ export async function DELETE(req: NextRequest) {
   const secret = tokenSecret();
   const response = NextResponse.json({ recorded: false });
   response.cookies.set(auditCookieName, "", cookieOptions(0));
+  response.cookies.set(SUPER_ADMIN_SESSION_COOKIE_NAME, "", superAdminSessionCookieOptions(0));
 
   if (!secret) return response;
 

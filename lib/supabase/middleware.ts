@@ -1,5 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  SUPER_ADMIN_SESSION_COOKIE_NAME,
+  getSuperAdminSessionSecret,
+  superAdminSessionCookieOptions,
+  validateSuperAdminSessionToken,
+} from "@/lib/security/super-admin-session";
 
 // Pages that must render without a session — the public website.
 const PUBLIC_PAGE_PATHS = new Set([
@@ -33,6 +39,7 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/gallery/") ||
     pathname.startsWith("/events/");
   const isApiRoute = pathname.startsWith("/api/");
+  const isSignInRequest = pathname === "/api/auth/sign-in";
 
   // Public pages do not require auth refresh
   if (isPublicPage) {
@@ -85,6 +92,60 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Supabase refreshes sessions indefinitely by default. Super-admin access is
+  // additionally bound to this signed, non-refreshable 24-hour session token.
+  // Checking it in middleware means expired admin sessions cannot reach pages,
+  // route handlers, or server actions.
+  if (user && !isSignInRequest) {
+    const [{ data: profile }, { data: superAdminMembership }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("profile_roles")
+        .select("role")
+        .eq("profile_id", user.id)
+        .eq("role", "super_admin")
+        .maybeSingle(),
+    ]);
+    const sessionToken = request.cookies.get(SUPER_ADMIN_SESSION_COOKIE_NAME)?.value;
+    const sessionStatus = await validateSuperAdminSessionToken(
+      sessionToken,
+      user.id,
+      getSuperAdminSessionSecret()
+    );
+    const isOrWasSuperAdmin =
+      profile?.role === "super_admin" ||
+      Boolean(superAdminMembership) ||
+      sessionStatus === "valid" ||
+      sessionStatus === "expired";
+
+    if (isOrWasSuperAdmin && sessionStatus !== "valid") {
+      await supabase.auth.signOut();
+      supabaseResponse.cookies.set(
+        SUPER_ADMIN_SESSION_COOKIE_NAME,
+        "",
+        superAdminSessionCookieOptions(0)
+      );
+
+      if (isApiRoute) {
+        const response = NextResponse.json({ error: "Your super-admin session has expired. Please sign in again." }, { status: 401 });
+        supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+        return response;
+      }
+
+      if (!isAuthRoute) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/login";
+        const response = NextResponse.redirect(url);
+        supabaseResponse.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+        return response;
+      }
+    }
+  }
 
   // API routes should handle their own authentication
   if (!user && !isAuthRoute && !isApiRoute) {

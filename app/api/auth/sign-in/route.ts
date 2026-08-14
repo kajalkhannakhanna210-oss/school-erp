@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { genericAuthError, isValidIdentifier, normalizeIdentifier } from "@/lib/security/auth-inputs";
 import { checkRateLimit, clearRateLimit, logSecurityEvent } from "@/lib/security/server";
 import { recordLoginActivity } from "@/lib/security/login-activity";
+import {
+  SUPER_ADMIN_SESSION_COOKIE_NAME,
+  createSuperAdminSessionToken,
+  getSuperAdminSessionSecret,
+  superAdminSessionCookieOptions,
+} from "@/lib/security/super-admin-session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -137,9 +143,31 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const isSuperAdminSession =
+    adminLogin ||
+    profile.role === "super_admin" ||
+    (userRoles ?? []).some((userRole: { role: string }) => userRole.role === "super_admin");
+  const superAdminSessionSecret = getSuperAdminSessionSecret();
+  if (isSuperAdminSession && !superAdminSessionSecret) {
+    await supabase.auth.signOut();
+    return NextResponse.json(
+      { error: "Secure super-admin sessions are not configured. Set SUPER_ADMIN_SESSION_SECRET and try again." },
+      { status: 500 }
+    );
+  }
+
   await clearRateLimit("sign_in", identifier.value, req);
 
   const response = NextResponse.json({ ok: true });
+  if (isSuperAdminSession && superAdminSessionSecret) {
+    response.cookies.set(
+      SUPER_ADMIN_SESSION_COOKIE_NAME,
+      await createSuperAdminSessionToken(data.user.id, superAdminSessionSecret),
+      superAdminSessionCookieOptions()
+    );
+  } else {
+    response.cookies.set(SUPER_ADMIN_SESSION_COOKIE_NAME, "", superAdminSessionCookieOptions(0));
+  }
   const secret = tokenSecret();
   if (secret) {
     const deviceId = randomUUID();

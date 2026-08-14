@@ -71,6 +71,9 @@ export default async function StaffDetailPage({ params, searchParams }: { params
           </p>
         </div>
         <div className="flex gap-3">
+          <Link href={`/staff/${s.id}/documents`}>
+            <Button variant="ghost">Documents</Button>
+          </Link>
           <Link href={`/staff/${s.id}/edit`}>
             <Button variant="ghost">Edit</Button>
           </Link>

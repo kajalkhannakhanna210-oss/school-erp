@@ -18,7 +18,7 @@ export async function updateRolePageAccess(role: UserRole, pageKeys: string[]) {
   if (uniqueKeys.length) {
     const defaultIcons: Record<string, string> = {
       dashboard: '⌂', master: '▦', sessions: '◷', classes: '▤', sections: '▥', class_teachers: '♙',
-      students: '♟', admission_allotment: '✓', staff: '♚', attendance: '◴', exams: '▣', fees: '₹',
+      students: '♟', admission_allotment: '✓', staff: '♚', documents: '▤', attendance: '◴', exams: '▣', fees: '₹',
       payments: '₹', reports: '▥', cms: '◆', admissions: '♜', role_access: '⚙', profile: '●'
     };
 

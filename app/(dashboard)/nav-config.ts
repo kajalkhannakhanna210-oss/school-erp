@@ -13,6 +13,7 @@ export const navItems: NavItem[] = [
   { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"] },
   { key: "staff", label: "Staff", href: "/staff", roles: ["super_admin"] },
   { key: "staff_sessions", label: "Staff Sessions", href: "/staff/session-management", roles: ["super_admin"] },
+  { key: "documents", label: "Documents", href: "/documents", roles: ["super_admin", "staff"], icon: "▤" },
   { key: "attendance", label: "Attendance", href: "/attendance", roles: ["super_admin", "staff", "student"] },
   { key: "exams", label: "Exams", href: "/exams", roles: ["super_admin", "staff", "student"] },
   { key: "fees", label: "Fees", href: "/fees", roles: ["super_admin"] },

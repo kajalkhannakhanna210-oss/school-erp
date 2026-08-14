@@ -184,21 +184,3 @@ export async function setStudentPhoto(id: string, path: string) {
   revalidatePath(`/students/${id}`);
   return { error: error?.message ?? null };
 }
-
-export async function addStudentDocument(studentId: string, filePath: string, fileName: string) {
-  if (!filePath.startsWith(`${studentId}/`)) return { error: "Invalid document path." };
-  if (!fileName || fileName.length > 180) return { error: "Invalid document name." };
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("student_documents")
-    .insert({ student_id: studentId, file_path: filePath, file_name: fileName });
-  revalidatePath(`/students/${studentId}`);
-  return { error: error?.message ?? null };
-}
-
-export async function removeStudentDocument(id: string, studentId: string) {
-  const supabase = await createClient();
-  const { error } = await supabase.from("student_documents").delete().eq("id", id);
-  revalidatePath(`/students/${studentId}`);
-  return { error: error?.message ?? null };
-}
