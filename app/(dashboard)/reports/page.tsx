@@ -34,15 +34,28 @@ export default async function ReportsPage({
     Object.entries(searchParams).filter(([k]) => k !== "type") as [string, string][]
   );
   const result = await getReport(supabase, type, filters);
-  let loginActivity: { id: string; user_id: string; login_identifier: string; device_id: string; login_at: string; logout_at: string | null }[] = [];
-  let profileNames = new Map<string, string>();
+  let loginActivity: {
+    id: string;
+    user_id: string | null;
+    user_name: string | null;
+    email: string | null;
+    role: string | null;
+    event_type: string;
+    status: string;
+    ip_address: string | null;
+    device_type: string | null;
+    browser: string | null;
+    login_at: string | null;
+    logout_at: string | null;
+    created_at: string;
+  }[] = [];
   if ((await supabase.from("profiles").select("role").eq("id", (await supabase.auth.getUser()).data.user?.id ?? "").single()).data?.role === "super_admin") {
-    const [{ data: auditRows }, { data: profileRows }] = await Promise.all([
-      supabase.from("login_audit").select("id, user_id, login_identifier, device_id, login_at, logout_at").order("login_at", { ascending: false }).limit(200),
-      supabase.from("profiles").select("id, full_name"),
-    ]);
-    loginActivity = auditRows ?? [];
-    profileNames = new Map((profileRows ?? []).map((profile) => [profile.id, profile.full_name]));
+    const { data: activityRows } = await supabase
+      .from("login_activities")
+      .select("id, user_id, user_name, email, role, event_type, status, ip_address, device_type, browser, login_at, logout_at, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    loginActivity = (activityRows ?? []) as typeof loginActivity;
   }
 
   const exportQuery = new URLSearchParams({ ...filters }).toString();
@@ -114,10 +127,80 @@ export default async function ReportsPage({
           </table>
         </div>
       </Card>
-      {(loginActivity.length > 0 || profileNames.size > 0) && <Card className="mt-8">
-        <div className="mb-4 flex items-center justify-between"><div><h2 className="font-display text-xl text-ink-700">Login activity</h2><p className="text-sm text-slate/60">Recent sign-ins and sign-outs by user and device.</p></div><span className="text-xs text-slate/50">Last 200 records</span></div>
-        {loginActivity.length === 0 ? <p className="py-8 text-center text-sm text-slate/60">No login activity has been recorded yet. Sign out and sign in again to create the first record.</p> : <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50"><th className="py-2 pr-4">User</th><th className="py-2 pr-4">Login ID</th><th className="py-2 pr-4">Device ID</th><th className="py-2 pr-4">Login time</th><th className="py-2 pr-4">Logout time</th><th className="py-2">Status</th></tr></thead><tbody>{loginActivity.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-2 pr-4"><span className="font-medium text-ink-700">{profileNames.get(row.user_id) ?? "Unknown user"}</span><span className="block font-mono text-[10px] text-slate/50">{row.user_id}</span></td><td className="py-2 pr-4">{row.login_identifier}</td><td className="max-w-44 truncate py-2 pr-4 font-mono text-xs" title={row.device_id}>{row.device_id}</td><td className="whitespace-nowrap py-2 pr-4">{new Date(row.login_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</td><td className="whitespace-nowrap py-2 pr-4">{row.logout_at ? new Date(row.logout_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}</td><td className={row.logout_at ? "py-2 text-slate/60" : "py-2 font-semibold text-success"}>{row.logout_at ? "Logged out" : "Active"}</td></tr>)}</tbody></table></div>}
-      </Card>}
+      {loginActivity.length > 0 && (
+        <Card className="mt-8">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-xl text-ink-700">Login Activity</h2>
+              <p className="text-sm text-slate/60">Recent account sign-ins, IP addresses, and device security logs.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate/50">Latest {loginActivity.length} events</span>
+              <Link href="/reports/login-activity">
+                <Button variant="ghost" className="text-xs text-[#222F57]">
+                  Open Full Activity &rarr;
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-base text-slate-800">
+              <thead>
+                <tr className="border-b border-ink-100 text-left text-xs sm:text-sm uppercase tracking-wider text-slate-600 font-bold">
+                  <th className="py-3.5 pr-4">User</th>
+                  <th className="py-3.5 pr-4">Event</th>
+                  <th className="py-3.5 pr-4">Status</th>
+                  <th className="py-3.5 pr-4 font-mono">IP Address</th>
+                  <th className="py-3.5 pr-4">Device / Browser</th>
+                  <th className="py-3.5 pr-4">Timestamp</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loginActivity.map((row) => (
+                  <tr key={row.id} className="hover:bg-slate-50/70 transition">
+                    <td className="py-3.5 pr-4">
+                      <span className="font-extrabold text-slate-950 block text-base">{row.user_name ?? row.email ?? "Unknown"}</span>
+                      {row.email && row.user_name && (
+                        <span className="text-sm text-slate-500 block font-normal">{row.email}</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 pr-4 font-semibold text-slate-900 text-base">
+                      {row.event_type.replaceAll("_", " ")}
+                    </td>
+                    <td className="py-3.5 pr-4">
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs sm:text-sm font-extrabold capitalize ${
+                          row.status === "success"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : row.status === "blocked"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}
+                      >
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-4 font-mono text-sm text-slate-700 font-medium">{row.ip_address ?? "—"}</td>
+                    <td className="py-3.5 pr-4 text-base text-slate-700 font-medium">
+                      {row.device_type ? `${row.device_type} • ` : ""}
+                      {row.browser ?? "—"}
+                    </td>
+                    <td className="py-3.5 pr-4 font-mono text-sm text-slate-600 whitespace-nowrap font-medium">
+                      {new Date(row.login_at ?? row.created_at).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

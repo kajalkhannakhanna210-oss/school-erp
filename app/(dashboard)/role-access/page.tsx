@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { RoleAccessForm } from "./role-access-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function RoleAccessPage() {
   try {
     await requirePageAccess("role_access");

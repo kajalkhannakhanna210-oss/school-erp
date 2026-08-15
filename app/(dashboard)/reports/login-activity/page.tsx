@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
-import { Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
-import { requireSuperAdmin } from "@/lib/require-role";
+import { requirePageAccess } from "@/lib/require-role";
 import { LoginActivityTable } from "../login-activity-table";
 
 export type LoginActivityRow = {
@@ -26,7 +25,7 @@ export type LoginActivityRow = {
 
 export default async function LoginActivityPage() {
   try {
-    await requireSuperAdmin();
+    await requirePageAccess("login_activity");
   } catch {
     redirect("/dashboard");
   }
@@ -40,11 +39,15 @@ export default async function LoginActivityPage() {
   const rows = (activity ?? []) as LoginActivityRow[];
 
   return (
-    <div className="max-w-full">
-      <h1 className="font-sans text-2xl font-normal tracking-tight text-[#0b2c61] sm:text-3xl">Login Activity</h1>
-      <p className="mt-1 text-sm text-slate/60 sm:text-base">Track account sign-ins, devices, and sign-out times.</p>
+    <div className="max-w-full space-y-4">
+      <div>
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink-700 sm:text-3xl">Login Activity</h1>
+        <p className="mt-1 text-sm text-slate/60">Monitor account logins, security events, active sessions, and client devices.</p>
+      </div>
 
-      <Card className="mt-4 overflow-hidden p-0 sm:p-0"><LoginActivityTable rows={rows} /></Card>
+      <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">
+        <LoginActivityTable rows={rows} />
+      </div>
     </div>
   );
 }

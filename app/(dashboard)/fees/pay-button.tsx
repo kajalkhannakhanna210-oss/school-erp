@@ -44,7 +44,7 @@ export function PayButton({
   function handlePay() {
     startTransition(async () => {
       const result = await createPaymentOrder(feeHeadId, amount);
-      if (result.error || !result.orderId || !result.amount) {
+      if (result.error || !result.order_id || !result.amount) {
         push(result.error ?? "Could not start the payment", "error");
         return;
       }
@@ -56,10 +56,10 @@ export function PayButton({
       }
 
       const rzp = new window.Razorpay({
-        key: result.keyId,
-        order_id: result.orderId,
-        amount: Math.round(result.amount * 100),
-        currency: "INR",
+        key: result.key,
+        order_id: result.order_id,
+        amount: Math.round(Number(result.amount)),
+        currency: result.currency || "INR",
         name: "School Fee Payment",
         prefill: { name: studentName, email: studentEmail },
         handler: () => {

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireSuperAdmin } from "@/lib/require-role";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 type StudentInput = {
   full_name: string;
@@ -79,6 +80,15 @@ export async function createStudent(input: StudentInput) {
     return { error: insertError.message };
   }
 
+  await recordServerAction({
+    action: "Create Student",
+    module: "Students",
+    page: "Add Student Form",
+    resource: "/students/new",
+    statusCode: 201,
+    outcome: `Created student ${input.full_name} (${input.contact_email})`,
+  });
+
   revalidatePath("/students");
   return { error: null, id: userId };
 }
@@ -114,6 +124,13 @@ export async function updateStudent(id: string, input: StudentUpdateInput) {
 
   revalidatePath(`/students/${id}`);
   revalidatePath("/students");
+  await recordServerAction({
+    action: "Update Student",
+    module: "Students",
+    page: "Student Profile",
+    resource: `/students/${id}`,
+    outcome: `Updated student record for ${full_name || id}`,
+  });
   return { error: profileError?.message ?? studentError?.message ?? null };
 }
 
@@ -122,6 +139,13 @@ export async function setStudentActive(id: string, isActive: boolean) {
   const { error } = await supabase.from("students").update({ is_active: isActive }).eq("id", id);
   revalidatePath("/students");
   revalidatePath(`/students/${id}`);
+  await recordServerAction({
+    action: isActive ? "Activate Student" : "Deactivate Student",
+    module: "Students",
+    page: "Student Directory",
+    resource: `/students/${id}`,
+    outcome: `Student ${id} set to ${isActive ? "Active" : "Inactive"}`,
+  });
   return { error: error?.message ?? null };
 }
 
@@ -135,6 +159,16 @@ export async function deleteAllStudentRecords() {
   revalidatePath("/students");
   if (error) return { error: `Student records could not be removed: ${error.message}`, count: 0 };
   if (!deletedCount) return { error: "No student records were removed. Your account may not have permission to delete student data.", count: 0 };
+  
+  await recordServerAction({
+    action: "Delete All Students",
+    module: "Students",
+    page: "Student Directory",
+    resource: "/students",
+    requestMethod: "DELETE",
+    outcome: `Deleted ${deletedCount} student records`,
+  });
+
   return { error: null, count: deletedCount };
 }
 
@@ -145,6 +179,15 @@ export async function allotAdmissionNumber(studentId: string, admissionNumber: s
   const supabase = await createClient();
   const { error } = await supabase.from("students").update({ admission_number: value, section_id: sectionId || null }).eq("id", studentId);
   revalidatePath("/students"); revalidatePath("/students/admission-allotment"); revalidatePath(`/students/${studentId}`);
+  
+  await recordServerAction({
+    action: "Allot Admission Number",
+    module: "Students",
+    page: "Admission Allotment",
+    resource: "/students/admission-allotment",
+    outcome: `Allotted admission number ${value} to student ${studentId}`,
+  });
+
   return { error: error?.message ?? null };
 }
 
@@ -162,7 +205,15 @@ export async function promoteStudents(input: {
   const { error, count } = await supabase.from("student_enrollments").upsert(
     (students ?? []).map((student) => ({ student_id: student.id, session_id: input.to_session_id, class_id: input.to_class_id, section_id: input.to_section_id })),
     { onConflict: "student_id,session_id", count: "exact" }
-  )
+  );
+
+  await recordServerAction({
+    action: "Promote Students",
+    module: "Students",
+    page: "Student Directory",
+    resource: "/students",
+    outcome: `Promoted ${count ?? 0} students to new academic session`,
+  });
 
   revalidatePath("/students");
   return { error: error?.message ?? null, count: count ?? 0 };
@@ -173,6 +224,15 @@ export async function bulkUpdateStudents(ids: string[], input: { class_id?: stri
   if (!ids.length || !Object.keys(input).length) return { error: "Select students and at least one field to update.", count: 0 };
   const supabase = await createClient();
   const { error, count } = await supabase.from("students").update(input, { count: "exact" }).in("id", ids);
+  
+  await recordServerAction({
+    action: "Bulk Update Students",
+    module: "Students",
+    page: "Student Directory",
+    resource: "/students",
+    outcome: `Bulk updated ${count ?? 0} student records`,
+  });
+
   revalidatePath("/students");
   return { error: error?.message ?? null, count: count ?? 0 };
 }
@@ -181,6 +241,15 @@ export async function setStudentPhoto(id: string, path: string) {
   if (!path.startsWith(`${id}/`)) return { error: "Invalid photo path." };
   const supabase = await createClient();
   const { error } = await supabase.from("students").update({ photo_path: path }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Upload Student Photo",
+      module: "Students",
+      page: "Student Profile",
+      resource: `/students/${id}`,
+      outcome: `Updated profile photo for student ${id}`,
+    });
+  }
   revalidatePath(`/students/${id}`);
   return { error: error?.message ?? null };
 }

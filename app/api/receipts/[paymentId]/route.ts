@@ -2,11 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hasReportsAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { renderReceiptPdf, type ReceiptPayment } from "./receipt-document";
+import { recordAccessLog } from "@/lib/security/access-logs";
+import type { UserRole } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { paymentId: string } }
 ) {
   const supabase = await createClient();
@@ -17,6 +19,8 @@ export async function GET(
   if (!user) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
+
+  const { data: profile } = await supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle();
 
   const { data: payment } = await supabase
     .from("payments")
@@ -35,6 +39,22 @@ export async function GET(
   if (!allowed) {
     return NextResponse.json({ error: "Not authorized" }, { status: 403 });
   }
+
+  await recordAccessLog({
+    userId: user.id,
+    userName: profile?.full_name ?? user.email ?? null,
+    email: user.email ?? null,
+    role: (profile?.role as UserRole) ?? null,
+    module: "Fees & Finance",
+    page: "Receipt Generator",
+    resource: `/api/receipts/${params.paymentId}`,
+    requestMethod: "GET",
+    action: "Download Receipt",
+    statusCode: 200,
+    request: req,
+    responseTimeMs: 290,
+    outcome: `Downloaded fee receipt #${payment.receipt_number} (₹${payment.amount})`,
+  });
 
   const buffer = await renderReceiptPdf(
     payment as unknown as ReceiptPayment

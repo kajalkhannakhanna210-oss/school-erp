@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 type AttendanceRecordInput = { student_id: string; status: string };
 
@@ -54,6 +55,14 @@ export async function submitAttendance(input: {
     .update({ is_locked: true })
     .eq("id", batch.id);
 
+  await recordServerAction({
+    action: "Submit Daily Attendance",
+    module: "Attendance",
+    page: "Attendance Register",
+    resource: "/attendance",
+    outcome: `Submitted attendance for ${input.records.length} students on ${input.attendance_date}`,
+  });
+
   revalidatePath("/attendance");
   return { error: lockError?.message ?? null };
 }
@@ -86,6 +95,14 @@ export async function resubmitAttendance(batchId: string, records: AttendanceRec
     .update({ is_locked: true })
     .eq("id", batchId);
 
+  await recordServerAction({
+    action: "Resubmit Attendance",
+    module: "Attendance",
+    page: "Attendance Register",
+    resource: "/attendance",
+    outcome: `Resubmitted attendance for ${records.length} students`,
+  });
+
   revalidatePath("/attendance");
   return { error: lockError?.message ?? null };
 }
@@ -99,13 +116,18 @@ export async function unlockAttendance(batchId: string, label: string) {
   const { error } = await supabase.from("attendance_batches").update({ is_locked: false }).eq("id", batchId);
   if (error) return { error: error.message };
 
-  // The plan calls for this override to be logged — Super-Admin-only access
-  // to attendance_logs means only genuine overrides ever land here (RLS on
-  // attendance_batches already keeps non-admins from reaching this point).
   await supabase.from("activity_logs").insert({
     actor_id: user!.id,
     action: "unlock_attendance",
     description: `Unlocked attendance for ${label}`,
+  });
+
+  await recordServerAction({
+    action: "Unlock Attendance",
+    module: "Attendance",
+    page: "Attendance Register",
+    resource: "/attendance",
+    outcome: `Unlocked attendance batch for ${label}`,
   });
 
   revalidatePath("/attendance");

@@ -6,6 +6,7 @@ import { requireSuperAdmin } from "@/lib/require-role";
 import { sanitizeStorageFileName, validateImageUpload } from "@/lib/security/uploads";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 type StaffInput = {
   full_name: string;
@@ -76,6 +77,15 @@ export async function createStaff(input: StaffInput) {
     await admin.auth.admin.deleteUser(created.user.id);
     return { error: photoError?.message ?? insertError?.message ?? "Could not save staff member." };
   }
+
+  await recordServerAction({
+    action: "Create Staff",
+    module: "Staff",
+    page: "Staff Directory",
+    resource: "/staff/new",
+    statusCode: 201,
+    outcome: `Created staff member ${input.full_name} (${input.contact_email})`,
+  });
 
   revalidatePath("/staff");
   return { error: null, id: created.user.id };
@@ -148,6 +158,14 @@ export async function updateStaff(id: string, input: StaffUpdateInput) {
       .eq("id", id),
   ]);
 
+  await recordServerAction({
+    action: "Update Staff",
+    module: "Staff",
+    page: "Staff Profile",
+    resource: `/staff/${id}`,
+    outcome: `Updated staff profile for ${full_name || id}`,
+  });
+
   revalidatePath(`/staff/${id}`);
   revalidatePath(`/staff/${id}/edit`);
   revalidatePath("/staff");
@@ -172,6 +190,15 @@ export async function setStaffActive(id: string, isActive: boolean) {
     inactive_date: isActive ? null : new Date().toISOString(),
     inactive_by: isActive ? null : user?.id ?? null,
   }).eq("id", id);
+
+  await recordServerAction({
+    action: isActive ? "Activate Staff" : "Deactivate Staff",
+    module: "Staff",
+    page: "Staff Directory",
+    resource: `/staff/${id}`,
+    outcome: `Staff member ${id} set to ${isActive ? "Active" : "Inactive"}`,
+  });
+
   revalidatePath("/staff");
   revalidatePath(`/staff/${id}`);
   return { error: error?.message ?? null };
@@ -181,6 +208,15 @@ export async function setStaffPhoto(id: string, path: string) {
   if (!path.startsWith(`${id}/`)) return { error: "Invalid photo path." };
   const supabase = await createClient();
   const { error } = await supabase.from("staff").update({ photo_path: path }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Upload Staff Photo",
+      module: "Staff",
+      page: "Staff Profile",
+      resource: `/staff/${id}`,
+      outcome: `Updated profile photo for staff member ${id}`,
+    });
+  }
   revalidatePath(`/staff/${id}`);
   return { error: error?.message ?? null };
 }
@@ -188,8 +224,6 @@ export async function setStaffPhoto(id: string, path: string) {
 export async function setStaffPermissions(staffId: string, permissionKeys: string[]) {
   const supabase = await createClient();
 
-  // Simplest correct approach for a small, infrequently-changed permission
-  // set: replace the whole assignment rather than diffing it.
   const { error: deleteError } = await supabase
     .from("staff_permissions")
     .delete()
@@ -203,6 +237,14 @@ export async function setStaffPermissions(staffId: string, permissionKeys: strin
       .insert(permissionKeys.map((permission_key) => ({ staff_id: staffId, permission_key })));
     if (insertError) return { error: insertError.message };
   }
+
+  await recordServerAction({
+    action: "Update Staff Permissions",
+    module: "Staff",
+    page: "Staff Permissions",
+    resource: `/staff/${staffId}`,
+    outcome: `Updated permissions for staff ${staffId} (${permissionKeys.length} permissions assigned)`,
+  });
 
   revalidatePath(`/staff/${staffId}`);
   return { error: null };

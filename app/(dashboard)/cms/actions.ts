@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 const SITE_PAGE_SLUGS = new Set(["home", "principal-message", "chairman-message", "facilities", "academics", "admissions"]);
 const PAGE_IMAGE_SLUGS = new Set([...SITE_PAGE_SLUGS, "about"]);
@@ -21,6 +22,17 @@ export async function savePage(slug: string, input: { title: string; content: st
     .from("site_pages")
     .update({ title, content, updated_at: new Date().toISOString() })
     .eq("slug", slug);
+
+  if (!error) {
+    await recordServerAction({
+      action: "Save CMS Page Content",
+      module: "Website CMS",
+      page: "Content Management",
+      resource: "/cms",
+      outcome: `Updated site page: ${slug} (${title})`,
+    });
+  }
+
   revalidatePath("/cms");
   revalidatePath(`/${slug === "home" ? "" : slug}`);
   if (slug === "about") revalidatePath("/");
@@ -33,6 +45,15 @@ export async function setPageImage(slug: string, path: string) {
 
   const supabase = await createClient();
   const { error } = await supabase.from("site_pages").update({ image_path: path }).eq("slug", slug);
+  if (!error) {
+    await recordServerAction({
+      action: "Upload Page Header Image",
+      module: "Website CMS",
+      page: "Content Management",
+      resource: "/cms",
+      outcome: `Updated header image for page: ${slug}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath(`/${slug === "home" ? "" : slug}`);
   if (slug === "about") revalidatePath("/");
@@ -42,6 +63,18 @@ export async function setPageImage(slug: string, path: string) {
 export async function createNotice(input: { title: string; body: string; publish_date: string }) {
   const supabase = await createClient();
   const { error } = await supabase.from("notices").insert(input);
+
+  if (!error) {
+    await recordServerAction({
+      action: "Publish Notice",
+      module: "Website CMS",
+      page: "Notice Board",
+      resource: "/cms",
+      statusCode: 201,
+      outcome: `Published notice: ${input.title}`,
+    });
+  }
+
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/notices");
@@ -52,6 +85,18 @@ export async function createNotice(input: { title: string; body: string; publish
 export async function deleteNotice(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("notices").delete().eq("id", id);
+
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Notice",
+      module: "Website CMS",
+      page: "Notice Board",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted notice ${id}`,
+    });
+  }
+
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/notices");
@@ -68,6 +113,16 @@ export async function createAlbum(input: { title: string; description: string; g
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.gallery_date)) return { error: "A valid gallery date is required.", id: null };
   const supabase = await createClient();
   const { data, error } = await supabase.from("gallery_albums").insert({ title, description, gallery_date: input.gallery_date }).select("id").single();
+  if (!error) {
+    await recordServerAction({
+      action: "Create Gallery Album",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      statusCode: 201,
+      outcome: `Created album: ${title}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
@@ -83,6 +138,15 @@ export async function updateAlbum(id: string, input: { title: string; descriptio
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.gallery_date)) return { error: "A valid gallery date is required." };
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_albums").update({ title, description, gallery_date: input.gallery_date, updated_at: new Date().toISOString() }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Update Gallery Album",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      outcome: `Updated album ${title}`,
+    });
+  }
   revalidatePath("/cms"); revalidatePath("/"); revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
@@ -90,6 +154,16 @@ export async function updateAlbum(id: string, input: { title: string; descriptio
 export async function deleteAlbum(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_albums").delete().eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Gallery Album",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted gallery album ${id}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
@@ -101,6 +175,16 @@ export async function addGalleryImage(albumId: string, path: string, caption: st
   const { error } = await supabase
     .from("gallery_images")
     .insert({ album_id: albumId, image_path: path, caption: caption || null });
+  if (!error) {
+    await recordServerAction({
+      action: "Upload Gallery Image",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      statusCode: 201,
+      outcome: `Added photo to album ${albumId}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
@@ -110,6 +194,16 @@ export async function addGalleryImage(albumId: string, path: string, caption: st
 export async function deleteGalleryImage(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_images").delete().eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Gallery Image",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted gallery photo ${id}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/gallery");
@@ -119,6 +213,15 @@ export async function deleteGalleryImage(id: string) {
 export async function updateGalleryImage(id: string, caption: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("gallery_images").update({ caption: caption.trim() || null }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Update Gallery Image Caption",
+      module: "Website CMS",
+      page: "Photo Gallery",
+      resource: "/cms",
+      outcome: `Updated caption for image ${id}`,
+    });
+  }
   revalidatePath("/cms"); revalidatePath("/gallery");
   return { error: error?.message ?? null };
 }
@@ -129,6 +232,16 @@ export async function createEvent(input: { title: string; description: string; e
     ...input,
     image_path: input.image_path?.trim() || null,
   }).select("id").single();
+  if (!error) {
+    await recordServerAction({
+      action: "Create Event",
+      module: "Website CMS",
+      page: "Events & News",
+      resource: "/cms",
+      statusCode: 201,
+      outcome: `Created event: ${input.title}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
@@ -139,6 +252,16 @@ export async function addEventImage(eventId: string, path: string, caption: stri
   if (!path.startsWith(`events/${eventId}/`)) return { error: "Invalid image path." };
   const supabase = await createClient();
   const { error } = await supabase.from("event_images").insert({ event_id: eventId, image_path: path, caption: caption || null });
+  if (!error) {
+    await recordServerAction({
+      action: "Upload Event Image",
+      module: "Website CMS",
+      page: "Events & News",
+      resource: "/cms",
+      statusCode: 201,
+      outcome: `Added photo to event ${eventId}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
@@ -148,6 +271,15 @@ export async function addEventImage(eventId: string, path: string, caption: stri
 export async function updateEvent(id: string, input: { title: string; description: string; event_date: string; image_path?: string }) {
   const supabase = await createClient();
   const { error } = await supabase.from("events").update({ ...input, title: input.title.trim(), description: input.description.trim(), image_path: input.image_path?.trim() || null }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Update Event",
+      module: "Website CMS",
+      page: "Events & News",
+      resource: "/cms",
+      outcome: `Updated event: ${input.title}`,
+    });
+  }
   revalidatePath("/cms"); revalidatePath("/"); revalidatePath("/events");
   return { error: error?.message ?? null };
 }
@@ -162,6 +294,16 @@ export async function updateEventImage(id: string, caption: string) {
 export async function deleteEventImage(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("event_images").delete().eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Event Image",
+      module: "Website CMS",
+      page: "Events & News",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted event image ${id}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
@@ -171,6 +313,16 @@ export async function deleteEventImage(id: string) {
 export async function deleteEvent(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("events").delete().eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Event",
+      module: "Website CMS",
+      page: "Events & News",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted event ${id}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/");
   revalidatePath("/events");
@@ -180,6 +332,15 @@ export async function deleteEvent(id: string) {
 export async function setMessageRead(id: string, isRead: boolean) {
   const supabase = await createClient();
   const { error } = await supabase.from("contact_messages").update({ is_read: isRead }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: isRead ? "Mark Message Read" : "Mark Message Unread",
+      module: "Website CMS",
+      page: "Contact Messages",
+      resource: "/cms",
+      outcome: `Message ${id} set to ${isRead ? "Read" : "Unread"}`,
+    });
+  }
   revalidatePath("/cms");
   return { error: error?.message ?? null };
 }
@@ -187,6 +348,16 @@ export async function setMessageRead(id: string, isRead: boolean) {
 export async function deleteMessage(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("contact_messages").delete().eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: "Delete Contact Message",
+      module: "Website CMS",
+      page: "Contact Messages",
+      resource: "/cms",
+      requestMethod: "DELETE",
+      outcome: `Deleted message ${id}`,
+    });
+  }
   revalidatePath("/cms");
   return { error: error?.message ?? null };
 }
@@ -199,6 +370,15 @@ export async function saveSettings(values: Record<string, string>) {
       Object.entries(values).map(([key, value]) => ({ key, value })),
       { onConflict: "key" }
     );
+  if (!error) {
+    await recordServerAction({
+      action: "Save Website Settings",
+      module: "Website CMS",
+      page: "Content Management",
+      resource: "/cms",
+      outcome: `Updated ${Object.keys(values).length} website settings`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath("/", "layout");
   return { error: error?.message ?? null };
@@ -213,6 +393,15 @@ export async function saveSeoMetadata(input: { path: string; title: string; desc
   if (description.length > 320) return { error: "Meta description must be 320 characters or fewer." };
   const supabase = await createClient();
   const { error } = await supabase.from("site_seo_metadata").upsert({ ...input, title: title || null, description: description || null, keywords: keywords || null, canonical_path: input.canonical_path.trim() || input.path, og_title: input.og_title.trim() || null, og_description: input.og_description.trim() || null, og_image: input.og_image.trim() || null, updated_at: new Date().toISOString() }, { onConflict: "path" });
+  if (!error) {
+    await recordServerAction({
+      action: "Save SEO Metadata",
+      module: "Website CMS",
+      page: "SEO Settings",
+      resource: "/cms",
+      outcome: `Saved SEO metadata for path ${input.path}`,
+    });
+  }
   revalidatePath("/cms");
   revalidatePath(input.path === "/" ? "/" : input.path);
   return { error: error?.message ?? null };

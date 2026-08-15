@@ -131,6 +131,21 @@ export async function handleContactSubmission(deps: ContactDeps) {
       }
 
       await deps.logSecurityEvent({ eventType: "contact_submit_success", identifier: input.email, request });
+      try {
+        const { recordAccessLog } = await import("./access-logs");
+        await recordAccessLog({
+          userName: input.name,
+          email: input.email,
+          module: "Public Website",
+          page: "Contact Us",
+          resource: "/api/contact",
+          requestMethod: "POST",
+          action: "Submit Contact Message",
+          statusCode: 200,
+          request,
+          outcome: `Contact enquiry from ${input.name} (${input.email})`,
+        });
+      } catch {}
       return NextResponse.json({ ok: true });
     }
   );
@@ -201,6 +216,22 @@ export async function handleAdmissionSubmission(deps: AdmissionDeps) {
       }
 
       await deps.logSecurityEvent({ eventType: "admission_submit_success", userId: user.id, identifier: input.parent_email, request });
+      try {
+        const { recordAccessLog } = await import("./access-logs");
+        await recordAccessLog({
+          userId: user.id,
+          userName: input.parent_name || input.student_name,
+          email: input.parent_email,
+          module: "Admissions",
+          page: "Public Admissions & Enquiries",
+          resource: "/api/admissions",
+          requestMethod: "POST",
+          action: "Submit Admission Form",
+          statusCode: 201,
+          request,
+          outcome: `Admission application submitted for ${input.student_name} (${input.applying_for})`,
+        });
+      } catch {}
       return NextResponse.json({ ok: true });
     }
   );

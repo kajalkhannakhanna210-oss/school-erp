@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import ExcelJS from "exceljs";
-import { requireSuperAdmin } from "@/lib/require-role";
+import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { renderReportPdf } from "../[type]/report-pdf";
 
@@ -20,11 +20,18 @@ function display(value: unknown) {
 }
 
 export async function GET(req: NextRequest) {
-  try { await requireSuperAdmin(); } catch { return NextResponse.json({ error: "Not authorized" }, { status: 403 }); }
+  try {
+    await requirePageAccess("login_activity");
+  } catch {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
   const supabase = await createClient();
   const params = req.nextUrl.searchParams;
   const format = params.get("format") ?? "csv";
-  if (!["csv", "excel", "pdf"].includes(format)) return NextResponse.json({ error: "Invalid export format" }, { status: 400 });
+  if (!["csv", "excel", "pdf"].includes(format)) {
+    return NextResponse.json({ error: "Invalid export format" }, { status: 400 });
+  }
 
   const query = (params.get("q") ?? "").trim().slice(0, 100);
   const role = params.get("role");
@@ -32,15 +39,38 @@ export async function GET(req: NextRequest) {
   const status = params.get("status");
   const from = params.get("from");
   const to = params.get("to");
-  let request = supabase.from("login_activities").select(columns.map(([key]) => key === "session_duration" ? "session_duration_seconds" : key).join(",")).order("created_at", { ascending: false }).limit(5000);
+
+  let request = supabase
+    .from("login_activities")
+    .select(columns.map(([key]) => (key === "session_duration" ? "session_duration_seconds" : key)).join(","))
+    .order("created_at", { ascending: false })
+    .limit(5000);
+
   const safeQuery = query.replace(/[^a-zA-Z0-9@._ -]/g, "");
-  if (safeQuery) request = request.or(`user_name.ilike.%${safeQuery}%,email.ilike.%${safeQuery}%`);
-  if (/^[0-9a-fA-F:.]+$/.test(query)) request = request.eq("ip_address", query);
-  if (role && ["super_admin", "staff", "student"].includes(role)) request = request.eq("role", role);
-  if (eventType) request = request.eq("event_type", eventType);
-  if (status && ["success", "failed", "blocked"].includes(status)) request = request.eq("status", status);
-  if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) request = request.gte("created_at", `${from}T00:00:00.000Z`);
-  if (to && /^\d{4}-\d{2}-\d{2}$/.test(to)) request = request.lte("created_at", `${to}T23:59:59.999Z`);
+  if (safeQuery) {
+    request = request.or(`user_name.ilike.%${safeQuery}%,email.ilike.%${safeQuery}%,ip_address.ilike.%${safeQuery}%,browser.ilike.%${safeQuery}%`);
+  }
+
+  if (role && role !== "all" && ["super_admin", "staff", "student"].includes(role)) {
+    request = request.eq("role", role);
+  }
+
+  if (eventType && eventType !== "all") {
+    request = request.eq("event_type", eventType);
+  }
+
+  if (status && status !== "all" && ["success", "failed", "blocked"].includes(status)) {
+    request = request.eq("status", status);
+  }
+
+  if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
+    request = request.gte("created_at", `${from}T00:00:00.000Z`);
+  }
+
+  if (to && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
+    request = request.lte("created_at", `${to}T23:59:59.999Z`);
+  }
+
   const { data, error } = await request;
   if (error) return NextResponse.json({ error: "Could not generate report" }, { status: 500 });
 

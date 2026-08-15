@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { ToasterProvider } from "@/components/toaster";
+import { ActionTracker } from "@/components/action-tracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,6 +44,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             { "@type": "WebSite", name: "Registrar", url: "https://school-erp-lime-three.vercel.app" },
           ],
         }) }} />
+        <Suspense fallback={null}>
+          <ActionTracker />
+        </Suspense>
         <ToasterProvider>{children}</ToasterProvider>
       </body>
     </html>

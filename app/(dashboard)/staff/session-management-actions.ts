@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 export async function transferStaffSession(fromSessionId: string, toSessionId: string) {
   await requireSuperAdmin();
@@ -14,7 +15,17 @@ export async function transferStaffSession(fromSessionId: string, toSessionId: s
     const { error } = await supabase.from("staff_enrollments").upsert(rows, { onConflict: "staff_id,session_id" });
     if (error) return { error: error.message, count: 0 };
   }
+
+  await recordServerAction({
+    action: "Transfer Staff Session",
+    module: "Staff",
+    page: "Staff Session Assignment",
+    resource: "/staff/session-management",
+    outcome: `Transferred ${rows.length} staff enrollments to target session`,
+  });
+
   revalidatePath("/staff");
   revalidatePath("/staff/session-management");
   return { error: null, count: rows.length };
 }
+

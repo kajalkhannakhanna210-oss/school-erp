@@ -2,10 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 export async function createFeeHead(name: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("fee_heads").insert({ name });
+  if (!error) {
+    await recordServerAction({
+      action: "Create Fee Head",
+      module: "Fees & Finance",
+      page: "Fee Management",
+      resource: "/fees",
+      outcome: `Created fee head: ${name}`,
+    });
+  }
   revalidatePath("/fees");
   return { error: error?.message ?? null };
 }
@@ -13,6 +23,15 @@ export async function createFeeHead(name: string) {
 export async function setFeeHeadActive(id: string, isActive: boolean) {
   const supabase = await createClient();
   const { error } = await supabase.from("fee_heads").update({ is_active: isActive }).eq("id", id);
+  if (!error) {
+    await recordServerAction({
+      action: isActive ? "Activate Fee Head" : "Deactivate Fee Head",
+      module: "Fees & Finance",
+      page: "Fee Management",
+      resource: "/fees",
+      outcome: `Fee head ${id} set to ${isActive ? "Active" : "Inactive"}`,
+    });
+  }
   revalidatePath("/fees");
   return { error: error?.message ?? null };
 }
@@ -57,6 +76,14 @@ export async function saveFeeStructure(sessionId: string, classId: string, lines
     if (error) return { error: error.message };
   }
 
+  await recordServerAction({
+    action: "Save Fee Structure",
+    module: "Fees & Finance",
+    page: "Fee Management",
+    resource: "/fees",
+    outcome: `Saved fee structure for class ${classId} (${lines.filter((l) => l.included).length} heads)`,
+  });
+
   revalidatePath("/fees");
   return { error: null };
 }
@@ -83,6 +110,16 @@ export async function saveLateFeeRule(input: {
   const { error } = existingRow
     ? await supabase.from("late_fee_rules").update(payload).eq("id", existingRow.id)
     : await supabase.from("late_fee_rules").insert(payload);
+
+  if (!error) {
+    await recordServerAction({
+      action: "Save Late Fee Rule",
+      module: "Fees & Finance",
+      page: "Fee Management",
+      resource: "/fees",
+      outcome: `Saved late fee rule (${input.rule_type}: ${input.value})`,
+    });
+  }
 
   revalidatePath("/fees");
   return { error: error?.message ?? null };
@@ -114,6 +151,16 @@ export async function setStudentConcession(
     },
     { onConflict: "student_id,fee_head_id" }
   );
+
+  if (!error) {
+    await recordServerAction({
+      action: "Set Student Fee Concession",
+      module: "Fees & Finance",
+      page: "Student Profile",
+      resource: `/students/${studentId}`,
+      outcome: `Set concession (${concession.concession_type}: ${concession.value}) for student ${studentId}`,
+    });
+  }
 
   revalidatePath(`/students/${studentId}`);
   return { error: error?.message ?? null };

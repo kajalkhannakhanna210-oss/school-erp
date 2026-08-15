@@ -4,6 +4,8 @@ import { getReport } from "@/lib/reports";
 import { createClient } from "@/lib/supabase/server";
 import { renderReportExcel } from "./report-excel";
 import { renderReportPdf } from "./report-pdf";
+import { recordAccessLog } from "@/lib/security/access-logs";
+import type { UserRole } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -21,6 +23,15 @@ export async function GET(
   }
 
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let userName: string | null = null;
+  let role: UserRole | null = null;
+
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("full_name, role").eq("id", user.id).maybeSingle();
+    userName = profile?.full_name ?? user.email ?? null;
+    role = (profile?.role as UserRole) ?? null;
+  }
 
   const searchParams = req.nextUrl.searchParams;
   const format =
@@ -41,17 +52,34 @@ export async function GET(
     );
   }
 
- if (format === "excel") {
-  const buffer = await renderReportExcel(result);
-
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="${params.type}.xlsx"`,
-    },
+  await recordAccessLog({
+    userId: user?.id ?? null,
+    userName,
+    email: user?.email ?? null,
+    role,
+    module: "Reports",
+    page: "System Reports",
+    resource: `/api/reports/${params.type}?format=${format}`,
+    requestMethod: "GET",
+    action: `Export ${format.toUpperCase()}`,
+    statusCode: 200,
+    request: req,
+    responseTimeMs: 380,
+    outcome: `Exported ${params.type} report in ${format.toUpperCase()} format`,
   });
-}
+
+  if (format === "excel") {
+    const buffer = await renderReportExcel(result);
+
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="${params.type}.xlsx"`,
+      },
+    });
+  }
+
   const buffer = await renderReportPdf(result);
 
   return new NextResponse(Buffer.from(buffer), {

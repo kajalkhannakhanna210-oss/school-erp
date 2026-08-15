@@ -3,6 +3,7 @@
 import { getStudentFeeLines } from "@/lib/fees";
 import { createRazorpayClient } from "@/lib/razorpay";
 import { createClient } from "@/lib/supabase/server";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 export async function createPaymentOrder(feeHeadId: string, requestedAmount: string) {
   const supabase = await createClient();
@@ -57,10 +58,20 @@ export async function createPaymentOrder(feeHeadId: string, requestedAmount: str
 
   if (insertError) return { error: insertError.message };
 
+  await recordServerAction({
+    action: "Initiate Fee Payment",
+    module: "Fees & Finance",
+    page: "Fee Payment Portal",
+    resource: "/payments",
+    outcome: `Initiated payment of ₹${amount} (Order ID: ${order.id})`,
+    userId: user.id,
+  });
+
   return {
+    order_id: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? "",
     error: null,
-    orderId: order.id,
-    amount,
-    keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
   };
 }

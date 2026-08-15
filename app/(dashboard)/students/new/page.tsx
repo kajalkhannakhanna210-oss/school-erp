@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
 import Link from "next/link";
 import { StudentForm } from "../student-form";
 
 export default async function NewStudentPage() {
+  await requirePageAccess("students");
   const supabase = await createClient();
   const [{ data: classes }, { data: sections }, { data: sessions }] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),

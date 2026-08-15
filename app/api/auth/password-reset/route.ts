@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (isValidEmail(email)) {
-    const origin = req.nextUrl.origin;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin;
     const supabase = await createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/profile`,
+      redirectTo: `${siteUrl}`,
     });
     await logSecurityEvent({
       eventType: error ? "password_reset_failed" : "password_reset_requested",

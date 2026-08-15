@@ -5,10 +5,11 @@ import { requireSuperAdmin } from "@/lib/require-role";
 import type { UserRole } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { navItems } from "../nav-config";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 export async function updateRolePageAccess(role: UserRole, pageKeys: string[]) {
   await requireSuperAdmin();
-  const allowedKeys = new Set(navItems.filter((item) => item.roles.includes(role)).map((item) => item.key));
+  const allowedKeys = new Set(navItems.map((item) => item.key));
   const uniqueKeys = [...new Set(pageKeys)].filter((key) => allowedKeys.has(key));
   const supabase = await createClient();
 
@@ -18,8 +19,9 @@ export async function updateRolePageAccess(role: UserRole, pageKeys: string[]) {
   if (uniqueKeys.length) {
     const defaultIcons: Record<string, string> = {
       dashboard: '⌂', master: '▦', sessions: '◷', classes: '▤', sections: '▥', class_teachers: '♙',
-      students: '♟', admission_allotment: '✓', staff: '♚', documents: '▤', attendance: '◴', exams: '▣', fees: '₹',
-      payments: '₹', reports: '▥', cms: '◆', admissions: '♜', role_access: '⚙', profile: '●'
+      students: '♟', add_student: '+', admission_allotment: '✓', staff: '♚', staff_sessions: '◷',
+      documents: '▤', attendance: '◴', exams: '▣', fees: '₹',
+      payments: '₹', reports: '▥', login_activity: '◷', access_logs: '📑', cms: '◆', admissions: '♜', role_access: '⚙', profile: '●'
     };
 
     const { error: insertError } = await supabase
@@ -31,6 +33,14 @@ export async function updateRolePageAccess(role: UserRole, pageKeys: string[]) {
       })));
     if (insertError) return { error: insertError.message };
   }
+
+  await recordServerAction({
+    action: "Update Role Page Permissions",
+    module: "Settings",
+    page: "Role Permissions",
+    resource: "/role-access",
+    outcome: `Updated permissions for ${role} (${uniqueKeys.length} pages enabled)`,
+  });
 
   revalidatePath("/", "layout");
   revalidatePath("/role-access");

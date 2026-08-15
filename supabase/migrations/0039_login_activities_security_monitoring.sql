@@ -41,9 +41,20 @@ create index if not exists login_activities_login_at_idx on public.login_activit
 
 alter table public.login_activities enable row level security;
 
-create policy "login_activities_read_own_or_admin"
-  on public.login_activities for select
-  using (user_id = auth.uid() or public.is_super_admin());
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policy p
+    JOIN pg_class c ON p.polrelid = c.oid
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    WHERE p.polname = 'login_activities_read_own_or_admin' AND n.nspname = 'public' AND c.relname = 'login_activities'
+  ) THEN
+    CREATE POLICY "login_activities_read_own_or_admin"
+      ON public.login_activities FOR SELECT
+      USING (user_id = auth.uid() or public.is_super_admin());
+  END IF;
+END
+$$;
 
 -- There are deliberately no client insert, update, or delete policies.
 -- The server-side service-role recorder is the only write path.

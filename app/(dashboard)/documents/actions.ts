@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { DOCUMENT_FILE_TYPES, DOCUMENT_SUBJECT_TYPES, type DocumentSubjectType } from "@/lib/security/documents";
+import { recordServerAction } from "@/lib/security/access-logs";
 
 const categoryCodePattern = /^[a-z0-9_]{2,80}$/;
 
@@ -43,6 +44,15 @@ export async function saveDocumentCategory(input: CategoryInput) {
     ? await supabase.from("document_categories").update(payload).eq("id", input.id)
     : await supabase.from("document_categories").insert(payload);
   if (result.error) return { error: result.error.message };
+
+  await recordServerAction({
+    action: input.id ? "Update Document Category" : "Create Document Category",
+    module: "Documents",
+    page: "Document Vault",
+    resource: "/documents",
+    outcome: `Saved document category ${input.name} (${input.code})`,
+  });
+
   revalidatePath("/documents");
   return { error: null };
 }
@@ -60,8 +70,17 @@ export async function saveDocumentSettings(input: { maxFileSizeMb: number; allow
     max_file_size_bytes: maxFileSizeMb * 1024 * 1024,
     allowed_file_types: allowedFileTypes,
     expiry_reminder_days: expiryReminderDays,
-  }).eq("id", true);
+  }).eq("id", "default");
   if (error) return { error: error.message };
+
+  await recordServerAction({
+    action: "Update Document Vault Settings",
+    module: "Documents",
+    page: "Document Vault",
+    resource: "/documents",
+    outcome: `Updated document settings (Max: ${maxFileSizeMb}MB, Types: ${allowedFileTypes.join(", ")})`,
+  });
+
   revalidatePath("/documents");
   return { error: null };
 }

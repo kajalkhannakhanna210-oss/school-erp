@@ -33,29 +33,47 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }] = await Promise.all([
     supabase
-    .from("role_page_access")
-    .select("page_key, icon")
-    .eq("role", profile.role),
+      .from("role_page_access")
+      .select("page_key, icon")
+      .eq("role", profile.role),
     supabase.from("profile_roles").select("role").eq("profile_id", user.id),
     supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }),
   ]);
+
   const allowedPageKeys = rolePageAccess ? new Set(rolePageAccess.map((access) => access.page_key)) : null;
   const icons = new Map((rolePageAccess ?? []).map((access) => [access.page_key, access.icon ?? "•"]));
-  const visibleNav = navItems.filter(
-    (item) => item.roles.includes(profile.role) && (!allowedPageKeys || allowedPageKeys.has(item.key))
-  ).map((item) => {
+
+  const visibleNav = navItems.filter((item) => {
+    if (allowedPageKeys) {
+      return allowedPageKeys.has(item.key);
+    }
+    return item.roles.includes(profile.role);
+  }).map((item) => {
     const databaseIcon = icons.get(item.key);
-    return { ...item, icon: databaseIcon && databaseIcon !== "•" ? databaseIcon : item.icon ?? "•" };
+    return {
+      ...item,
+      icon: databaseIcon && databaseIcon !== "•" ? databaseIcon : item.icon,
+    };
   });
+
+  const used = new Set<string>();
+  const sections: { section: { key: string; label: string; keys: string[] }; items: typeof visibleNav }[] = [];
+  for (const s of (await import("./nav-config")).navSections) {
+    const items = visibleNav.filter((i) => s.keys.includes(i.key));
+    items.forEach((it) => used.add(it.key));
+    if (items.length) sections.push({ section: s, items });
+  }
+  const others = visibleNav.filter((i) => !used.has(i.key));
+  if (others.length) sections.push({ section: { key: "other", label: "Other", keys: [] }, items: others });
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[auto_minmax(0,1fr)]">
-      <DashboardSidebar items={visibleNav} />
+      <DashboardSidebar sections={sections} profile={profile} />
       <div className="min-w-0">
         <div className="sticky top-0 z-40 min-h-16 lg:hidden" style={{ backgroundColor: "#222F57" }}>
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2 text-white"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold text-xs font-bold text-ink-900">R</div><span className="truncate font-display font-bold">Registrar</span></div>
-            <div className="ml-auto flex items-center gap-2"><SessionSelector sessions={sessions ?? []} className="text-white" /><DashboardMobileNavigation items={visibleNav} /></div>
+            <div className="ml-auto flex items-center gap-2"><SessionSelector sessions={sessions ?? []} className="text-white" /><DashboardMobileNavigation items={visibleNav} sections={sections} /></div>
           </div>
         </div>
         <header className="relative z-0 flex flex-wrap items-center justify-between gap-3 border-b border-ink-100/80 bg-white px-4 py-3 pb-3 shadow-sm sm:px-5 sm:py-4 sm:pb-4 lg:z-50 lg:px-8">
