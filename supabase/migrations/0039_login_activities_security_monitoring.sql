@@ -70,10 +70,22 @@ insert into public.security_monitoring_settings (id) values (true)
 on conflict (id) do nothing;
 
 alter table public.security_monitoring_settings enable row level security;
-create policy "security_monitoring_settings_read_admin"
-  on public.security_monitoring_settings for select using (public.is_super_admin());
-create policy "security_monitoring_settings_write_admin"
-  on public.security_monitoring_settings for update using (public.is_super_admin()) with check (public.is_super_admin());
+do $$
+begin
+  if not exists (
+    select 1 from pg_policy where polname = 'security_monitoring_settings_read_admin'
+  ) then
+    create policy "security_monitoring_settings_read_admin"
+      on public.security_monitoring_settings for select using (public.is_super_admin());
+  end if;
+
+  if not exists (
+    select 1 from pg_policy where polname = 'security_monitoring_settings_write_admin'
+  ) then
+    create policy "security_monitoring_settings_write_admin"
+      on public.security_monitoring_settings for all using (public.is_super_admin()) with check (public.is_super_admin());
+  end if;
+end $$;
 
 -- The legacy table is retained for compatibility with existing cookies, but it
 -- must no longer be writable directly by browser sessions.

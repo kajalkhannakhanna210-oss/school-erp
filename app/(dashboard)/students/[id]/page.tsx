@@ -94,6 +94,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <Link href={`/students/${s.id}/edit`} className="flex-1 sm:flex-none">
               <Button className="w-full sm:w-auto">Edit student</Button>
             </Link>
+            <Link href={`/leaving-students/new?studentId=${s.id}`} className="flex-1 sm:flex-none">
+              <Button variant="outline" className="w-full sm:w-auto text-gold-700 border-gold-300">Initiate Leaving Request 🚪</Button>
+            </Link>
             <div className="flex-1 sm:flex-none">
               <ArchiveControl studentId={s.id} isActive={s.is_active} />
             </div>

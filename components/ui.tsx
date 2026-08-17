@@ -9,14 +9,17 @@ import {
 
 export const Button = forwardRef<
   HTMLButtonElement,
-  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" }
->(({ className, variant = "primary", ...props }, ref) => (
+  ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "danger" | "outline"; size?: "sm" | "default" }
+>(({ className, variant = "primary", size = "default", ...props }, ref) => (
   <button
     ref={ref}
     className={cn(
-      "inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-ink-100 disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex items-center justify-center rounded-lg font-semibold shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-ink-100 disabled:pointer-events-none disabled:opacity-50",
+      size === "default" && "min-h-10 px-4 py-2 text-sm",
+      size === "sm" && "min-h-8 px-2.5 py-1.5 text-xs",
       variant === "primary" && "bg-ink-700 text-white hover:-translate-y-px hover:bg-ink-600 hover:shadow",
       variant === "ghost" && "bg-transparent text-ink-700 hover:bg-ink-50",
+      variant === "outline" && "border border-ink-100 bg-white text-ink-700 hover:bg-ink-50",
       variant === "danger" && "bg-danger text-paper hover:bg-danger/90",
       className
     )}
@@ -57,11 +60,19 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   );
 }
 
-export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+export function Badge({
+  className,
+  variant = "default",
+  ...props
+}: HTMLAttributes<HTMLSpanElement> & { variant?: "default" | "secondary" | "outline" | "destructive" }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full bg-gold-100 px-2.5 py-1 text-xs font-semibold text-gold-600",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold",
+        variant === "default" && "bg-gold-100 text-gold-700",
+        variant === "secondary" && "bg-ink-100 text-ink-700",
+        variant === "outline" && "border border-ink-200 text-ink-600 bg-white",
+        variant === "destructive" && "bg-rose-100 text-rose-700",
         className
       )}
       {...props}

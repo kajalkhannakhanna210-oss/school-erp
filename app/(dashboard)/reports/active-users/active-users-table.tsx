@@ -76,6 +76,8 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
   function showToast(msg: string) {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -535,7 +537,7 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
       </div>
 
       {/* Advanced Filter Panel */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
           <div className="flex items-center gap-2">
             <span className="text-sm font-bold text-slate-900">Filters & Search</span>
@@ -546,6 +548,13 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
 
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="sm:hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+            >
+              <span>🔍</span>
+              <span>{showMobileFilters ? "Hide Filters" : "Filter"}</span>
+            </button>
+            <button
               onClick={resetFilters}
               className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition underline underline-offset-2"
             >
@@ -554,8 +563,8 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
           </div>
         </div>
 
-        {/* Filter Controls Grid */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Filter Controls Grid - Collapsible on Mobile */}
+        <div className={`${showMobileFilters ? "block" : "hidden sm:grid"} grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4`}>
           {/* Search Input */}
           <div className="lg:col-span-2">
             <label className="block text-xs font-semibold text-slate-700 mb-1">Search Name, Username, Mobile, Email</label>
@@ -804,8 +813,214 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
           </div>
         </div>
 
-        {/* Responsive Table */}
-        <div className="overflow-x-auto">
+        {/* Mobile: Professional enterprise card list */}
+        <div className="md:hidden space-y-3 p-3 bg-slate-100/70 border-b border-slate-200">
+          {paginatedUsers.map((user) => {
+            const isOnline = user.sessionStatus === "online";
+            const isRecent = user.sessionStatus === "recent";
+            const isAccountActive = user.accountStatus === "active";
+
+            return (
+              <article
+                key={user.id}
+                className="group relative overflow-hidden rounded-xl border border-slate-200/90 bg-white p-3.5 shadow-2xs transition-all hover:border-slate-300 hover:shadow-xs active:bg-slate-50/70 space-y-2.5 select-none"
+              >
+                {/* Left status color accent indicator bar */}
+                <div
+                  className={`pointer-events-none absolute left-0 top-0 bottom-0 w-1.5 ${
+                    isOnline
+                      ? "bg-emerald-500"
+                      : isRecent
+                      ? "bg-amber-500"
+                      : "bg-slate-300"
+                  }`}
+                />
+
+                <div className="pl-1 space-y-2.5">
+                  {/* Header: User avatar + Identity & Role + Session Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      {/* User Avatar */}
+                      <div
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white shadow-2xs"
+                        style={{ backgroundColor: user.avatarBg || "#2563eb" }}
+                      >
+                        {user.name
+                          .split(" ")
+                          .map((p) => p[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            onClick={() => setActiveProfileUser(user)}
+                            className="font-bold text-xs sm:text-sm text-slate-900 text-left truncate hover:text-blue-600"
+                          >
+                            {user.name}
+                          </button>
+                          <span
+                            className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              user.role === "super_admin"
+                                ? "bg-purple-50 text-purple-700 border border-purple-200"
+                                : user.role === "principal"
+                                ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                : user.role === "teacher"
+                                ? "bg-blue-50 text-blue-700 border border-blue-200"
+                                : user.role === "accountant"
+                                ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                : user.role === "librarian"
+                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                : user.role === "receptionist"
+                                ? "bg-teal-50 text-teal-800 border border-teal-200"
+                                : user.role === "student"
+                                ? "bg-sky-50 text-sky-700 border border-sky-200"
+                                : user.role === "parent"
+                                ? "bg-fuchsia-50 text-fuchsia-700 border border-fuchsia-200"
+                                : "bg-slate-100 text-slate-700 border border-slate-200"
+                            }`}
+                          >
+                            {user.roleLabel}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          @{user.username} {user.classSection ? `• ${user.classSection}` : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Session Status Badge */}
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-2xs ${
+                        isOnline
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : isRecent
+                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                          : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}
+                    >
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          isOnline ? "bg-emerald-500 animate-pulse" : isRecent ? "bg-amber-500" : "bg-slate-400"
+                        }`}
+                      />
+                      {isOnline ? "Online" : isRecent ? "Recent" : "Offline"}
+                    </span>
+                  </div>
+
+                  {/* Info Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/80 rounded-lg p-2 border border-slate-100">
+                    <div>
+                      <span className="text-slate-400 font-medium block">Dept / Branch</span>
+                      <span className="font-semibold text-slate-800 truncate block">
+                        {user.department} ({user.branch})
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-medium block">Account</span>
+                      <span
+                        className={`font-semibold inline-flex items-center gap-1 ${
+                          isAccountActive ? "text-emerald-700" : "text-rose-600"
+                        }`}
+                      >
+                        {isAccountActive ? "Active" : "Disabled"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-medium block">Contact</span>
+                      <span className="font-mono text-slate-700 truncate block">
+                        {user.mobile || user.email}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 font-medium block">Device / IP</span>
+                      <span className="text-slate-700 font-medium truncate block">
+                        {user.device === "Mobile" ? "📱" : user.device === "Tablet" ? "📟" : "💻"} {user.device || "Desktop"} ({user.lastLoginIp || "Local"})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Footer & Actions */}
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-[11px]">
+                    <div className="text-slate-500 truncate">
+                      Last Login:{" "}
+                      <span className="font-medium text-slate-700">
+                        {user.lastLoginAt
+                          ? new Date(user.lastLoginAt).toLocaleString("en-IN", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : "Never"}
+                      </span>
+                    </div>
+
+                    {/* Quick Action Icons */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => setActiveProfileUser(user)}
+                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition shadow-2xs"
+                        title="View Profile"
+                      >
+                        👁️
+                      </button>
+                      <button
+                        onClick={() => setActiveActivityUser(user)}
+                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition shadow-2xs"
+                        title="View Login Activity"
+                      >
+                        🕒
+                      </button>
+                      <button
+                        onClick={() => setActiveSessionUser(user)}
+                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 hover:text-amber-600 transition shadow-2xs"
+                        title="View Active Session"
+                      >
+                        🔐
+                      </button>
+                      <button
+                        onClick={() => setEditUserModal(user)}
+                        className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 hover:text-emerald-600 transition shadow-2xs"
+                        title="Edit User"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => setConfirmToggleUser(user)}
+                        className={`rounded-lg border p-1.5 transition shadow-2xs ${
+                          isAccountActive
+                            ? "border-rose-200 bg-rose-50/60 text-rose-600 hover:bg-rose-100"
+                            : "border-emerald-200 bg-emerald-50/60 text-emerald-600 hover:bg-emerald-100"
+                        }`}
+                        title={isAccountActive ? "Disable Account" : "Enable Account"}
+                      >
+                        {isAccountActive ? "🚫" : "✓"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+
+          {paginatedUsers.length === 0 && (
+            <div className="py-8 text-center text-slate-500 bg-white rounded-xl border border-slate-200 p-4">
+              <span className="text-2xl">🔍</span>
+              <p className="text-xs font-semibold text-slate-900 mt-1">No active users matched your filters</p>
+              <button
+                onClick={resetFilters}
+                className="mt-2 inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-blue-700 transition"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Responsive Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
               <tr>

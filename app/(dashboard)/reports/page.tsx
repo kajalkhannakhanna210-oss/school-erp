@@ -12,6 +12,7 @@ const TAB_LABELS: Record<ReportType, string> = {
   concessions: "Concessions",
   "late-fees": "Late Fees",
   attendance: "Attendance",
+  "leaving-students": "Leaving Students",
 };
 
 export default async function ReportsPage({

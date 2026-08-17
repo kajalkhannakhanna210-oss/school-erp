@@ -14,6 +14,7 @@ export const navItems: NavItem[] = [
   { key: "students", label: "Student Directory", href: "/students", roles: ["super_admin", "staff"], icon: "♟" },
   { key: "add_student", label: "Add Student", href: "/students/new", roles: ["super_admin", "staff"], icon: "+" },
   { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"], icon: "✓" },
+  { key: "leaving_students", label: "Leaving Students", href: "/leaving-students", roles: ["super_admin", "staff"], icon: "🚪" },
 
   // Staff
   { key: "staff", label: "Staff Members", href: "/staff", roles: ["super_admin"], icon: "♚" },
@@ -48,12 +49,12 @@ export const navItems: NavItem[] = [
 export const navSections = [
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
-  { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment"] },
+  { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students"] },
   { key: "staff", label: "Staff", keys: ["staff", "staff_sessions"] },
   { key: "exams", label: "Examinations", keys: ["exams"] },
   { key: "fees", label: "Fees & Finance", keys: ["fees", "payments"] },
   { key: "documents", label: "Document Management", keys: ["documents"] },
-  { key: "reports", label: "Reports", keys: ["reports", "active_users"] },
+  { key: "reports", label: "Reports", keys: ["reports"] },
   { key: "security", label: "Login & Security", keys: ["active_users", "login_activity", "access_logs"] },
   { key: "misc", label: "Settings & More", keys: ["attendance", "cms", "admissions", "role_access", "profile"] },
 ];
@@ -86,6 +87,9 @@ export function isNavItemActive(item: NavItem, pathname?: string | null, current
   }
   if (item.key === "admission_allotment") {
     return pathname === "/students/admission-allotment" || pathname.startsWith("/students/admission-allotment/");
+  }
+  if (item.key === "leaving_students") {
+    return pathname === "/leaving-students" || pathname.startsWith("/leaving-students/");
   }
   if (item.key === "staff") {
     return (

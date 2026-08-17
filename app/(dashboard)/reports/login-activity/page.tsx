@@ -40,9 +40,17 @@ export default async function LoginActivityPage() {
 
   return (
     <div className="max-w-full space-y-4">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-ink-700 sm:text-3xl">Login Activity</h1>
-        <p className="mt-1 text-sm text-slate/60">Monitor account logins, security events, active sessions, and client devices.</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-ink-700 sm:text-3xl">Login Activity</h1>
+          <p className="mt-1 text-sm text-slate/60">Monitor account logins, security events, active sessions, and client devices.</p>
+        </div>
+        <a
+          href="/reports/active-users"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition"
+        >
+          <span>👥</span> Active Users Report &rarr;
+        </a>
       </div>
 
       <div className="rounded-2xl border border-slate-200/90 bg-white shadow-xs overflow-hidden">

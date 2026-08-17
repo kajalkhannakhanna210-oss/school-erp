@@ -64,6 +64,10 @@ export function AdmissionAllotmentForm({
       push("Enter an admission number for every selected row.", "error");
       return;
     }
+    if (ids.some((id) => !sectionValues[id]?.trim())) {
+      push("Section selection is compulsory for every selected row.", "error");
+      return;
+    }
     startTransition(async () => {
       for (const id of ids) {
         const result = await allotAdmissionNumber(
@@ -135,12 +139,13 @@ export function AdmissionAllotmentForm({
       <div className={mobile ? "grid grid-cols-2 gap-2" : ""}>
         <select
           value={sectionValues[s.id] ?? ""}
+          required
           onChange={(e) =>
             setSectionValues({ ...sectionValues, [s.id]: e.target.value })
           }
           className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm"
         >
-          <option value="">Select section</option>
+          <option value="">Select section *</option>
           {sectionOptions(s).map((section) => (
             <option key={section.id} value={section.id}>
               {section.name}
@@ -227,6 +232,7 @@ export function AdmissionAllotmentForm({
                 <td className="px-4 py-3">
                   <select
                     value={sectionValues[s.id] ?? ""}
+                    required
                     onChange={(e) =>
                       setSectionValues({
                         ...sectionValues,
@@ -235,7 +241,7 @@ export function AdmissionAllotmentForm({
                     }
                     className="min-h-10 w-40 rounded-lg border px-3"
                   >
-                    <option value="">Select section</option>
+                    <option value="">Select section *</option>
                     {sectionOptions(s).map((section) => (
                       <option key={section.id} value={section.id}>
                         {section.name}

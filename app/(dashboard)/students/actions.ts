@@ -174,10 +174,33 @@ export async function deleteAllStudentRecords() {
 
 export async function allotAdmissionNumber(studentId: string, admissionNumber: string, sectionId?: string) {
   await requireSuperAdmin();
+  if (!sectionId?.trim()) {
+    return { error: "Please select a section before saving." };
+  }
   const value = admissionNumber.trim().toUpperCase();
   if (!/^[A-Z0-9-]{3,30}$/.test(value)) return { error: "Admission number may contain only letters, numbers, and hyphens." };
   const supabase = await createClient();
-  const { error } = await supabase.from("students").update({ admission_number: value, section_id: sectionId || null }).eq("id", studentId);
+
+  const { data: duplicate } = await supabase
+    .from("students")
+    .select("id")
+    .eq("admission_number", value)
+    .neq("id", studentId)
+    .maybeSingle();
+
+  if (duplicate) {
+    return { error: `Admission number '${value}' is already assigned to another student.` };
+  }
+
+  const { error } = await supabase.from("students").update({ admission_number: value, section_id: sectionId }).eq("id", studentId);
+
+  if (error) {
+    if (error.code === "23505" || error.message.includes("unique constraint") || error.message.includes("students_admission_number_key")) {
+      return { error: `Admission number '${value}' is already assigned to another student.` };
+    }
+    return { error: error.message };
+  }
+
   revalidatePath("/students"); revalidatePath("/students/admission-allotment"); revalidatePath(`/students/${studentId}`);
   
   await recordServerAction({
@@ -188,7 +211,7 @@ export async function allotAdmissionNumber(studentId: string, admissionNumber: s
     outcome: `Allotted admission number ${value} to student ${studentId}`,
   });
 
-  return { error: error?.message ?? null };
+  return { error: null };
 }
 
 export async function promoteStudents(input: {

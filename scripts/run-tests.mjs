@@ -31,9 +31,11 @@ const compile = spawnSync(
     "tests/public-forms-core.test.ts",
     "tests/super-admin-session.test.ts",
     "tests/documents-security.test.ts",
+    "tests/leaving-students.test.ts",
     "lib/security/public-forms-core.ts",
     "lib/security/super-admin-session.ts",
     "lib/security/documents.ts",
+    "lib/leaving-students.ts",
   ],
   { cwd: projectRoot, stdio: "inherit" }
 );
@@ -47,6 +49,7 @@ const testFiles = [
   resolve(outDir, "tests", "public-forms-core.test.js"),
   resolve(outDir, "tests", "super-admin-session.test.js"),
   resolve(outDir, "tests", "documents-security.test.js"),
+  resolve(outDir, "tests", "leaving-students.test.js"),
 ];
 const run = spawnSync(node, ["--test", ...testFiles], { cwd: projectRoot, stdio: "inherit" });
 

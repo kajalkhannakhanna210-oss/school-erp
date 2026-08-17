@@ -6,7 +6,7 @@ type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 export type ReportColumn = { key: string; label: string; align?: "left" | "right" };
 export type ReportResult = { title: string; columns: ReportColumn[]; rows: Record<string, string | number>[] };
 
-export const REPORT_TYPES = ["collection", "pending-fees", "concessions", "late-fees", "attendance"] as const;
+export const REPORT_TYPES = ["collection", "pending-fees", "concessions", "late-fees", "attendance", "leaving-students"] as const;
 export type ReportType = (typeof REPORT_TYPES)[number];
 
 export async function getReport(
@@ -25,6 +25,8 @@ export async function getReport(
       return getLateFeeReport(supabase, filters);
     case "attendance":
       return getAttendanceSummaryReport(supabase, filters);
+    case "leaving-students":
+      return getLeavingStudentsReport(supabase, filters);
     default:
       return null;
   }
@@ -279,4 +281,41 @@ async function withStudentDetails(
       perStudent.get(s.id) ?? 0
     )
   );
+}
+
+async function getLeavingStudentsReport(supabase: SupabaseServerClient, filters: Record<string, string>): Promise<ReportResult> {
+  let query = supabase.from("student_leaving_requests").select("admission_number, student_name, leaving_date, reason, status, overall_clearance_status, certificate_number, classes(name), sections(name)");
+
+  if (filters.class_id) query = query.eq("class_id", filters.class_id);
+  if (filters.section_id) query = query.eq("section_id", filters.section_id);
+  if (filters.from) query = query.gte("leaving_date", filters.from);
+  if (filters.to) query = query.lte("leaving_date", filters.to);
+
+  const { data: requests } = await query.order("leaving_date", { ascending: false });
+
+  const rows = (requests ?? []).map((r: any) => ({
+    admission_number: r.admission_number,
+    student_name: r.student_name,
+    class_section: `${r.classes?.name ?? ""}${r.sections?.name ? ` - ${r.sections.name}` : ""}`,
+    leaving_date: r.leaving_date,
+    reason: r.reason ? r.reason.replaceAll("_", " ") : "N/A",
+    status: r.status ? r.status.replaceAll("_", " ") : "N/A",
+    clearance: r.overall_clearance_status ?? "pending",
+    certificate_number: r.certificate_number ?? "Not Issued",
+  }));
+
+  return {
+    title: "Leaving Students Report",
+    columns: [
+      { key: "admission_number", label: "ADM No." },
+      { key: "student_name", label: "Student Name" },
+      { key: "class_section", label: "Class / Sec" },
+      { key: "leaving_date", label: "Leaving Date" },
+      { key: "reason", label: "Reason" },
+      { key: "status", label: "Status" },
+      { key: "clearance", label: "Clearance" },
+      { key: "certificate_number", label: "Certificate No." },
+    ],
+    rows,
+  };
 }

@@ -68,13 +68,14 @@ export default async function ActiveUsersReportPage() {
     const student = studentMap.get(profile.id);
     const login = latestLoginMap.get(profile.id);
 
+    const rawName = profile.full_name || "User";
     let role: ActiveUserRow["role"] = profile.role === "super_admin" ? "super_admin" : profile.role === "staff" ? "teacher" : "student";
     let roleLabel = profile.role === "super_admin" ? "Super Admin" : profile.role === "staff" ? "Faculty Teacher" : "Student";
     let department = "Academics";
     let branch = "Main Campus";
     let classSection: string | null = null;
     let mobile = "+91 98765 43210";
-    let email = `${profile.full_name.toLowerCase().replace(/\s+/g, ".")}@school.edu`;
+    let email = `${rawName.toLowerCase().replace(/\s+/g, ".")}@school.edu`;
 
     if (staff) {
       mobile = staff.mobile_number ? `+91 ${staff.mobile_number}` : mobile;
@@ -122,8 +123,8 @@ export default async function ActiveUsersReportPage() {
 
     return {
       id: profile.id,
-      name: profile.full_name,
-      username: profile.full_name.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 18),
+      name: rawName,
+      username: rawName.toLowerCase().replace(/[^a-z0-9]/g, "_").slice(0, 18),
       role,
       roleLabel,
       department,
@@ -440,12 +441,8 @@ export default async function ActiveUsersReportPage() {
     },
   ];
 
-  // Merge real database users and seed users uniquely
-  const existingIds = new Set(dbUsers.map((u) => u.id));
-  const combinedUsers = [
-    ...dbUsers,
-    ...comprehensiveSeedUsers.filter((s) => !existingIds.has(s.id)),
-  ];
+  // Use real database users, fallback to seed users only if database has no records
+  const combinedUsers = dbUsers.length > 0 ? dbUsers : comprehensiveSeedUsers;
 
   // Distinct departments and classes for dropdown filters
   const departmentsList = [
