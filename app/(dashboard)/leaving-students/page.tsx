@@ -155,7 +155,7 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
         </div>
 
         {/* Students Left (Completed) */}
-        <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/30 p-4 transition duration-200 hover:border-emerald-300 shadow-2xs">
+        <div className="rounded-2xl border border-emerald-200/90 bg-white p-4 transition duration-200 hover:border-emerald-300 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Students Left</span>
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-xs text-emerald-800">✓</span>

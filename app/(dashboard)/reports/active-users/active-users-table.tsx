@@ -411,75 +411,38 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
             Real-time directory of all active school accounts, current active login sessions, client devices, and authentication states.
           </p>
         </div>
-
-        {/* Global Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
-            title="Export full list as CSV"
-          >
-            <span>📥</span> Export CSV
-          </button>
-
-          <button
-            onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700 shadow-xs hover:bg-emerald-100 transition"
-            title="Export full list as Excel format"
-          >
-            <span>📊</span> Export Excel
-          </button>
-
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition"
-            title="Print or Save as PDF"
-          >
-            <span>🖨️</span> Print / PDF
-          </button>
-
-          <button
-            onClick={() => {
-              showToast("Refreshing active user statuses...");
-              logUserAction({ action: "Refresh Active Users", resource: "/reports/active-users", outcome: "Refreshed list" });
-            }}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-ink-700 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-ink-800 transition"
-          >
-            <span>↻</span> Live Refresh
-          </button>
-        </div>
       </div>
 
       {/* Top KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {/* Total Users */}
         <div
           onClick={() => setSelectedStatus("all")}
-          className={`cursor-pointer rounded-2xl border p-4 transition duration-200 ${
+          className={`cursor-pointer rounded-xl border p-2.5 sm:rounded-2xl sm:p-4 transition duration-200 ${
             selectedStatus === "all" ? "border-blue-500 bg-blue-50/40 shadow-sm" : "border-slate-200/90 bg-white hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Users</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-blue-100 text-xs text-blue-700">👥</span>
+            <span className="text-[10px] leading-3 font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">Total Users</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-blue-100 text-[10px] text-blue-700 sm:h-7 sm:w-7 sm:rounded-lg sm:text-xs">👥</span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-slate-900">{stats.total}</p>
-          <p className="mt-1 text-[11px] text-slate-500">Across 10 ERP roles</p>
+          <p className="mt-1 font-display text-xl font-bold text-slate-900 sm:mt-2 sm:text-2xl">{stats.total}</p>
+          <p className="mt-1 hidden text-[11px] text-slate-500 sm:block">Across 10 ERP roles</p>
         </div>
 
         {/* Active Accounts */}
         <div
           onClick={() => setSelectedStatus("active")}
-          className={`cursor-pointer rounded-2xl border p-4 transition duration-200 ${
+          className={`cursor-pointer rounded-xl border p-2.5 sm:rounded-2xl sm:p-4 transition duration-200 ${
             selectedStatus === "active" ? "border-emerald-500 bg-emerald-50/40 shadow-sm" : "border-slate-200/90 bg-white hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">Active Accounts</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-xs text-emerald-700">✓</span>
+            <span className="text-[10px] leading-3 font-semibold uppercase tracking-wide text-emerald-700 sm:text-xs">Active Accounts</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-emerald-100 text-[10px] text-emerald-700 sm:h-7 sm:w-7 sm:rounded-lg sm:text-xs">✓</span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-emerald-900">{stats.active}</p>
-          <p className="mt-1 text-[11px] text-emerald-700 font-medium">
+          <p className="mt-1 font-display text-xl font-bold text-emerald-900 sm:mt-2 sm:text-2xl">{stats.active}</p>
+          <p className="mt-1 hidden text-[11px] text-emerald-700 font-medium sm:block">
             {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}% enabled
           </p>
         </div>
@@ -487,7 +450,7 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
         {/* Currently Online */}
         <div
           onClick={() => setSelectedStatus("online")}
-          className={`cursor-pointer rounded-2xl border p-4 transition duration-200 ${
+          className={`cursor-pointer rounded-xl border p-2.5 sm:rounded-2xl sm:p-4 transition duration-200 ${
             selectedStatus === "online" ? "border-emerald-500 bg-emerald-500/10 shadow-sm" : "border-slate-200/90 bg-white hover:border-slate-300"
           }`}
         >
@@ -497,51 +460,89 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Online Now</span>
+              <span className="text-[10px] leading-3 font-semibold uppercase tracking-wide text-emerald-800 sm:text-xs">Online Now</span>
             </div>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-xs text-emerald-800">⚡</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-emerald-100 text-[10px] text-emerald-800 sm:h-7 sm:w-7 sm:rounded-lg sm:text-xs">⚡</span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-emerald-900">{stats.online}</p>
-          <p className="mt-1 text-[11px] text-emerald-700">Active past 15 mins</p>
+          <p className="mt-1 font-display text-xl font-bold text-emerald-900 sm:mt-2 sm:text-2xl">{stats.online}</p>
+          <p className="mt-1 hidden text-[11px] text-emerald-700 sm:block">Active past 15 mins</p>
         </div>
 
         {/* Recently Logged In */}
         <div
           onClick={() => setSelectedStatus("recent")}
-          className={`cursor-pointer rounded-2xl border p-4 transition duration-200 ${
+          className={`cursor-pointer rounded-xl border p-2.5 sm:rounded-2xl sm:p-4 transition duration-200 ${
             selectedStatus === "recent" ? "border-amber-500 bg-amber-50/40 shadow-sm" : "border-slate-200/90 bg-white hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-800">Recent Logins</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-amber-100 text-xs text-amber-800">🕒</span>
+            <span className="text-[10px] leading-3 font-semibold uppercase tracking-wide text-amber-800 sm:text-xs">Recent Logins</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-amber-100 text-[10px] text-amber-800 sm:h-7 sm:w-7 sm:rounded-lg sm:text-xs">🕒</span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-amber-900">{stats.recent}</p>
-          <p className="mt-1 text-[11px] text-amber-700">Within last 24h</p>
+          <p className="mt-1 font-display text-xl font-bold text-amber-900 sm:mt-2 sm:text-2xl">{stats.recent}</p>
+          <p className="mt-1 hidden text-[11px] text-amber-700 sm:block">Within last 24h</p>
         </div>
 
         {/* Inactive / Disabled */}
         <div
           onClick={() => setSelectedStatus("disabled")}
-          className={`cursor-pointer rounded-2xl border p-4 transition duration-200 ${
+          className={`cursor-pointer rounded-xl border p-2.5 sm:rounded-2xl sm:p-4 transition duration-200 ${
             selectedStatus === "disabled" ? "border-rose-500 bg-rose-50/40 shadow-sm" : "border-slate-200/90 bg-white hover:border-slate-300"
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-700">Inactive / Locked</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-rose-100 text-xs text-rose-700">🚫</span>
+            <span className="text-[10px] leading-3 font-semibold uppercase tracking-wide text-rose-700 sm:text-xs">Inactive / Locked</span>
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-rose-100 text-[10px] text-rose-700 sm:h-7 sm:w-7 sm:rounded-lg sm:text-xs">🚫</span>
           </div>
-          <p className="mt-2 font-display text-2xl font-bold text-rose-900">{stats.inactive}</p>
-          <p className="mt-1 text-[11px] text-rose-600">Requires attention</p>
+          <p className="mt-1 font-display text-xl font-bold text-rose-900 sm:mt-2 sm:text-2xl">{stats.inactive}</p>
+          <p className="mt-1 hidden text-[11px] text-rose-600 sm:block">Requires attention</p>
         </div>
       </div>
 
       {/* Advanced Filter Panel */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-3 sm:p-5 shadow-xs">
+        <div className="sm:hidden mb-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-bold text-slate-900">Filters</span>
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+              {filteredUsers.length} of {users.length} match
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              <span>⚙</span>
+              <span>{showMobileFilters ? "Hide filters" : "More filters"}</span>
+            </button>
+            <button
+              onClick={() => {
+                showToast("Refreshing active user statuses...");
+                logUserAction({ action: "Refresh Active Users", resource: "/reports/active-users", outcome: "Refreshed list" });
+              }}
+              className="inline-flex min-h-10 items-center justify-center gap-1 rounded-lg bg-ink-700 px-2 text-[11px] font-semibold text-white shadow-xs transition hover:bg-ink-800"
+            >
+              <span>↻</span><span>Refresh</span>
+            </button>
+            <button
+              onClick={resetFilters}
+              className="min-h-10 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              Reset filters
+            </button>
+          </div>
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            <button onClick={handleExportCSV} title="Export CSV" className="h-9 whitespace-nowrap rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">📥 CSV</button>
+            <button onClick={handleExportCSV} title="Export Excel" className="h-9 whitespace-nowrap rounded-md border border-emerald-200 bg-emerald-50 px-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">📊 Excel</button>
+            <button onClick={handlePrint} title="Print or save as PDF" className="h-9 whitespace-nowrap rounded-md border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">🖨 Print</button>
+          </div>
+        </div>
+
+        <div className="hidden sm:flex items-center justify-between gap-4 border-b border-slate-100 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-slate-900">Filters & Search</span>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+            <span className="text-sm font-bold text-slate-900">Filters</span>
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
               {filteredUsers.length} of {users.length} match
             </span>
           </div>
@@ -549,48 +550,34 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
-              className="sm:hidden inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
             >
-              <span>🔍</span>
-              <span>{showMobileFilters ? "Hide Filters" : "Filter"}</span>
+              <span>⚙</span>
+              <span>{showMobileFilters ? "Hide filters" : "Show filters"}</span>
             </button>
             <button
-              onClick={resetFilters}
-              className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition underline underline-offset-2"
+              onClick={() => {
+                showToast("Refreshing active user statuses...");
+                logUserAction({ action: "Refresh Active Users", resource: "/reports/active-users", outcome: "Refreshed list" });
+              }}
+              className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-ink-700 px-3 text-xs font-semibold text-white shadow-xs transition hover:bg-ink-800"
             >
-              Reset Filters
+              <span>↻</span> Live refresh
+            </button>
+            <button onClick={handleExportCSV} title="Export CSV" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><span>📥</span> CSV</button>
+            <button onClick={handleExportCSV} title="Export Excel" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"><span>📊</span> Excel</button>
+            <button onClick={handlePrint} title="Print or save as PDF" className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><span>🖨</span> Print</button>
+            <button
+              onClick={resetFilters}
+              className="min-h-9 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+            >
+              Reset filters
             </button>
           </div>
         </div>
 
         {/* Filter Controls Grid - Collapsible on Mobile */}
-        <div className={`${showMobileFilters ? "block" : "hidden sm:grid"} grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4`}>
-          {/* Search Input */}
-          <div className="lg:col-span-2">
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Search Name, Username, Mobile, Email</label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
-              <input
-                type="text"
-                placeholder="Search by name, @username, +91 mobile, or email..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
+        <div className={`${showMobileFilters ? "grid rounded-xl border border-slate-200 bg-slate-50/70 p-3 sm:border-0 sm:bg-transparent sm:p-0" : "hidden"} grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4`}>
           {/* User Type / Role */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">User Type / Role</label>
@@ -716,8 +703,8 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
         </div>
 
         {/* Date From & To */}
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className={`mt-3 ${showMobileFilters ? "flex" : "hidden"} flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-3 border-t border-slate-100 pt-3`}>
+          <div className="flex flex-col sm:flex-row flex-wrap sm:items-center gap-2 text-xs">
             <span className="font-semibold text-slate-600">Custom Date Range:</span>
             <input
               type="date"
@@ -727,9 +714,9 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
                 setDatePreset("custom");
                 setPage(1);
               }}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700"
+              className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:py-1 text-xs text-slate-700"
             />
-            <span className="text-slate-400">to</span>
+            <span className="hidden sm:inline text-slate-400">to</span>
             <input
               type="date"
               value={toDate}
@@ -738,7 +725,7 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
                 setDatePreset("custom");
                 setPage(1);
               }}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700"
+              className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white px-2.5 py-2 sm:py-1 text-xs text-slate-700"
             />
           </div>
 
@@ -748,7 +735,7 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
                 showToast(`Filter applied: ${filteredUsers.length} records found`);
                 logUserAction({ action: "Apply Active Users Filter", resource: "/reports/active-users", outcome: `Filtered ${filteredUsers.length} records` });
               }}
-              className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition"
+              className="w-full sm:w-auto rounded-lg bg-blue-600 px-4 py-2 sm:py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition"
             >
               Apply Filter
             </button>
@@ -778,6 +765,31 @@ export function ActiveUsersTable({ initialUsers, departments, branches, classes 
             </button>
           </div>
         )}
+
+        <div className="mt-3 pt-0 sm:mt-4 sm:border-t sm:border-slate-100 sm:pt-3">
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Search by name, @username, +91 mobile, or email..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-9 pr-9 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                aria-label="Clear search"
+                className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Main Table Container */}

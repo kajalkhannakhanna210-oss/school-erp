@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DateValue } from "@/components/date-value";
 import { ArchiveControl } from "./archive-control";
 import { PhotoUpload } from "./photo-upload";
+import { GenerateIdCardButton } from "../generate-id-card-button";
 import { DocumentPanel } from "@/components/documents/document-panel";
 import { canManageDocument, canViewDocumentAudit, getDocumentActor, listDocumentActivity, listDocumentCategories, listDocumentsForSubject } from "@/lib/documents";
 
@@ -91,6 +92,15 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <Link href="/students" className="flex-1 sm:flex-none">
               <Button variant="primary" className="w-full sm:w-auto">← Back to student list</Button>
             </Link>
+            {s.admission_number && (
+              <GenerateIdCardButton
+                studentId={s.id}
+                sessionId={s.session_id || ""}
+                admissionNumber={s.admission_number}
+                variant="outline"
+                className="w-full sm:w-auto text-blue-700 border-blue-300 hover:bg-blue-50"
+              />
+            )}
             <Link href={`/students/${s.id}/edit`} className="flex-1 sm:flex-none">
               <Button className="w-full sm:w-auto">Edit student</Button>
             </Link>

@@ -6,6 +6,7 @@ import { Badge, Button } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
 import { setStudentActive } from "./actions";
+import { GenerateIdCardButton } from "./generate-id-card-button";
 
 function formatStudentName(name?: string | null) {
   return (name ?? "").trim().toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Unnamed student";
@@ -73,7 +74,14 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
               <td className="px-4 py-3">{s.is_active ? <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">Active</span> : <Badge>Archived</Badge>}</td>
               <td className="px-4 py-3 text-right">
                 {canManage && (
-                  <div className="flex justify-end gap-1">
+                  <div className="flex items-center justify-end gap-1.5">
+                    {s.admission_number && (
+                      <GenerateIdCardButton
+                        studentId={s.id}
+                        sessionId=""
+                        admissionNumber={s.admission_number}
+                      />
+                    )}
                     <Link href={`/students/${s.id}/edit`}><Button variant="ghost">Edit</Button></Link>
                     <Button variant="ghost" onClick={() => setArchiveTarget(s)} disabled={pending}>
                       {s.is_active ? "Archive" : "Restore"}
@@ -113,7 +121,18 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
               <p className="mt-1 truncate text-xs text-slate/70">{s.mobile_number || "No mobile number"}</p>
               <p className="truncate text-xs text-slate/60">{s.classes?.name || "No class"}{s.sections?.name && ` · ${s.sections.name}`}</p>
             </div>
-            {canManage && <a href={`/students/${s.id}/edit`} aria-label={`Edit ${s.profiles?.full_name || "student"}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-100 text-ink-600 hover:bg-ink-50"><span aria-hidden="true" className="text-base font-bold">✎</span></a>}
+            {canManage && (
+              <div className="flex items-center gap-1">
+                {s.admission_number && (
+                  <GenerateIdCardButton
+                    studentId={s.id}
+                    sessionId=""
+                    admissionNumber={s.admission_number}
+                  />
+                )}
+                <a href={`/students/${s.id}/edit`} aria-label={`Edit ${s.profiles?.full_name || "student"}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-100 text-ink-600 hover:bg-ink-50"><span aria-hidden="true" className="text-base font-bold">✎</span></a>
+              </div>
+            )}
           </article>
         ))}
         {students.length === 0 && <p className="rounded-2xl bg-white px-4 py-10 text-center text-sm text-slate/50">No students match this view.</p>}

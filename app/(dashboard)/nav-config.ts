@@ -15,6 +15,7 @@ export const navItems: NavItem[] = [
   { key: "add_student", label: "Add Student", href: "/students/new", roles: ["super_admin", "staff"], icon: "+" },
   { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"], icon: "✓" },
   { key: "leaving_students", label: "Leaving Students", href: "/leaving-students", roles: ["super_admin", "staff"], icon: "🚪" },
+  { key: "student_id_cards", label: "ID Cards", href: "/students/id-cards", roles: ["super_admin", "staff"], icon: "▤" },
 
   // Staff
   { key: "staff", label: "Staff Members", href: "/staff", roles: ["super_admin"], icon: "♚" },
@@ -34,7 +35,7 @@ export const navItems: NavItem[] = [
   { key: "reports", label: "Reports", href: "/reports", roles: ["super_admin", "staff"], icon: "▥" },
 
   // Login & Security
-  { key: "active_users", label: "Active Users", href: "/reports/active-users", roles: ["super_admin"], icon: "👥" },
+  { key: "active_users", label: "Active Users", href: "/reports/active-users", roles: ["super_admin"], icon: "▦" },
   { key: "login_activity", label: "Login Activity", href: "/reports/login-activity", roles: ["super_admin"], icon: "◷" },
   { key: "access_logs", label: "Access Logs", href: "/reports/access-logs", roles: ["super_admin"], icon: "📑" },
 
@@ -49,7 +50,7 @@ export const navItems: NavItem[] = [
 export const navSections = [
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
-  { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students"] },
+  { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
   { key: "staff", label: "Staff", keys: ["staff", "staff_sessions"] },
   { key: "exams", label: "Examinations", keys: ["exams"] },
   { key: "fees", label: "Fees & Finance", keys: ["fees", "payments"] },
@@ -90,6 +91,9 @@ export function isNavItemActive(item: NavItem, pathname?: string | null, current
   }
   if (item.key === "leaving_students") {
     return pathname === "/leaving-students" || pathname.startsWith("/leaving-students/");
+  }
+  if (item.key === "student_id_cards") {
+    return pathname === "/students/id-cards" || pathname.startsWith("/students/id-cards/");
   }
   if (item.key === "staff") {
     return (

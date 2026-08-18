@@ -64,6 +64,7 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
     login_activity: "/reports/login-activity",
     access_logs: "/reports/access-logs",
     leaving_students: "/leaving-students",
+    student_id_cards: "/students/id-cards",
   };
 
   const resourcePath = pagePathMap[pageKey] ?? `/${pageKey.replaceAll("_", "-")}`;
