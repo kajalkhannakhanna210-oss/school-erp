@@ -142,7 +142,8 @@ export function GenerateIdCardButton({
           onClick={() => setPreviewCard(null)}
         >
           <div
-            className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl space-y-5"
+            style={{ width: 'min(92vw, 720px)' }}
+            className="w-full rounded-2xl bg-white p-6 shadow-2xl space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -165,32 +166,28 @@ export function GenerateIdCardButton({
                     <div style={{ width: '100%', paddingTop: `${paddingTop}%`, position: 'relative' }}>
                       <div style={{ position: 'absolute', inset: 0 }} className="rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
-                        <div className="flex items-center gap-3 my-1">
-                        {(() => {
-                          // If the template provides a front file path, show the design image (image or pdf iframe)
-                          const frontPath = previewCard?.template?.options?.front_file_path;
-                          if (frontPath) {
-                            const ext = String(frontPath).split('.').pop()?.toLowerCase() || '';
-                            if (ext === 'pdf') {
-                              return (
-                                <iframe src={`/api/id-card-designs/preview?file=${encodeURIComponent(frontPath)}`} style={{ width: 56, height: 64, border: 'none' }} title="design-pdf-preview" />
-                              );
+                        <div style={{ position: 'absolute', inset: 0 }} className="flex items-center justify-center bg-white">
+                          {(() => {
+                            const frontPath = previewCard?.template?.options?.front_file_path;
+                            if (frontPath) {
+                              const ext = String(frontPath).split('.').pop()?.toLowerCase() || '';
+                              const url = `/api/id-card-designs/preview?file=${encodeURIComponent(frontPath)}`;
+                              if (ext === 'pdf') {
+                                return <embed src={url} type="application/pdf" style={{ width: '100%', height: '100%', border: 'none' }} />;
+                              }
+                              return <img src={url} alt="ID design" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />;
                             }
-                            return (
-                              <img src={`/api/id-card-designs/preview?file=${encodeURIComponent(frontPath)}`} alt="ID design" className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 object-cover" />
-                            );
-                          }
-
-                          return (
-                            <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>
-                          );
-                        })()}
-
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
-                          <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
+                            return <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>;
+                          })()}
                         </div>
-                      </div>
+
+                        <div className="relative z-10 flex items-center gap-3 my-1">
+                          <div style={{ width: 56, height: 64 }} className="rounded-md bg-transparent border-transparent" />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
+                            <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

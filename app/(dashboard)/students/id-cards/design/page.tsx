@@ -150,12 +150,36 @@ export default function DesignUploadPage() {
       <h1 className="text-2xl font-semibold mb-4">Upload ID Card Design</h1>
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <label className="block text-sm font-medium">Front design</label>
-          <input type="file" accept="image/*,.pdf" onChange={(e) => setFrontFile(e.target.files?.[0] ?? null)} />
+          <label className="block text-sm font-medium mb-2">Front design</label>
+          <label htmlFor="frontUpload" className="group block cursor-pointer rounded-xl border-2 border-dashed border-slate-200 p-4 hover:border-blue-400 transition flex flex-col items-center justify-center">
+            {frontFile ? (
+              // preview image for selected file
+              <img src={URL.createObjectURL(frontFile)} alt="Front preview" className="w-full h-44 object-cover rounded-md" />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-center text-slate-500">
+                <div className="text-3xl">🖼️</div>
+                <div className="text-sm font-medium">Drop or click to upload front design</div>
+                <div className="text-xs">Supported: PDF, JPG, PNG, WebP · Max 10 MB</div>
+              </div>
+            )}
+            <input id="frontUpload" type="file" accept="image/*,.pdf" className="sr-only" onChange={(e) => setFrontFile(e.target.files?.[0] ?? null)} />
+          </label>
         </div>
+
         <div>
-          <label className="block text-sm font-medium">Back design (optional)</label>
-          <input type="file" accept="image/*,.pdf" onChange={(e) => setBackFile(e.target.files?.[0] ?? null)} />
+          <label className="block text-sm font-medium mb-2">Back design (optional)</label>
+          <label htmlFor="backUpload" className="group block cursor-pointer rounded-xl border-2 border-dashed border-slate-200 p-4 hover:border-blue-400 transition flex flex-col items-center justify-center">
+            {backFile ? (
+              <img src={URL.createObjectURL(backFile)} alt="Back preview" className="w-full h-44 object-cover rounded-md" />
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-center text-slate-500">
+                <div className="text-3xl">🖼️</div>
+                <div className="text-sm font-medium">Drop or click to upload back design (optional)</div>
+                <div className="text-xs">Supported: PDF, JPG, PNG, WebP · Max 10 MB</div>
+              </div>
+            )}
+            <input id="backUpload" type="file" accept="image/*,.pdf" className="sr-only" onChange={(e) => setBackFile(e.target.files?.[0] ?? null)} />
+          </label>
         </div>
       </div>
 
@@ -286,13 +310,29 @@ export default function DesignUploadPage() {
           <div className="w-full flex justify-center">
             <div className="relative bg-white shadow-sm" style={{ width: '100%', maxWidth: '85mm' }}>
               <div style={{ width: "100%", paddingTop: `${(heightMm / widthMm) * 100}%`, position: "relative" }}>
-                {((side === 'front' && uploadResult?.designs?.[0]) || (side === 'back' && uploadResult?.designs?.[1])) ? (
-                  <iframe
-                    src={`/api/id-card-designs/preview?file=${encodeURIComponent(side === 'front' ? uploadResult.designs[0].filePath : uploadResult.designs[1].filePath)}`}
-                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                    title={`${side} preview`}
-                  />
-                ) : (
+                {((side === 'front' && uploadResult?.designs?.[0]) || (side === 'back' && uploadResult?.designs?.[1])) ? (() => {
+                  const filePath = side === 'front' ? uploadResult.designs[0].filePath : uploadResult.designs[1].filePath;
+                  const ext = String(filePath).split('.').pop()?.toLowerCase() || '';
+                  const previewUrl = `/api/id-card-designs/preview?file=${encodeURIComponent(filePath)}`;
+                  if (ext === 'pdf') {
+                    return (
+                      <embed
+                        src={previewUrl}
+                        type="application/pdf"
+                        style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', border: 'none' }}
+                        title={`${side} pdf preview`}
+                      />
+                    );
+                  }
+                  // image types
+                  return (
+                    <img
+                      src={previewUrl}
+                      alt={`${side} preview`}
+                      style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  );
+                })() : (
                   <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">Preview not available</div>
                 )}
 
