@@ -90,13 +90,18 @@ export function GenerateIdCardButton({
     const widthIn = (widthMm / 25.4).toFixed(3);
     const heightIn = (heightMm / 25.4).toFixed(3);
 
+    const designPath = previewCard?.template?.options?.front_file_path;
+    const designImgHtml = designPath ? (designPath.toLowerCase().endsWith('.pdf') ? `<iframe src="/api/id-card-designs/preview?file=${encodeURIComponent(designPath)}" style="width:100%;height:100%;border:none"></iframe>` : `<img src="/api/id-card-designs/preview?file=${encodeURIComponent(designPath)}" style="max-width:100%;height:auto;display:block">`) : '';
+
     const html = `<!doctype html><html><head><meta charset='utf-8'><title>ID Card</title><style>
       @page { size: ${widthIn}in ${heightIn}in; margin: 0; }
       body { font-family: Arial, sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
-      .card { width: ${widthIn}in; height: ${heightIn}in; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; background: white; }
+      .card { width: ${widthIn}in; height: ${heightIn}in; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; background: white; position: relative; }
       .header { background:#eff6ff; padding:6px; font-weight:700; font-size:12px; color:#1e3a8a; }
       .title { font-size:14px; font-weight:700; margin-top:6px; }
       .field { font-size:11px; color:#334155; margin-bottom:4px; }
+      .design-wrapper { position:absolute; inset:8px; display:flex; align-items:center; justify-content:center }
+      .design-img { max-width:100%; max-height:100%; object-fit:contain }
     </style></head><body><div class="card">
       <div class="header">ACADEMIC PUBLIC SCHOOL</div>
       <div class="title">${snap.student_name || 'Student'}</div>
@@ -104,6 +109,7 @@ export function GenerateIdCardButton({
       <div class="field"><b>Class / Sec:</b> ${snap.class_name || ''} - ${snap.section_name || ''}</div>
       <div class="field"><b>Roll:</b> ${snap.roll_number || 'N/A'}</div>
       <div class="field"><b>Mobile:</b> ${snap.mobile_number || 'N/A'}</div>
+      <div class="design-wrapper">${designImgHtml}</div>
     </div></body></html>`;
 
     const w = window.open('', '_blank');
@@ -160,12 +166,31 @@ export function GenerateIdCardButton({
                       <div style={{ position: 'absolute', inset: 0 }} className="rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
                         <div className="flex items-center gap-3 my-1">
-                          <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
-                            <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
-                          </div>
+                        {(() => {
+                          // If the template provides a front file path, show the design image (image or pdf iframe)
+                          const frontPath = previewCard?.template?.options?.front_file_path;
+                          if (frontPath) {
+                            const ext = String(frontPath).split('.').pop()?.toLowerCase() || '';
+                            if (ext === 'pdf') {
+                              return (
+                                <iframe src={`/api/id-card-designs/preview?file=${encodeURIComponent(frontPath)}`} style={{ width: 56, height: 64, border: 'none' }} title="design-pdf-preview" />
+                              );
+                            }
+                            return (
+                              <img src={`/api/id-card-designs/preview?file=${encodeURIComponent(frontPath)}`} alt="ID design" className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 object-cover" />
+                            );
+                          }
+
+                          return (
+                            <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>
+                          );
+                        })()}
+
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
+                          <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
                         </div>
+                      </div>
                       </div>
                     </div>
                   </div>

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // Include template dimensions by joining the templates table (alias `template`)
     const { data, error: qErr } = await supabase
       .from("student_id_cards")
-      .select("*, template:student_id_card_templates(width_mm, height_mm, orientation)")
+      .select("*, template:student_id_card_templates(width_mm, height_mm, orientation, options)")
       .eq("student_id", studentId)
       .order("version", { ascending: false })
       .limit(1)
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (sessionId) {
       const { data: sData, error: sErr } = await supabase
         .from("student_id_cards")
-        .select("*, template:student_id_card_templates(width_mm, height_mm, orientation)")
+          .select("*, template:student_id_card_templates(width_mm, height_mm, orientation, options)")
         .eq("student_id", studentId)
         .eq("session_id", sessionId)
         .order("version", { ascending: false })
