@@ -38,9 +38,25 @@ export default function DesignUploadPage() {
     }
   }
 
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  function validateFileClient(file: File | null) {
+    if (!file) return { ok: false, error: 'No file provided' };
+    if (!ALLOWED_TYPES.includes(file.type)) return { ok: false, error: 'Allowed types: PDF, JPG, PNG, WebP' };
+    if (file.size > MAX_SIZE) return { ok: false, error: 'Files must be 10 MB or smaller' };
+    return { ok: true };
+  }
+
   async function handleUpload() {
     setMessage(null);
     if (!frontFile && !backFile) return setMessage("Choose at least one file to upload.");
+    // client-side validation
+    const frontValid = frontFile ? validateFileClient(frontFile) : { ok: true };
+    const backValid = backFile ? validateFileClient(backFile) : { ok: true };
+    if (!frontValid.ok) return setMessage(`Front file: ${frontValid.error}`);
+    if (!backValid.ok) return setMessage(`Back file: ${backValid.error}`);
+
     setUploading(true);
     try {
       const fd = new FormData();
