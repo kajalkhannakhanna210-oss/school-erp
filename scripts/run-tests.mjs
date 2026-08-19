@@ -32,6 +32,7 @@ const compile = spawnSync(
     "tests/super-admin-session.test.ts",
     "tests/documents-security.test.ts",
     "tests/leaving-students.test.ts",
+    "tests/id-card-designs.test.ts",
     "lib/security/public-forms-core.ts",
     "lib/security/super-admin-session.ts",
     "lib/security/documents.ts",

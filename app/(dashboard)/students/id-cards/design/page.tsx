@@ -127,6 +127,8 @@ export default function DesignUploadPage() {
     };
   }, [widthMm, heightMm, marginTop, marginRight, marginBottom, marginLeft, bleedTop, bleedRight, bleedBottom, bleedLeft, bleedEnabled]);
 
+  const [side, setSide] = useState<'front'|'back'>('front');
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-semibold mb-4">Upload ID Card Design</h1>
@@ -259,16 +261,41 @@ export default function DesignUploadPage() {
       <div className="mt-6">
         <h3 className="font-medium">Preview</h3>
         <div className="mt-2 border rounded p-4">
-          <div className="w-full max-w-[85mm] bg-white shadow-sm">
-            <div style={{ width: "100%", paddingTop: `${(heightMm / widthMm) * 100}%`, position: "relative" }}>
-              {uploadResult?.designs?.[0] && (
-                <iframe
-                  src={`/api/id-card-designs/preview?file=${encodeURIComponent(uploadResult.designs[0].filePath)}`}
-                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
-                  title="Front preview"
-                />
-              )}
-              {!uploadResult?.designs?.[0] && <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">Front preview not available</div>}
+          <div className="flex items-center gap-3 mb-3">
+            <button onClick={() => setSide('front')} className={`px-3 py-1 rounded ${side === 'front' ? 'bg-ink-900 text-paper' : 'bg-ink-50'}`}>Front</button>
+            <button onClick={() => setSide('back')} className={`px-3 py-1 rounded ${side === 'back' ? 'bg-ink-900 text-paper' : 'bg-ink-50'}`} disabled={!uploadResult?.designs?.[1]}>Back</button>
+            <div className="ml-auto text-sm text-slate/70">Actual size: {widthMm}mm × {heightMm}mm</div>
+          </div>
+
+          <div className="w-full flex justify-center">
+            <div className="relative bg-white shadow-sm" style={{ width: '100%', maxWidth: '85mm' }}>
+              <div style={{ width: "100%", paddingTop: `${(heightMm / widthMm) * 100}%`, position: "relative" }}>
+                {((side === 'front' && uploadResult?.designs?.[0]) || (side === 'back' && uploadResult?.designs?.[1])) ? (
+                  <iframe
+                    src={`/api/id-card-designs/preview?file=${encodeURIComponent(side === 'front' ? uploadResult.designs[0].filePath : uploadResult.designs[1].filePath)}`}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                    title={`${side} preview`}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">Preview not available</div>
+                )}
+
+                {/* Bleed overlay */}
+                {bleedEnabled && (
+                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, boxSizing: 'border-box', border: '2px dashed rgba(220,38,38,0.5)' }} />
+                    <div style={{ position: 'absolute', left: `-${previewMetrics.bleedLeftPercent}%`, top: `-${previewMetrics.bleedTopPercent}%`, width: `calc(100% + ${previewMetrics.bleedLeftPercent + previewMetrics.bleedRightPercent}%)`, height: `calc(100% + ${previewMetrics.bleedTopPercent + previewMetrics.bleedBottomPercent}%)`, border: '2px solid rgba(220,38,38,0.12)' }} />
+                  </div>
+                )}
+
+                {/* Safe area overlay */}
+                {showSafeArea && (
+                  <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', left: `${previewMetrics.leftPercent}%`, top: `${previewMetrics.topPercent}%`, right: `${previewMetrics.rightPercent}%`, bottom: `${previewMetrics.bottomPercent}%`, boxSizing: 'border-box', border: '2px dashed rgba(34,197,94,0.6)' }} />
+                  </div>
+                )}
+
+              </div>
             </div>
           </div>
         </div>
