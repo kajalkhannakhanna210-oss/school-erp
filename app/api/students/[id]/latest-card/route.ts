@@ -22,13 +22,16 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
   const supabase = await createClient();
   try {
+    // Always fetch the latest version (order by version desc, limit 1)
     const { data, error: qErr } = await supabase
       .from("student_id_cards")
       .select("*, snapshot")
       .eq("student_id", studentId)
+      .order("version", { ascending: false })
+      .limit(1)
       .maybeSingle();
 
-    // If session_id is provided, prefer that
+    // If session_id is provided, prefer that (also ordered)
     if (sessionId) {
       const { data: sData, error: sErr } = await supabase
         .from("student_id_cards")
