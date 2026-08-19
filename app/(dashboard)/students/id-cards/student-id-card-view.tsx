@@ -46,6 +46,16 @@ export function StudentIdCardView({
   // Preview Modal state
   const [previewCard, setPreviewCard] = useState<any | null>(null);
 
+  // UI loading states for buttons/actions
+  const [loadingButtons, setLoadingButtons] = useState<Record<string, boolean>>({});
+
+  function setLoading(key: string, value: boolean) {
+    setLoadingButtons((prev) => ({ ...prev, [key]: value }));
+  }
+
+  // Controls visibility of filters (must be declared before any early returns)
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+
   function updateFilterParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) {
@@ -94,19 +104,25 @@ export function StudentIdCardView({
       showToast("Please select at least one student to generate an ID card.", "error");
       return;
     }
-    startTransition(async () => {
-      const res = await generateStudentIdCards({
-        student_ids: studentIds,
-        session_id: filters.sessionId || currentSessionId,
-        template_id: selectedTemplate || undefined,
-      });
 
-      if (res.error) {
-        showToast(res.error, "error");
-      } else {
-        showToast(`Successfully generated ${res.count} student ID card(s).`);
-        setSelectedStudentsToGenerate([]);
-        router.refresh();
+    setLoading('generate', true);
+    startTransition(async () => {
+      try {
+        const res = await generateStudentIdCards({
+          student_ids: studentIds,
+          session_id: filters.sessionId || currentSessionId,
+          template_id: selectedTemplate || undefined,
+        });
+
+        if (res.error) {
+          showToast(res.error, "error");
+        } else {
+          showToast(`Successfully generated ${res.count} student ID card(s).`);
+          setSelectedStudentsToGenerate([]);
+          router.refresh();
+        }
+      } finally {
+        setLoading('generate', false);
       }
     });
   };
@@ -116,14 +132,19 @@ export function StudentIdCardView({
       showToast("Please select at least one card.", "error");
       return;
     }
+    setLoading('updateStatus', true);
     startTransition(async () => {
-      const res = await updateCardStatus(selectedCards, status);
-      if (res.error) {
-        showToast(res.error, "error");
-      } else {
-        showToast(`Updated ${res.count} card(s) status to '${status}'.`);
-        setSelectedCards([]);
-        router.refresh();
+      try {
+        const res = await updateCardStatus(selectedCards, status);
+        if (res.error) {
+          showToast(res.error, "error");
+        } else {
+          showToast(`Updated ${res.count} card(s) status to '${status}'.`);
+          setSelectedCards([]);
+          router.refresh();
+        }
+      } finally {
+        setLoading('updateStatus', false);
       }
     });
   };
@@ -300,8 +321,6 @@ export function StudentIdCardView({
       </div>
     );
   }
-
-  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   return (
     <div className="space-y-6">
@@ -502,26 +521,34 @@ export function StudentIdCardView({
                 <span className="font-bold text-blue-950">{selectedCards.length} card(s) selected:</span>
                 <button
                   onClick={() => handleUpdateStatus("printed")}
-                  disabled={isPending}
+                  disabled={loadingButtons['updateStatus']}
                   className="rounded-lg bg-emerald-600 px-3 py-1.5 text-white font-semibold hover:bg-emerald-700 shadow-xs"
                 >
-                  Mark as Printed
+                  {loadingButtons['updateStatus'] ? 'Processing...' : 'Mark as Printed'}
                 </button>
                 <button
                   onClick={() => handleUpdateStatus("cancelled")}
-                  disabled={isPending}
+                  disabled={loadingButtons['updateStatus']}
                   className="rounded-lg bg-red-600 px-3 py-1.5 text-white font-semibold hover:bg-red-700 shadow-xs"
                 >
-                  Cancel Cards
+                  {loadingButtons['updateStatus'] ? 'Processing...' : 'Cancel Cards'}
                 </button>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setPrintMode(true)}
+                  onClick={() => {
+                    setLoading('preview', true);
+                    // small delay to show processing state before opening preview
+                    setTimeout(() => {
+                      setPrintMode(true);
+                      setLoading('preview', false);
+                    }, 150);
+                  }}
+                  disabled={loadingButtons['preview']}
                   className="rounded-lg bg-blue-600 px-3.5 py-1.5 text-white font-semibold hover:bg-blue-700 shadow-xs inline-flex items-center gap-1.5"
                 >
-                  <span>👁</span> Batch Preview & PDF ({selectedCards.length})
+                  <span>👁</span> {loadingButtons['preview'] ? 'Processing...' : `Batch Preview & PDF (${selectedCards.length})`}
                 </button>
                 <button
                   onClick={downloadAsWord}
@@ -593,8 +620,10 @@ export function StudentIdCardView({
                                 ? "bg-emerald-100 text-emerald-800"
                                 : card.status === "generated"
                                 ? "bg-blue-100 text-blue-800"
-                                : "bg-slate-100 text-slate-700"
-                            }`}
+                                                            : card.status === "cancelled"
+                                                            ? "bg-red-100 text-red-800"
+                                                            : "bg-slate-100 text-slate-700"
+                                                        }` }
                           >
                             {card.status}
                           </span>
@@ -661,6 +690,8 @@ export function StudentIdCardView({
                               ? "bg-emerald-100 text-emerald-800"
                               : card.status === "generated"
                               ? "bg-blue-100 text-blue-800"
+                              : card.status === "cancelled"
+                              ? "bg-red-100 text-red-800"
                               : "bg-slate-100 text-slate-700"
                           }`}
                         >
@@ -722,7 +753,9 @@ export function StudentIdCardView({
                     showToast("Please select at least one student.", "error");
                     return;
                   }
-                  startTransition(async () => {
+                setLoading('generate_pdf', true);
+                startTransition(async () => {
+                  try {
                     const res = await generateStudentIdCards({
                       student_ids: selectedStudentsToGenerate,
                       session_id: filters.sessionId || currentSessionId,
@@ -737,12 +770,15 @@ export function StudentIdCardView({
                       router.refresh();
                       setPrintMode(true);
                     }
-                  });
-                }}
-                disabled={isPending || !selectedStudentsToGenerate.length}
-                className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                  } finally {
+                    setLoading('generate_pdf', false);
+                  }
+                });
+              }}
+              disabled={loadingButtons['generate_pdf'] || !selectedStudentsToGenerate.length}
+              className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 disabled:opacity-50 inline-flex items-center justify-center gap-1.5 w-full sm:w-auto"
               >
-                <span>🖨</span> {isPending ? "Processing..." : `Generate & PDF (${selectedStudentsToGenerate.length})`}
+              <span>🖨</span> {loadingButtons['generate_pdf'] ? "Processing..." : `Generate & PDF (${selectedStudentsToGenerate.length})`}
               </button>
             </div>
           </div>
