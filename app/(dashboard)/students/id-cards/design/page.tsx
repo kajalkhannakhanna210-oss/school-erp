@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 export default function DesignUploadPage() {
   const [frontFile, setFrontFile] = useState<File | null>(null);
@@ -14,6 +14,29 @@ export default function DesignUploadPage() {
   const [setDefault, setSetDefault] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  // margins and bleed
+  const [useSameMargin, setUseSameMargin] = useState(true);
+  const [marginTop, setMarginTop] = useState(3);
+  const [marginRight, setMarginRight] = useState(3);
+  const [marginBottom, setMarginBottom] = useState(3);
+  const [marginLeft, setMarginLeft] = useState(3);
+  const [bleedEnabled, setBleedEnabled] = useState(false);
+  const [bleedTop, setBleedTop] = useState(2);
+  const [bleedRight, setBleedRight] = useState(2);
+  const [bleedBottom, setBleedBottom] = useState(2);
+  const [bleedLeft, setBleedLeft] = useState(2);
+  const [showSafeArea, setShowSafeArea] = useState(true);
+
+  // When useSameMargin changes, sync others
+  function handleSameMarginToggle(checked: boolean) {
+    setUseSameMargin(checked);
+    if (checked) {
+      setMarginRight(marginTop);
+      setMarginBottom(marginTop);
+      setMarginLeft(marginTop);
+    }
+  }
 
   async function handleUpload() {
     setMessage(null);
@@ -38,7 +61,6 @@ export default function DesignUploadPage() {
   }
 
   function getPath(index: number) {
-    // server returns designs array in order uploaded
     if (!uploadResult?.designs) return null;
     return uploadResult.designs[index]?.filePath || null;
   }
@@ -57,7 +79,11 @@ export default function DesignUploadPage() {
         orientation,
         width_mm: Number(widthMm) || null,
         height_mm: Number(heightMm) || null,
-        options: {},
+        options: {
+          margins: { top: marginTop, right: marginRight, bottom: marginBottom, left: marginLeft, unit: "mm" },
+          bleed: bleedEnabled ? { top: bleedTop, right: bleedRight, bottom: bleedBottom, left: bleedLeft, unit: "mm" } : null,
+          safe_area: showSafeArea,
+        },
         set_as_default: !!setDefault,
         is_active: true,
       };
@@ -70,13 +96,36 @@ export default function DesignUploadPage() {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Finalize failed");
       setMessage("Template finalized successfully.");
-      // Optionally redirect to templates list
     } catch (e: any) {
       setMessage(String(e?.message || e));
     } finally {
       setFinalizing(false);
     }
   }
+
+  // preview helper: compute CSS percentages for margins/bleed
+  const previewMetrics = useMemo(() => {
+    const w = Number(widthMm) || 1;
+    const h = Number(heightMm) || 1;
+    const mt = Number(marginTop) || 0;
+    const mr = Number(marginRight) || 0;
+    const mb = Number(marginBottom) || 0;
+    const ml = Number(marginLeft) || 0;
+    const bt = bleedEnabled ? Number(bleedTop) || 0 : 0;
+    const br = bleedEnabled ? Number(bleedRight) || 0 : 0;
+    const bb = bleedEnabled ? Number(bleedBottom) || 0 : 0;
+    const bl = bleedEnabled ? Number(bleedLeft) || 0 : 0;
+    return {
+      leftPercent: (ml / w) * 100,
+      rightPercent: (mr / w) * 100,
+      topPercent: (mt / h) * 100,
+      bottomPercent: (mb / h) * 100,
+      bleedLeftPercent: (bl / w) * 100,
+      bleedRightPercent: (br / w) * 100,
+      bleedTopPercent: (bt / h) * 100,
+      bleedBottomPercent: (bb / h) * 100,
+    };
+  }, [widthMm, heightMm, marginTop, marginRight, marginBottom, marginLeft, bleedTop, bleedRight, bleedBottom, bleedLeft, bleedEnabled]);
 
   return (
     <div className="p-4">
@@ -126,6 +175,68 @@ export default function DesignUploadPage() {
                   <option value="portrait">Portrait</option>
                   <option value="landscape">Landscape</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium">Margins (mm)</label>
+                <div className="flex gap-2 mt-2">
+                  <div>
+                    <label className="text-xs">Top</label>
+                    <input type="number" value={marginTop} onChange={(e) => { setMarginTop(Number(e.target.value)); if (useSameMargin) { setMarginRight(Number(e.target.value)); setMarginBottom(Number(e.target.value)); setMarginLeft(Number(e.target.value)); } }} className="input w-20" />
+                  </div>
+                  <div>
+                    <label className="text-xs">Right</label>
+                    <input type="number" value={marginRight} onChange={(e) => setMarginRight(Number(e.target.value))} className="input w-20" />
+                  </div>
+                  <div>
+                    <label className="text-xs">Bottom</label>
+                    <input type="number" value={marginBottom} onChange={(e) => setMarginBottom(Number(e.target.value))} className="input w-20" />
+                  </div>
+                  <div>
+                    <label className="text-xs">Left</label>
+                    <input type="number" value={marginLeft} onChange={(e) => setMarginLeft(Number(e.target.value))} className="input w-20" />
+                  </div>
+                </div>
+                <label className="inline-flex items-center mt-2">
+                  <input type="checkbox" checked={useSameMargin} onChange={(e) => handleSameMarginToggle(e.target.checked)} />
+                  <span className="ml-2 text-sm">Use same margin</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium">Bleed (mm)</label>
+                <label className="inline-flex items-center mt-2">
+                  <input type="checkbox" checked={bleedEnabled} onChange={(e) => setBleedEnabled(e.target.checked)} />
+                  <span className="ml-2 text-sm">Enable bleed</span>
+                </label>
+
+                {bleedEnabled && (
+                  <div className="flex gap-2 mt-2">
+                    <div>
+                      <label className="text-xs">Top</label>
+                      <input type="number" value={bleedTop} onChange={(e) => setBleedTop(Number(e.target.value))} className="input w-20" />
+                    </div>
+                    <div>
+                      <label className="text-xs">Right</label>
+                      <input type="number" value={bleedRight} onChange={(e) => setBleedRight(Number(e.target.value))} className="input w-20" />
+                    </div>
+                    <div>
+                      <label className="text-xs">Bottom</label>
+                      <input type="number" value={bleedBottom} onChange={(e) => setBleedBottom(Number(e.target.value))} className="input w-20" />
+                    </div>
+                    <div>
+                      <label className="text-xs">Left</label>
+                      <input type="number" value={bleedLeft} onChange={(e) => setBleedLeft(Number(e.target.value))} className="input w-20" />
+                    </div>
+                  </div>
+                )}
+
+                <label className="inline-flex items-center mt-2">
+                  <input type="checkbox" checked={showSafeArea} onChange={(e) => setShowSafeArea(e.target.checked)} />
+                  <span className="ml-2 text-sm">Show safe area</span>
+                </label>
               </div>
             </div>
 
