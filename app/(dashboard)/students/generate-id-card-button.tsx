@@ -104,7 +104,7 @@ export function GenerateIdCardButton({
         aria-label={admissionNumber ? `Generate ID card for ${admissionNumber}` : 'Generate ID card'}
       >
         {/* Icon visible only on mobile (small screens) */}
-        <span className="inline-flex items-center justify-center md:hidden" aria-hidden="true">🖤</span>
+        <span className="inline-flex items-center justify-center md:hidden" aria-hidden="true">🪪</span>
         {/* Text visible on md+ */}
         <span className="hidden md:inline">{loading ? 'Generating...' : 'Generate ID Card'}</span>
       </Button>
