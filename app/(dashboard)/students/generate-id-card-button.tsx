@@ -200,7 +200,29 @@ export function GenerateIdCardButton({
               <div className="flex items-center gap-2">
                 <button onClick={handlePrint} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">📄 Print / Save as PDF</button>
                 <button onClick={() => downloadCardAsWord(previewCard)} className="rounded-xl border border-blue-300 bg-white px-4 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-50">📝 Download .doc</button>
-                <button onClick={() => { /* future: request server PDF */ }} className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700">⬇️ Download PDF</button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/students/${encodeURIComponent(studentId)}/card-pdf?session_id=${encodeURIComponent(sessionId)}`);
+                      if (!res.ok) {
+                        const json = await res.json().catch(() => ({}));
+                        return push(json?.error || 'Failed to download PDF', 'error');
+                      }
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `ID_Card_${admissionNumber || studentId}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    } catch (e: any) {
+                      push(String(e?.message || e), 'error');
+                    }
+                  }}
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                >⬇️ Download PDF</button>
                 <button onClick={() => setPreviewCard(null)} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Close</button>
               </div>
             </div>
