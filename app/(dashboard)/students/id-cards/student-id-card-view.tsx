@@ -132,7 +132,7 @@ export function StudentIdCardView({
       showToast("Please select at least one card.", "error");
       return;
     }
-    setLoading('updateStatus', true);
+    setLoading(`updateStatus-${status}`, true);
     startTransition(async () => {
       try {
         const res = await updateCardStatus(selectedCards, status);
@@ -144,7 +144,7 @@ export function StudentIdCardView({
           router.refresh();
         }
       } finally {
-        setLoading('updateStatus', false);
+        setLoading(`updateStatus-${status}`, false);
       }
     });
   };
@@ -521,17 +521,17 @@ export function StudentIdCardView({
                 <span className="font-bold text-blue-950">{selectedCards.length} card(s) selected:</span>
                 <button
                   onClick={() => handleUpdateStatus("printed")}
-                  disabled={loadingButtons['updateStatus']}
+                  disabled={loadingButtons['updateStatus-printed']}
                   className="rounded-lg bg-emerald-600 px-3 py-1.5 text-white font-semibold hover:bg-emerald-700 shadow-xs"
                 >
-                  {loadingButtons['updateStatus'] ? 'Processing...' : 'Mark as Printed'}
+                  {loadingButtons['updateStatus-printed'] ? 'Processing...' : 'Mark as Printed'}
                 </button>
                 <button
                   onClick={() => handleUpdateStatus("cancelled")}
-                  disabled={loadingButtons['updateStatus']}
+                  disabled={loadingButtons['updateStatus-cancelled']}
                   className="rounded-lg bg-red-600 px-3 py-1.5 text-white font-semibold hover:bg-red-700 shadow-xs"
                 >
-                  {loadingButtons['updateStatus'] ? 'Processing...' : 'Cancel Cards'}
+                  {loadingButtons['updateStatus-cancelled'] ? 'Processing...' : 'Cancel Cards'}
                 </button>
               </div>
 
