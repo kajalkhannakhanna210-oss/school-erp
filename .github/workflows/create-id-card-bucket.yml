@@ -1,0 +1,20 @@
+name: Create Supabase id-card-designs bucket
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  create-bucket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Run bucket creation script (PowerShell)
+        uses: dawidd6/action-pwsh@v2
+        with:
+          script: |
+            pwsh -NoProfile -NonInteractive -Command "./scripts/create-id-card-bucket.ps1"
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

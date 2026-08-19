@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const admin = createAdminClient();
     const {
       name,
       front_file_path,
@@ -106,6 +107,23 @@ export async function POST(request: NextRequest) {
     } = payload;
 
     if (!name || !front_file_path) return error("A template name and front design are required.", 400);
+
+    // Validate that files exist in storage by attempting to create a short signed URL
+    const normalizePath = (p: string) => p.startsWith("id-card-designs/") ? p.replace(/^id-card-designs\//, "") : p;
+    try {
+      const frontPath = normalizePath(String(front_file_path));
+      // @ts-ignore
+      const { data: fData, error: fErr } = await admin.storage.from("id-card-designs").createSignedUrl(frontPath, 60);
+      if (fErr || !fData?.signedUrl) return error("Front design file not found in storage.", 400);
+      if (back_file_path) {
+        const backPath = normalizePath(String(back_file_path));
+        // @ts-ignore
+        const { data: bData, error: bErr } = await admin.storage.from("id-card-designs").createSignedUrl(backPath, 60);
+        if (bErr || !bData?.signedUrl) return error("Back design file not found in storage.", 400);
+      }
+    } catch (e: any) {
+      return error(`Design file validation failed: ${String(e?.message || e)}`, 500);
+    }
 
     // Insert template
     const insertRecord: any = {
