@@ -23,9 +23,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   const supabase = await createClient();
   try {
     // Always fetch the latest version (order by version desc, limit 1)
+    // Include template dimensions by joining the templates table (alias `template`)
     const { data, error: qErr } = await supabase
       .from("student_id_cards")
-      .select("*, snapshot")
+      .select("*, template:student_id_card_templates(width_mm, height_mm, orientation)")
       .eq("student_id", studentId)
       .order("version", { ascending: false })
       .limit(1)
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     if (sessionId) {
       const { data: sData, error: sErr } = await supabase
         .from("student_id_cards")
-        .select("*, snapshot")
+        .select("*, template:student_id_card_templates(width_mm, height_mm, orientation)")
         .eq("student_id", studentId)
         .eq("session_id", sessionId)
         .order("version", { ascending: false })

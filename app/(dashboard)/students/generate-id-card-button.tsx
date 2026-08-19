@@ -81,17 +81,38 @@ export function GenerateIdCardButton({
   }
 
   function handlePrint() {
-    // open a new window containing printable content for the previewCard
+    // open a new window containing printable content for the previewCard using template sizes
     if (!previewCard) return;
     const snap = previewCard.snapshot || {};
-    const html = `<html><head><title>ID Card</title><style>body{font-family:Arial,sans-serif} .card{width:3.375in;height:2.125in;border:1px solid #ccc;padding:10px}</style></head><body><div class="card"><h3>${snap.student_name || ''}</h3><p>Admission No: ${snap.admission_number || ''}</p><p>Class: ${snap.class_name || ''} - ${snap.section_name || ''}</p></div></body></html>`;
+    const tpl = previewCard.template || {};
+    const widthMm = Number(tpl.width_mm || 85.6);
+    const heightMm = Number(tpl.height_mm || 53.98);
+    const widthIn = (widthMm / 25.4).toFixed(3);
+    const heightIn = (heightMm / 25.4).toFixed(3);
+
+    const html = `<!doctype html><html><head><meta charset='utf-8'><title>ID Card</title><style>
+      @page { size: ${widthIn}in ${heightIn}in; margin: 0; }
+      body { font-family: Arial, sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+      .card { width: ${widthIn}in; height: ${heightIn}in; box-sizing: border-box; padding: 8px; border: 1px solid #ccc; background: white; }
+      .header { background:#eff6ff; padding:6px; font-weight:700; font-size:12px; color:#1e3a8a; }
+      .title { font-size:14px; font-weight:700; margin-top:6px; }
+      .field { font-size:11px; color:#334155; margin-bottom:4px; }
+    </style></head><body><div class="card">
+      <div class="header">ACADEMIC PUBLIC SCHOOL</div>
+      <div class="title">${snap.student_name || 'Student'}</div>
+      <div class="field"><b>Admission No:</b> ${snap.admission_number || 'N/A'}</div>
+      <div class="field"><b>Class / Sec:</b> ${snap.class_name || ''} - ${snap.section_name || ''}</div>
+      <div class="field"><b>Roll:</b> ${snap.roll_number || 'N/A'}</div>
+      <div class="field"><b>Mobile:</b> ${snap.mobile_number || 'N/A'}</div>
+    </div></body></html>`;
+
     const w = window.open('', '_blank');
     if (!w) return push('Could not open print window', 'error');
     w.document.open();
     w.document.write(html);
     w.document.close();
     w.focus();
-    setTimeout(() => w.print(), 250);
+    setTimeout(() => w.print(), 350);
   }
 
   return (
@@ -127,16 +148,29 @@ export function GenerateIdCardButton({
             </div>
 
             <div className="flex flex-col items-center gap-4">
-              <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
-                <div className="flex items-center gap-3 my-1">
-                  <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
-                    <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
+              {/* Responsive card container sized to template dimensions (falls back to sensible defaults) */}
+              {(() => {
+                const tpl = previewCard.template || {};
+                const widthMm = Number(tpl.width_mm || 85.6);
+                const heightMm = Number(tpl.height_mm || 53.98);
+                const paddingTop = (heightMm / widthMm) * 100;
+                return (
+                  <div style={{ width: '100%', maxWidth: `${widthMm}mm` }}>
+                    <div style={{ width: '100%', paddingTop: `${paddingTop}%`, position: 'relative' }}>
+                      <div style={{ position: 'absolute', inset: 0 }} className="rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
+                        <div className="flex items-center gap-3 my-1">
+                          <div className="w-14 h-16 rounded-md bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-500">👤</div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
+                            <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               <div className="flex items-center gap-2">
                 <button onClick={handlePrint} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">📄 Print / Save as PDF</button>
