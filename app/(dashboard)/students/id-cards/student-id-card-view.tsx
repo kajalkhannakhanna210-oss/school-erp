@@ -914,7 +914,15 @@ export function StudentIdCardView({
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-slate-900">Configured ID Card Templates</h2>
-            <span className="text-xs text-slate-500">Live preview rendered with sample student data</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500">Live preview rendered with sample student data</span>
+              <button
+                onClick={() => { window.location.href = '/students/id-cards/design'; }}
+                className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 shadow-xs"
+              >
+                ➕ Upload Template
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
