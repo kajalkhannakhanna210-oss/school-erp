@@ -101,8 +101,12 @@ export function GenerateIdCardButton({
         onClick={handleGenerate}
         disabled={isPending || loading}
         className={`inline-flex items-center gap-1.5 ${className}`}
+        aria-label={admissionNumber ? `Generate ID card for ${admissionNumber}` : 'Generate ID card'}
       >
-        {loading ? 'Generating...' : 'Generate ID Card'}
+        {/* Icon visible only on mobile (small screens) */}
+        <span className="inline-flex items-center justify-center md:hidden" aria-hidden="true">🖤</span>
+        {/* Text visible on md+ */}
+        <span className="hidden md:inline">{loading ? 'Generating...' : 'Generate ID Card'}</span>
       </Button>
 
       {previewCard && (
