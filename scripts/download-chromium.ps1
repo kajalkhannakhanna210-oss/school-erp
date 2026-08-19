@@ -34,7 +34,7 @@ Remove-Item $tmp -Force
 $exe = Join-Path $dest "chrome-win\chrome.exe"
 if (Test-Path $exe) {
     Write-Host "Chromium downloaded to: $dest\chrome-win"
-    Write-Host "Set environment variable for current PowerShell session with:`n$env:PUPPETEER_EXECUTABLE_PATH = \"$exe\"`
+    Write-Host "Set environment variable for current PowerShell session with:`n`$env:PUPPETEER_EXECUTABLE_PATH = '$exe'"
     Write-Host "To set permanently (current user):`n[Environment]::SetEnvironmentVariable('PUPPETEER_EXECUTABLE_PATH', '$exe', 'User')"
     exit 0
 } else {
