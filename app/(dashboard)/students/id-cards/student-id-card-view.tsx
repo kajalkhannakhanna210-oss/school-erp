@@ -220,7 +220,7 @@ export function StudentIdCardView({
             return (
               <div key={card.id} className="space-y-3 print:break-inside-avoid">
                 {/* FRONT SIDE */}
-                <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
+                <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
 
                   {/* Header */}
@@ -265,7 +265,7 @@ export function StudentIdCardView({
                 </div>
 
                 {/* BACK SIDE */}
-                <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
+                <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                     <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Card Instructions & Address (Back)</span>
                     <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>
@@ -334,7 +334,7 @@ export function StudentIdCardView({
           <div className="flex items-center gap-2 w-full md:w-auto">
             {/* Navigation Tabs - Responsive Fluid Segment Control */}
             <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 min-w-full md:min-w-0 w-max md:w-auto">
+              <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 w-full flex-wrap md:flex-nowrap">
                 <button
                   onClick={() => setActiveTab("generated")}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 ${
@@ -905,7 +905,7 @@ export function StudentIdCardView({
                   <div className="flex flex-col items-center gap-4 bg-slate-100/70 p-4 rounded-xl border border-slate-200">
                     <div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Front Side</span>
-                      <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
+                      <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
 
                         <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 bg-blue-50 -mx-3 -mt-3 p-2.5 rounded-t-lg">
@@ -948,7 +948,7 @@ export function StudentIdCardView({
 
                     <div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Back Side</span>
-                      <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
+                      <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
                         <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                           <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Instructions & Address</span>
                           <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>
@@ -1026,7 +1026,7 @@ export function StudentIdCardView({
               {/* FRONT SIDE */}
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Front Side</span>
-                <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
+                <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
 
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 bg-blue-50 -mx-3 -mt-3 p-2.5 rounded-t-lg">
@@ -1071,7 +1071,7 @@ export function StudentIdCardView({
               {/* BACK SIDE */}
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Back Side</span>
-                <div className="w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
+                <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                     <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Instructions & Address</span>
                     <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>
