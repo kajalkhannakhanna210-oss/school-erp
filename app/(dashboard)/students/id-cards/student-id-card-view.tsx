@@ -334,17 +334,17 @@ export function StudentIdCardView({
           <div className="flex items-center gap-2 w-full md:w-auto">
             {/* Navigation Tabs - Responsive Fluid Segment Control */}
             <div className="w-full md:w-auto overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 w-full flex-wrap md:flex-nowrap">
+              <div className="flex items-center gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80 w-max md:w-full">
                 <button
                   onClick={() => setActiveTab("generated")}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 ${
+                  className={`w-max md:flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 md:justify-center md:text-center ${
                     activeTab === "generated"
                       ? "bg-white text-blue-700 shadow-sm border border-slate-200/80"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <span>💳</span> Generated Cards
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  <span className={`ml-2 inline-flex items-center justify-center min-w-[28px] h-6 text-[11px] font-mono font-bold rounded-full ${
                     activeTab === "generated" ? "bg-blue-50 text-blue-700 border border-blue-200/60" : "bg-slate-200/80 text-slate-700"
                   }`}>
                     {cards.length}
@@ -353,14 +353,14 @@ export function StudentIdCardView({
 
                 <button
                   onClick={() => setActiveTab("generate_new")}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 ${
+                  className={`w-max md:flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 md:justify-center md:text-center ${
                     activeTab === "generate_new"
                       ? "bg-white text-blue-700 shadow-sm border border-slate-200/80"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <span>⏳</span> Pending Generation
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  <span className={`ml-2 inline-flex items-center justify-center min-w-[28px] h-6 text-[11px] font-mono font-bold rounded-full ${
                     activeTab === "generate_new" ? "bg-blue-50 text-blue-700 border border-blue-200/60" : "bg-slate-200/80 text-slate-700"
                   }`}>
                     {studentsWithoutCards.length}
@@ -369,14 +369,14 @@ export function StudentIdCardView({
 
                 <button
                   onClick={() => setActiveTab("templates")}
-                  className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 shrink-0 ${
+                  className={`w-max md:flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl transition-all duration-200 md:justify-center md:text-center ${
                     activeTab === "templates"
                       ? "bg-white text-blue-700 shadow-sm border border-slate-200/80"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <span>🎨</span> Templates
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  <span className={`ml-2 inline-flex items-center justify-center min-w-[28px] h-6 text-[11px] font-mono font-bold rounded-full ${
                     activeTab === "templates" ? "bg-blue-50 text-blue-700 border border-blue-200/60" : "bg-slate-200/80 text-slate-700"
                   }`}>
                     {templates.length}
