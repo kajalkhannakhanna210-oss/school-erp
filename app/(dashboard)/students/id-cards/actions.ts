@@ -69,7 +69,7 @@ export async function generateStudentIdCards(input: {
   // Fetch student details to build snapshots
   const { data: students, error: studentFetchErr } = await supabase
     .from("students")
-    .select("id, roll_number, admission_number, father_name, mother_name, mobile_number, address, profiles(full_name), classes(name), sections(name)")
+    .select("id, roll_number, admission_number, father_name, mother_name, mobile_number, address, photo_path, profiles(full_name), classes(name), sections(name)")
     .in("id", input.student_ids);
 
   if (studentFetchErr) {
@@ -95,6 +95,7 @@ export async function generateStudentIdCards(input: {
       guardian_name: student.father_name || student.mother_name || "N/A",
       mobile_number: student.mobile_number || "N/A",
       address: student.address || "N/A",
+      photo_path: student.photo_path || null,
     };
 
     // Check existing card version
@@ -212,4 +213,79 @@ export async function updateCardStatus(cardIds: string[], status: "printed" | "c
 
   revalidatePath("/students/id-cards");
   return { error: null, count: updatedCards?.length ?? 0 };
+}
+
+export async function updateStudentIdCardTemplate(input: {
+  id: string;
+  name: string;
+  is_default: boolean;
+}) {
+  const { user } = await requirePageAccess("student_id_cards");
+  const supabase = await createClient();
+  const name = input.name.trim().slice(0, 180);
+  if (!name) return { error: "Template name is required." };
+
+  if (input.is_default) {
+    const { data: previousDefaults } = await supabase
+      .from("student_id_card_templates")
+      .select("id")
+      .eq("is_default", true)
+      .neq("id", input.id);
+    const { error: clearError } = await supabase
+      .from("student_id_card_templates")
+      .update({ is_default: false })
+      .eq("is_default", true);
+    if (clearError) return { error: clearError.message };
+
+    const { error: auditError } = await supabase.from("student_id_card_template_audit_logs").insert([
+      ...(previousDefaults ?? []).map((template) => ({
+        template_id: template.id,
+        user_id: user.id,
+        action: "unset_default",
+      })),
+      { template_id: input.id, user_id: user.id, action: "set_default" },
+    ]);
+    if (auditError) return { error: auditError.message };
+  }
+
+  const { error } = await supabase
+    .from("student_id_card_templates")
+    .update({ name, is_default: input.is_default })
+    .eq("id", input.id);
+  if (error) return { error: error.message };
+
+  await recordServerAction({
+    action: "Update Student ID Card Template",
+    module: "Students",
+    page: "Student ID Cards",
+    resource: `/students/id-cards/templates/${input.id}`,
+    outcome: `Updated template ${input.id} by ${user.id}`,
+  });
+  revalidatePath("/students/id-cards");
+  return { error: null };
+}
+
+export async function archiveStudentIdCardTemplate(id: string) {
+  const { user } = await requirePageAccess("student_id_cards");
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("student_id_card_templates")
+    .update({ is_active: false, is_default: false })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  const { error: auditError } = await supabase
+    .from("student_id_card_template_audit_logs")
+    .insert({ template_id: id, user_id: user.id, action: "archived" });
+  if (auditError) return { error: auditError.message };
+
+  await recordServerAction({
+    action: "Archive Student ID Card Template",
+    module: "Students",
+    page: "Student ID Cards",
+    resource: `/students/id-cards/templates/${id}`,
+    outcome: `Archived template ${id} by ${user.id}`,
+  });
+  revalidatePath("/students/id-cards");
+  return { error: null };
 }

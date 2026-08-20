@@ -30,7 +30,7 @@ export default async function StudentIdCardsPage({ searchParams }: PageProps) {
       supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
       supabase.from("classes").select("id, name").order("name"),
       supabase.from("sections").select("id, name").order("name"),
-      supabase.from("student_id_card_templates").select("*").eq("is_active", true).order("created_at", { ascending: false }).then(
+      supabase.from("student_id_card_templates").select("*").eq("is_active", true).order("is_default", { ascending: false }).order("created_at", { ascending: false }).then(
         (res) => res,
         () => ({ data: [] })
       ),

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { generateStudentIdCards, updateCardStatus } from "./actions";
+import {
+  archiveStudentIdCardTemplate,
+  generateStudentIdCards,
+  updateCardStatus,
+  updateStudentIdCardTemplate,
+} from "./actions";
 
 interface StudentIdCardViewProps {
   cards: any[];
@@ -37,9 +42,21 @@ export function StudentIdCardView({
   const [activeTab, setActiveTab] = useState<"generated" | "generate_new" | "templates">("generated");
   const [selectedCards, setSelectedCards] = useState<string[]>([]);
   const [selectedStudentsToGenerate, setSelectedStudentsToGenerate] = useState<string[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(templates[0]?.id || "");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>(
+    templates.find((template) => template.is_default)?.id || templates[0]?.id || ""
+  );
   const [isPending, startTransition] = useTransition();
   const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [editingTemplateName, setEditingTemplateName] = useState("");
+  const [editingTemplateDefault, setEditingTemplateDefault] = useState(false);
+  const defaultTemplateId = templates.find((template) => template.is_default)?.id || templates[0]?.id || "";
+
+  useEffect(() => {
+    if (!selectedTemplate || !templates.some((template) => template.id === selectedTemplate)) {
+      setSelectedTemplate(defaultTemplateId);
+    }
+  }, [defaultTemplateId, selectedTemplate, templates]);
 
   // Print state
   const [printMode, setPrintMode] = useState<boolean>(false);
@@ -69,6 +86,53 @@ export function StudentIdCardView({
   function showToast(text: string, type: "success" | "error" = "success") {
     setToastMessage({ text, type });
     setTimeout(() => setToastMessage(null), 4000);
+  }
+
+  function beginTemplateEdit(template: any) {
+    setEditingTemplateId(template.id);
+    setEditingTemplateName(template.name || "");
+    setEditingTemplateDefault(Boolean(template.is_default));
+  }
+
+  function saveTemplateEdit() {
+    if (!editingTemplateId) return;
+    setLoading("template-edit", true);
+    startTransition(async () => {
+      try {
+        const result = await updateStudentIdCardTemplate({
+          id: editingTemplateId,
+          name: editingTemplateName,
+          is_default: editingTemplateDefault,
+        });
+        if (result.error) {
+          showToast(result.error, "error");
+        } else {
+          showToast("Template updated.");
+          setEditingTemplateId(null);
+          router.refresh();
+        }
+      } finally {
+        setLoading("template-edit", false);
+      }
+    });
+  }
+
+  function archiveTemplate(id: string) {
+    if (!window.confirm("Archive this template? Existing cards will keep using it, but it will no longer be available for new cards.")) return;
+    setLoading(`template-archive-${id}`, true);
+    startTransition(async () => {
+      try {
+        const result = await archiveStudentIdCardTemplate(id);
+        if (result.error) {
+          showToast(result.error, "error");
+        } else {
+          showToast("Template archived.");
+          router.refresh();
+        }
+      } finally {
+        setLoading(`template-archive-${id}`, false);
+      }
+    });
   }
 
   const handleSelectAllCards = (checked: boolean) => {
@@ -150,6 +214,7 @@ export function StudentIdCardView({
   };
 
   const printableCardsList = cards.filter((c) => selectedCards.length === 0 || selectedCards.includes(c.id));
+  const previewTemplate = previewCard ? templates.find((template) => template.id === previewCard.template_id) : null;
 
   function downloadAsWord() {
     const list = printableCardsList;
@@ -238,11 +303,21 @@ export function StudentIdCardView({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 print:grid-cols-2 print:gap-4 print:p-0">
           {printableCardsList.map((card) => {
             const snap = card.snapshot || {};
+            const cardTemplate = templates.find((template) => template.id === card.template_id);
+            const frontDesignPath = cardTemplate?.options?.front_file_path;
+            const backDesignPath = cardTemplate?.options?.back_file_path;
             return (
               <div key={card.id} className="space-y-3 print:break-inside-avoid">
                 {/* FRONT SIDE */}
                 <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
+                  {frontDesignPath && (
+                    <img
+                      src={`/api/id-card-designs/preview?file=${encodeURIComponent(frontDesignPath)}`}
+                      alt={`${cardTemplate?.name || "ID card"} front design`}
+                      className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                    />
+                  )}
 
                   {/* Header */}
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 bg-blue-50 -mx-3 -mt-3 p-2.5 rounded-t-lg">
@@ -287,6 +362,13 @@ export function StudentIdCardView({
 
                 {/* BACK SIDE */}
                 <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md print:shadow-none relative overflow-hidden">
+                  {backDesignPath && (
+                    <img
+                      src={`/api/id-card-designs/preview?file=${encodeURIComponent(backDesignPath)}`}
+                      alt={`${cardTemplate?.name || "ID card"} back design`}
+                      className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                    />
+                  )}
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                     <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Card Instructions & Address (Back)</span>
                     <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>
@@ -935,8 +1017,17 @@ export function StudentIdCardView({
                 <div key={tpl.id} className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-2xs">
                   <div className="flex items-center justify-between">
                     <div>
+                    {editingTemplateId === tpl.id ? (
+                      <input
+                        value={editingTemplateName}
+                        onChange={(event) => setEditingTemplateName(event.target.value)}
+                        className="w-full rounded-lg border border-blue-300 px-2 py-1 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-blue-100"
+                        aria-label="Template name"
+                      />
+                    ) : (
                       <h3 className="text-sm font-bold text-slate-900">{tpl.name}</h3>
-                      <p className="text-[11px] text-slate-500">{tpl.card_title}</p>
+                    )}
+                    <p className="text-[11px] text-slate-500">{tpl.card_title}</p>
                     </div>
                     {tpl.is_default && (
                       <span className="rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
@@ -945,12 +1036,39 @@ export function StudentIdCardView({
                     )}
                   </div>
 
+                  {editingTemplateId === tpl.id && (
+                    <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={editingTemplateDefault}
+                        onChange={(event) => setEditingTemplateDefault(event.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      Make default template
+                    </label>
+                  )}
+
                   {/* Card Visual Preview Box - Front & Back */}
                   <div className="flex flex-col items-center gap-4 bg-slate-100/70 p-4 rounded-xl border border-slate-200">
                     <div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Front Side</span>
                       <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
+                        {tpl.options?.front_file_path && (
+                          tpl.options.front_file_path.toLowerCase().endsWith(".pdf") ? (
+                            <iframe
+                              src={`/api/id-card-designs/preview?file=${encodeURIComponent(tpl.options.front_file_path)}`}
+                              title={`${tpl.name} front design`}
+                              className="absolute inset-0 z-10 h-full w-full border-0 bg-white"
+                            />
+                          ) : (
+                            <img
+                              src={`/api/id-card-designs/preview?file=${encodeURIComponent(tpl.options.front_file_path)}`}
+                              alt={`${tpl.name} front design`}
+                              className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                            />
+                          )
+                        )}
 
                         <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 bg-blue-50 -mx-3 -mt-3 p-2.5 rounded-t-lg">
                           <div className="flex items-center gap-1.5">
@@ -993,6 +1111,21 @@ export function StudentIdCardView({
                     <div>
                       <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Back Side</span>
                       <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-md relative overflow-hidden shrink-0 transform-gpu">
+                        {tpl.options?.back_file_path && (
+                          tpl.options.back_file_path.toLowerCase().endsWith(".pdf") ? (
+                            <iframe
+                              src={`/api/id-card-designs/preview?file=${encodeURIComponent(tpl.options.back_file_path)}`}
+                              title={`${tpl.name} back design`}
+                              className="absolute inset-0 z-10 h-full w-full border-0 bg-white"
+                            />
+                          ) : (
+                            <img
+                              src={`/api/id-card-designs/preview?file=${encodeURIComponent(tpl.options.back_file_path)}`}
+                              alt={`${tpl.name} back design`}
+                              className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                            />
+                          )
+                        )}
                         <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                           <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Instructions & Address</span>
                           <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>
@@ -1032,6 +1165,52 @@ export function StudentIdCardView({
                       <span className="font-semibold text-emerald-600">Active</span>
                     </p>
                   </div>
+
+                  <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+                    {editingTemplateId === tpl.id ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTemplateId(null)}
+                          className="rounded-lg px-3 py-1.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={saveTemplateEdit}
+                          disabled={loadingButtons["template-edit"]}
+                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                        >
+                          {loadingButtons["template-edit"] ? "Saving..." : "Save changes"}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => beginTemplateEdit(tpl)}
+                          className="rounded-lg border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-50"
+                        >
+                          Edit details
+                        </button>
+                        <a
+                          href={`/students/id-cards/design?template_id=${encodeURIComponent(tpl.id)}`}
+                          className="rounded-lg border border-blue-100 px-3 py-1.5 text-[11px] font-semibold text-blue-700 hover:bg-blue-50"
+                        >
+                          Edit design
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => archiveTemplate(tpl.id)}
+                          disabled={loadingButtons[`template-archive-${tpl.id}`]}
+                          className="rounded-lg border border-red-100 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {loadingButtons[`template-archive-${tpl.id}`] ? "Archiving..." : "Archive"}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))
             )}
@@ -1051,7 +1230,7 @@ export function StudentIdCardView({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">
-                  Identity Card Preview: {previewCard.snapshot?.student_name || "Student Card"}
+                  Identity Card Preview: {previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || "Unnamed student"}
                 </h3>
                 <p className="text-xs text-slate-500 font-mono">
                   Admission No: {previewCard.snapshot?.admission_number || "N/A"} · Version v{previewCard.version || 1}
@@ -1072,6 +1251,13 @@ export function StudentIdCardView({
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Front Side</span>
                 <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-xl pointer-events-none" />
+                  {previewTemplate?.options?.front_file_path && (
+                    <img
+                      src={`/api/id-card-designs/preview?file=${encodeURIComponent(previewTemplate.options.front_file_path)}`}
+                      alt="Student ID card front design"
+                      className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                    />
+                  )}
 
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1.5 bg-blue-50 -mx-3 -mt-3 p-2.5 rounded-t-lg">
                     <div className="flex items-center gap-1.5">
@@ -1094,7 +1280,7 @@ export function StudentIdCardView({
                     </div>
 
                     <div className="flex-1 min-w-0 space-y-0.5">
-                      <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name || "N/A"}</h3>
+                      <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || "Unnamed student"}</h3>
                       <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number || "N/A"}</span></p>
                       <div className="grid grid-cols-2 gap-1 text-[8px] text-slate-600">
                         <div>Class: <span className="font-semibold text-slate-900">{previewCard.snapshot?.class_name || "N/A"}</span></div>
@@ -1116,6 +1302,13 @@ export function StudentIdCardView({
               <div>
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Back Side</span>
                 <div className="w-full max-w-[85mm] h-[54mm] rounded-xl border-2 border-slate-300 bg-white p-3 text-slate-800 flex flex-col justify-between shadow-lg relative overflow-hidden shrink-0">
+                  {previewTemplate?.options?.back_file_path && (
+                    <img
+                      src={`/api/id-card-designs/preview?file=${encodeURIComponent(previewTemplate.options.back_file_path)}`}
+                      alt="Student ID card back design"
+                      className="absolute inset-0 z-10 h-full w-full bg-white object-contain"
+                    />
+                  )}
                   <div className="flex items-center justify-between border-b border-slate-200 pb-1 bg-slate-50 -mx-3 -mt-3 p-2 rounded-t-lg">
                     <span className="text-[8px] font-bold uppercase tracking-wider text-blue-800">Instructions & Address</span>
                     <span className="text-[7px] text-slate-500 font-mono">SECURE CARD</span>

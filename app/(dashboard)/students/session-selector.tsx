@@ -3,12 +3,14 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
-export function SessionSelector({ sessions, className = "" }: { sessions: { id: string; name: string }[]; className?: string }) {
+export function SessionSelector({ sessions, className = "" }: { sessions: { id: string; name: string; is_current?: boolean }[]; className?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
-  const [selectedSession, setSelectedSession] = useState(searchParams?.get("session") ?? sessions[0]?.id ?? "");
+  const [selectedSession, setSelectedSession] = useState(
+    searchParams?.get("session") ?? sessions.find((session) => session.is_current)?.id ?? sessions[0]?.id ?? "",
+  );
   const value = selectedSession;
 
   function changeSession(session: string) {

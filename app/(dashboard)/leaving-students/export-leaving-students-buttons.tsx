@@ -1,14 +1,17 @@
 "use client";
 
-import { Button } from "@/components/ui";
+import { useState } from "react";
 
 interface ExportLeavingStudentsProps {
   requests: any[];
 }
 
 export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudentsProps) {
+  const [processing, setProcessing] = useState<"csv" | "excel" | "pdf" | null>(null);
+
   function exportCSV() {
     if (!requests || requests.length === 0) return;
+    setProcessing("csv");
     const headers = [
       "Certificate No",
       "Admission No",
@@ -41,11 +44,13 @@ export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudents
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setProcessing(null);
   }
 
   function exportExcel() {
     // Standard TSV format readable directly by Excel
     if (!requests || requests.length === 0) return;
+    setProcessing("excel");
     const headers = [
       "Certificate No\tAdmission No\tStudent Name\tClass\tSection\tLeaving Date\tReason\tStatus\tClearance Status",
     ];
@@ -66,10 +71,13 @@ export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudents
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setProcessing(null);
   }
 
   function printPDF() {
+    setProcessing("pdf");
     window.print();
+    window.setTimeout(() => setProcessing(null), 800);
   }
 
   return (
@@ -77,28 +85,31 @@ export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudents
       <button
         type="button"
         onClick={exportCSV}
+        disabled={!requests?.length || processing !== null}
         className="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition"
         title="Export CSV"
       >
-        <span>📥</span> <span className="hidden sm:inline">Export </span>CSV
+        <span>{processing === "csv" ? "Processing..." : <><span>📥</span> <span className="hidden sm:inline">Export </span>CSV</>}</span>
       </button>
 
       <button
         type="button"
         onClick={exportExcel}
+        disabled={!requests?.length || processing !== null}
         className="inline-flex items-center justify-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-emerald-700 shadow-2xs hover:bg-emerald-100 transition"
         title="Export Excel"
       >
-        <span>📊</span> <span className="hidden sm:inline">Export </span>Excel
+        <span>{processing === "excel" ? "Processing..." : <><span>📊</span> <span className="hidden sm:inline">Export </span>Excel</>}</span>
       </button>
 
       <button
         type="button"
         onClick={printPDF}
+        disabled={!requests?.length || processing !== null}
         className="inline-flex items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] sm:text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 transition"
         title="Print / Save PDF"
       >
-        <span>🖨️</span> <span className="hidden sm:inline">Export </span>PDF
+        <span>{processing === "pdf" ? "Processing..." : <><span>🖨️</span> <span className="hidden sm:inline">Export </span>PDF</>}</span>
       </button>
     </div>
   );

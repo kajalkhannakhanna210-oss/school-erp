@@ -5,11 +5,25 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { ExportCsvButton } from "./export-csv-button";
 import { StudentFilters } from "./student-filters";
-import { StudentTable, type StudentRow } from "./student-table";
+import nextDynamic from "next/dynamic";
+import type { StudentRow } from "./student-table";
+const StudentTable = nextDynamic(() => import("./student-table").then((mod) => mod.StudentTable), {
+  ssr: false,
+  loading: () => (
+    <div className="p-6">
+      <div className="animate-pulse space-y-2">
+        <div className="h-4 w-48 rounded bg-ink-50" />
+        <div className="h-3 w-full rounded bg-ink-50" />
+      </div>
+    </div>
+  ),
+});
 import { BulkStudentUpdate } from "./bulk-update";
 import { StudentDirectoryMenu, StudentDirectoryMenuItem } from "./student-directory-menu";
 import { StudentFilterToggle } from "./student-filter-toggle";
+import { SummaryCard } from "./summary-card";
 import { DeleteAllStudents } from "./delete-all-students";
+import { getStudentStats } from "@/lib/students";
 
 const PAGE_SIZE = 10;
 export const dynamic = "force-dynamic";
@@ -17,7 +31,7 @@ export const dynamic = "force-dynamic";
 export default async function StudentsPage({
   searchParams,
 }: {
-    searchParams: { q?: string; class?: string; section?: string; session?: string; admission?: string; page?: string; filters?: string };
+    searchParams: { q?: string; class?: string; section?: string; session?: string; admission?: string; page?: string; filters?: string; tab?: string };
 }) {
   try {
     await requirePageAccess("students");
@@ -47,31 +61,48 @@ export default async function StudentsPage({
     .select("*, profiles(full_name), classes(name), sections(name), academic_sessions(name)", { count: "exact" })
     .order("admission_number");
 
+  // Apply basic filters
   if (searchParams.class) query = query.eq("class_id", searchParams.class);
   if (searchParams.section) query = query.eq("section_id", searchParams.section);
   if (searchParams.session) query = enrollmentStudentIds?.length ? query.in("id", enrollmentStudentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
   if (searchParams.admission === "assigned") query = query.not("admission_number", "is", null).neq("admission_number", "");
   if (searchParams.admission === "unassigned") query = query.or("admission_number.is.null,admission_number.eq.");
+
+  // Tab mappings (category tabs)
+  if (searchParams.tab === "new") {
+    query = query.or("admission_number.is.null,admission_number.eq.");
+  }
+  if (searchParams.tab === "admission-assigned") {
+    query = query.not("admission_number", "is", null).neq("admission_number", "");
+  }
+  if (searchParams.tab === "archived") {
+    query = query.eq("is_active", false);
+  }
+  if (searchParams.tab === "left") {
+    // find leaving student ids for session (if session provided) or all
+    const { data: leaving } = searchParams.session
+      ? await supabase.from("student_leaving_requests").select("student_id").eq("status", "student_left").eq("session_id", searchParams.session)
+      : await supabase.from("student_leaving_requests").select("student_id").eq("status", "student_left");
+    const leftIds = (leaving ?? []).map((r: any) => r.student_id);
+    if (leftIds.length === 0) query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+    else query = query.in("id", leftIds);
+  }
+
   if (searchParams.q) {
     const q = searchParams.q.replace(/[,()]/g, "");
     query = query.or(`admission_number.ilike.%${q}%,mobile_number.ilike.%${q}%`);
     // Name lives on the joined `profiles` table, which .or() can't filter on
-    // directly — worth a `students_search` view or RPC if name search matters
-    // more than admission number / mobile.
+    // directly — consider an RPC / search view if name search becomes critical.
   }
 
   const { data: students, count } = await query.range(from, to);
 
-  const sessionScope = <T,>(query: T): T => searchParams.session
-    ? (enrollmentStudentIds?.length ? (query as any).in("id", enrollmentStudentIds) : (query as any).eq("id", "00000000-0000-0000-0000-000000000000"))
-    : query;
-  const [{ data: classes }, { data: sections }, { data: sessions }, { count: assignedCount }, { count: unassignedCount }, { count: totalStudentCount }] = await Promise.all([
+  // Fetch supporting lists and stats in parallel
+  const [{ data: classes }, { data: sections }, { data: sessions }, stats] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("sections").select("id, name, class_id").order("name"),
-    supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }),
-    sessionScope(supabase.from("students").select("id", { count: "exact", head: true }).not("admission_number", "is", null).neq("admission_number", "")),
-    sessionScope(supabase.from("students").select("id", { count: "exact", head: true }).or("admission_number.is.null,admission_number.eq.")),
-    sessionScope(supabase.from("students").select("id", { count: "exact", head: true }).eq("is_active", true)),
+    supabase.from("academic_sessions").select("id, name, is_current, start_date").order("start_date", { ascending: false }),
+    getStudentStats(supabase, searchParams.session),
   ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
@@ -83,6 +114,9 @@ export default async function StudentsPage({
     }
     return { ...student, photo_url } as StudentRow;
   }));
+
+  // choose default session for filter select if none provided
+  const defaultSessionId = (sessions ?? []).find((s: any) => s.is_current)?.id ?? "";
 
   return (
     <div className="min-w-0">
@@ -116,23 +150,22 @@ export default async function StudentsPage({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="h-20 rounded-xl border border-ink-100 bg-white px-3 pt-3 pb-2 shadow-sm sm:h-auto sm:px-4 sm:py-4">
-          <p className="flex items-center gap-1.5 text-xs leading-tight text-slate/70 sm:gap-2 sm:text-sm"><span className="h-2 w-2 shrink-0 rounded-full bg-ink-700 sm:h-2.5 sm:w-2.5" aria-hidden="true" />Total students</p>
-          <p className="mt-1 text-lg font-bold text-ink-700 sm:mt-2 sm:text-2xl">{totalStudentCount ?? 0}</p>
-        </div>
-        <div className="h-20 rounded-xl border border-ink-100 bg-white px-3 pt-3 pb-2 shadow-sm sm:h-auto sm:px-4 sm:py-4">
-          <p className="flex items-center gap-1.5 text-xs leading-tight text-slate/70 sm:gap-2 sm:text-sm"><span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500 sm:h-2.5 sm:w-2.5" aria-hidden="true" />With adm. no.</p>
-          <p className="mt-1 text-lg font-bold text-ink-700 sm:mt-2 sm:text-2xl">{assignedCount ?? 0}</p>
-        </div>
-        <div className="h-20 rounded-xl border border-ink-100 bg-white px-3 pt-3 pb-2 shadow-sm sm:h-auto sm:px-4 sm:py-4">
-          <p className="flex items-center gap-1.5 text-xs leading-tight text-slate/70 sm:gap-2 sm:text-sm"><span className="h-2 w-2 shrink-0 rounded-full bg-amber-500 sm:h-2.5 sm:w-2.5" aria-hidden="true" />Without adm. no.</p>
-          <p className="mt-1 text-lg font-bold text-ink-700 sm:mt-2 sm:text-2xl">{unassignedCount ?? 0}</p>
-        </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 sm:gap-3 lg:gap-3 items-stretch">
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "all" }).toString()}`} title="Total students" count={stats.totalStudents} subtitle="All student records" colorClass="bg-ink-700" active={searchParams.tab === "all" || !searchParams.tab} />
+
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "new" }).toString()}`} title="New Students" count={stats.newStudents} subtitle="Without Admission Number" colorClass="bg-emerald-500" active={searchParams.tab === "new"} />
+
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`} title="Admission No. Assigned" count={stats.studentsWithAdmissionNumber} subtitle="Admission number available" colorClass="bg-amber-500" active={searchParams.tab === "admission-assigned"} />
+
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "old" }).toString()}`} title="Old Students" count={stats.oldStudents} subtitle="Existing/old records" colorClass="bg-ink-700" active={searchParams.tab === "old"} />
+
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "archived" }).toString()}`} title="Archived" count={stats.archivedStudents} subtitle="Archived student records" colorClass="bg-rose-500" active={searchParams.tab === "archived"} />
+
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "left" }).toString()}`} title="Students Left" count={stats.studentsLeft} subtitle="Students who left school" colorClass="bg-slate-500" active={searchParams.tab === "left"} />
       </div>
 
       <div className="mt-2 rounded-lg border-0 bg-transparent px-0 py-0 shadow-none sm:border sm:border-ink-100 sm:bg-ink-50/50 sm:px-3 sm:py-1.5 sm:shadow-sm">
-        <StudentFilters classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} />
+        <StudentFilters classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} defaultSessionId={defaultSessionId} />
       </div>
 
       <div className="mt-2">

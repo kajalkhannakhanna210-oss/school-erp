@@ -13,13 +13,9 @@ export async function GET(request: NextRequest) {
   const fileParam = request.nextUrl.searchParams.get("file");
   if (!fileParam) return error("Missing file parameter.", 400);
 
-  // Only allow paths inside the id-card-designs bucket
-  // Accept either: full path like "id-card-designs/<id>/<file>" or just "<id>/<file>"
-  let internalPath = fileParam;
-  if (fileParam.startsWith("id-card-designs/")) {
-    internalPath = fileParam.replace(/^id-card-designs\//, "");
-  }
-  if (!internalPath || internalPath.includes("..")) return error("Invalid file path.", 400);
+  // Accept both the current bucket-relative path and the older
+  // "id-card-designs/<id>/<file>" format.
+  if (fileParam.includes("..")) return error("Invalid file path.", 400);
 
   try {
     await requirePageAccess("student_id_cards");
@@ -29,13 +25,15 @@ export async function GET(request: NextRequest) {
 
   const admin = createAdminClient();
   try {
-    // Create a short-lived signed URL (60s)
-    // @ts-ignore
-    const { data, error } = await admin.storage.from("id-card-designs").createSignedUrl(internalPath, 60);
-    if (error || !data?.signedUrl) {
-      return error("Could not generate preview URL.", 500);
+    const candidates = Array.from(new Set([
+      fileParam,
+      fileParam.replace(/^id-card-designs\//, ""),
+    ]));
+    for (const candidate of candidates) {
+      const { data, error: storageError } = await admin.storage.from("id-card-designs").createSignedUrl(candidate, 60);
+      if (!storageError && data?.signedUrl) return NextResponse.redirect(data.signedUrl);
     }
-    return NextResponse.redirect(data.signedUrl);
+    return error("Could not generate preview URL.", 500);
   } catch (e: any) {
     return error(`Preview failed: ${String(e?.message || e)}`, 500);
   }

@@ -148,7 +148,7 @@ export function GenerateIdCardButton({
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Identity Card Preview: {previewCard.snapshot?.student_name || 'Student'}</h3>
+                <h3 className="text-base font-bold text-slate-900">Identity Card Preview: {previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || 'Unnamed student'}</h3>
                 <p className="text-xs text-slate-500">Admission No: {previewCard.snapshot?.admission_number || 'N/A'}</p>
               </div>
               <button onClick={() => setPreviewCard(null)} className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 text-sm font-bold">✕</button>
@@ -184,7 +184,7 @@ export function GenerateIdCardButton({
                         <div className="relative z-10 flex items-center gap-3 my-1">
                           <div style={{ width: 56, height: 64 }} className="rounded-md bg-transparent border-transparent" />
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name}</h3>
+                            <h3 className="text-xs font-bold text-slate-900 truncate">{previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || 'Unnamed student'}</h3>
                             <p className="text-[9px] text-blue-700 font-mono font-medium">Adm No: <span className="text-slate-900 font-bold">{previewCard.snapshot?.admission_number}</span></p>
                           </div>
                         </div>

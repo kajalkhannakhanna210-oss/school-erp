@@ -340,7 +340,7 @@ export default async function LeavingRequestDetailsPage({
               )}
 
               {/* Cancel Request */}
-              {request.status !== "student_left" && request.status !== "cancelled" && request.status !== "rejected" && (
+              {(request.status === "leaving_requested" || request.status === "verification_pending" || request.status === "approved") && (
                 <form action={transitionRequestAction}>
                   <input type="hidden" name="requestId" value={request.id} />
                   <input type="hidden" name="targetStatus" value="cancelled" />

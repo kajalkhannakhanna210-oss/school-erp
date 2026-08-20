@@ -2,15 +2,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Badge, Button, Card } from "@/components/ui";
-import { FeeSummary } from "@/app/(dashboard)/fees/fee-summary";
-import { PaymentHistory } from "@/app/(dashboard)/fees/payment-history";
+import nextDynamic from "next/dynamic";
+const FeeSummary = nextDynamic(() => import("@/app/(dashboard)/fees/fee-summary").then((m) => m.FeeSummary), { ssr: false, loading: () => <div className="p-4"><div className="animate-pulse space-y-2"><div className="h-4 w-40 rounded bg-ink-50" /><div className="h-3 w-full rounded bg-ink-50" /></div></div> });
+const PaymentHistory = nextDynamic(() => import("@/app/(dashboard)/fees/payment-history").then((m) => m.PaymentHistory), { ssr: false, loading: () => <div className="p-4"><div className="animate-pulse space-y-2"><div className="h-4 w-40 rounded bg-ink-50" /><div className="h-3 w-full rounded bg-ink-50" /></div></div> });
 import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import { DateValue } from "@/components/date-value";
 import { ArchiveControl } from "./archive-control";
 import { PhotoUpload } from "./photo-upload";
 import { GenerateIdCardButton } from "../generate-id-card-button";
-import { DocumentPanel } from "@/components/documents/document-panel";
+const DocumentPanel = nextDynamic(() => import("@/components/documents/document-panel").then((mod) => mod.DocumentPanel), {
+  ssr: false,
+  loading: () => (
+    <div className="p-4">
+      <div className="animate-pulse space-y-2">
+        <div className="h-6 w-40 rounded bg-ink-50" />
+        <div className="h-3 w-full rounded bg-ink-50" />
+      </div>
+    </div>
+  ),
+});
 import { canManageDocument, canViewDocumentAudit, getDocumentActor, listDocumentActivity, listDocumentCategories, listDocumentsForSubject } from "@/lib/documents";
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
@@ -101,15 +112,28 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                 className="w-full sm:w-auto text-blue-700 border-blue-300 hover:bg-blue-50"
               />
             )}
+
             <Link href={`/students/${s.id}/edit`} className="flex-1 sm:flex-none">
               <Button className="w-full sm:w-auto">Edit student</Button>
             </Link>
             <Link href={`/leaving-students/new?studentId=${s.id}`} className="flex-1 sm:flex-none">
               <Button variant="outline" className="w-full sm:w-auto text-gold-700 border-gold-300">Initiate Leaving Request 🚪</Button>
             </Link>
+
             <div className="flex-1 sm:flex-none">
               <ArchiveControl studentId={s.id} isActive={s.is_active} />
             </div>
+
+            {/* Action menu (small) with additional options */}
+            <details className="relative inline-block">
+              <summary className="list-none cursor-pointer rounded-md border border-ink-100 bg-ink-50 px-3 py-2 text-sm">More ▾</summary>
+              <div className="absolute right-0 z-10 mt-2 w-40 rounded-md border border-ink-100 bg-white p-2 shadow-lg">
+                <a href={`/students/${s.id}/print`} className="block rounded px-2 py-2 text-sm text-ink-700 hover:bg-ink-50">Print Info Sheet</a>
+                {s.admission_number && (
+                  <a href={`/api/students/${encodeURIComponent(s.id)}/card-pdf?type=card`} className="block rounded px-2 py-2 text-sm text-ink-700 hover:bg-ink-50" target="_blank" rel="noopener noreferrer">Download ID Card (PDF)</a>
+                )}
+              </div>
+            </details>
           </div>
         )}
       </div>

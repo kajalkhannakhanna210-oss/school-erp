@@ -10,10 +10,12 @@ export function StudentFilters({
   classes,
   sections,
   sessions,
+  defaultSessionId,
 }: {
   classes: Option[];
   sections: (Option & { class_id: string })[];
   sessions: Option[];
+  defaultSessionId?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +23,7 @@ export function StudentFilters({
   const [q, setQ] = useState(searchParams?.get("q") ?? "");
   const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
   const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
-  const [sessionId, setSessionId] = useState(searchParams?.get("session") ?? "");
+  const [sessionId, setSessionId] = useState(searchParams?.get("session") ?? defaultSessionId ?? "");
   const [admission, setAdmission] = useState(searchParams?.get("admission") ?? "");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pending, startTransition] = useTransition();

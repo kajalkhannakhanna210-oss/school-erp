@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LeavingStudentsFilters } from "./leaving-students-filters";
 import { ExportLeavingStudentsButtons } from "./export-leaving-students-buttons";
+import { ProcessingLink } from "./processing-link";
 import { redirect } from "next/navigation";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
 import { requirePageAccess } from "@/lib/require-role";
@@ -114,11 +115,9 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <Link href="/leaving-students/new">
-            <Button variant="primary" className="gap-2 bg-ink-900 hover:bg-ink-800 text-gold-400 font-semibold shadow-xs">
-              <span>+</span> Initiate Exit & Clearance
-            </Button>
-          </Link>
+          <ProcessingLink href="/leaving-students/new" variant="primary" className="gap-2 bg-ink-900 hover:bg-ink-800 text-gold-400 font-semibold shadow-xs">
+            <span>+</span> Initiate Exit & Clearance
+          </ProcessingLink>
         </div>
       </div>
 
@@ -248,11 +247,9 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
 
                     {/* Card Actions Footer */}
                     <div className="flex items-center justify-end pt-1 border-t border-slate-100">
-                      <Link href={`/leaving-students/${r.id}`}>
-                        <Button size="sm" variant="outline" className="text-xs py-1 px-3">
-                          Manage Request →
-                        </Button>
-                      </Link>
+                      <ProcessingLink href={`/leaving-students/${r.id}`} size="sm" variant="outline" className="text-xs py-1 px-3">
+                        Manage Request →
+                      </ProcessingLink>
                     </div>
                   </div>
                 </article>
@@ -324,11 +321,9 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
                       )}
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-right">
-                      <Link href={`/leaving-students/${r.id}`}>
-                        <Button size="sm" variant="outline">
-                          Manage Request →
-                        </Button>
-                      </Link>
+                      <ProcessingLink href={`/leaving-students/${r.id}`} size="sm" variant="outline">
+                        Manage Request →
+                      </ProcessingLink>
                     </td>
                   </tr>
                 ))

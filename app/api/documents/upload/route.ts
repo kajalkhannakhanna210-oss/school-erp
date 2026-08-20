@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";
 import {
   canManageDocument,
@@ -30,6 +31,26 @@ function error(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    await requirePageAccess("student_id_cards");
+  } catch {
+    return error("Not authorized.", 403);
+  }
+
+  const templateId = request.nextUrl.searchParams.get("template_id");
+  if (!templateId || !isUuid(templateId)) return error("Invalid template id.", 400);
+
+  const supabase = await createClient();
+  const { data, error: queryError } = await supabase
+    .from("student_id_card_templates")
+    .select("id, name, width_mm, height_mm, orientation, is_default, options")
+    .eq("id", templateId)
+    .single();
+  if (queryError || !data) return error("Template not found.", 404);
+  return NextResponse.json({ template: data });
+}
+
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return error("Invalid request.", 403);
 
@@ -59,7 +80,9 @@ export async function POST(request: NextRequest) {
       const doc = validation.value;
       const designId = randomUUID();
       const safeName = sanitizeStorageFileName(doc.originalFileName || doc.storedFileName);
-      const filePath = `id-card-designs/${designId}/${doc.storedFileName}`;
+      // The bucket name is supplied separately to Supabase Storage. Keep the
+      // object path relative to that bucket so signed URLs can resolve it.
+      const filePath = `${designId}/${doc.storedFileName}`;
       const { error: storageError } = await admin.storage.from("id-card-designs").upload(filePath, doc.bytes, {
         contentType: doc.mimeType,
         cacheControl: "private, max-age=0",
@@ -96,6 +119,7 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
     const {
       name,
+      template_id = null,
       front_file_path,
       back_file_path,
       orientation = "portrait",
@@ -108,46 +132,79 @@ export async function POST(request: NextRequest) {
 
     if (!name || !front_file_path) return error("A template name and front design are required.", 400);
 
-    // Validate that files exist in storage by attempting to create a short signed URL
-    const normalizePath = (p: string) => p.startsWith("id-card-designs/") ? p.replace(/^id-card-designs\//, "") : p;
-    try {
-      const frontPath = normalizePath(String(front_file_path));
-      // @ts-ignore
-      const { data: fData, error: fErr } = await admin.storage.from("id-card-designs").createSignedUrl(frontPath, 60);
-      if (fErr || !fData?.signedUrl) return error("Front design file not found in storage.", 400);
-      if (back_file_path) {
-        const backPath = normalizePath(String(back_file_path));
-        // @ts-ignore
-        const { data: bData, error: bErr } = await admin.storage.from("id-card-designs").createSignedUrl(backPath, 60);
-        if (bErr || !bData?.signedUrl) return error("Back design file not found in storage.", 400);
+    // Validate that files exist in storage by attempting to create a short signed URL.
+    // The first candidate supports new uploads; the second keeps templates created
+    // by the previous bucket-prefixed path format publishable.
+    const storagePathCandidates = (p: string) => {
+      const value = String(p);
+      const normalized = value.replace(/^id-card-designs\//, "");
+      return Array.from(new Set([value, normalized]));
+    };
+    const fileExists = async (path: string) => {
+      for (const candidate of storagePathCandidates(path)) {
+        const { data, error: storageError } = await admin.storage.from("id-card-designs").createSignedUrl(candidate, 60);
+        if (!storageError && data?.signedUrl) return true;
       }
+      return false;
+    };
+    try {
+      if (!(await fileExists(String(front_file_path)))) return error("Front design file not found in storage.", 400);
+      if (back_file_path && !(await fileExists(String(back_file_path)))) return error("Back design file not found in storage.", 400);
     } catch (e: any) {
       return error(`Design file validation failed: ${String(e?.message || e)}`, 500);
     }
 
-    // Insert template
-    const insertRecord: any = {
+    const templateRecord: any = {
       name: String(name).slice(0, 180),
       orientation: orientation === "landscape" ? "landscape" : "portrait",
       width_mm: width_mm != null ? Number(width_mm) : null,
       height_mm: height_mm != null ? Number(height_mm) : null,
       options: { ...(options || {}), front_file_path, back_file_path },
       is_active: !!is_active,
-      status: "finalized",
       created_by: userId,
     };
 
-    const { data: createdTpl, error: insertErr } = await supabase.from("student_id_card_templates").insert(insertRecord).select("id").single();
-    if (insertErr) return error(`Failed to save template: ${insertErr.message}`, 500);
+    if (template_id && !isUuid(String(template_id))) return error("Invalid template id.", 400);
+    let templateId = template_id ? String(template_id) : null;
+    if (templateId) {
+      const { error: updateError } = await supabase
+        .from("student_id_card_templates")
+        .update(templateRecord)
+        .eq("id", templateId);
+      if (updateError) return error(`Failed to update template: ${updateError.message}`, 500);
+    } else {
+      const { data: createdTpl, error: insertErr } = await supabase
+        .from("student_id_card_templates")
+        .insert(templateRecord)
+        .select("id")
+        .single();
+      if (insertErr) return error(`Failed to save template: ${insertErr.message}`, 500);
+      templateId = createdTpl.id;
+    }
 
     // Handle default flag
     if (set_as_default) {
       // Clear previous default(s)
+      const { data: previousDefaults } = await supabase
+        .from("student_id_card_templates")
+        .select("id")
+        .eq("is_default", true)
+        .neq("id", templateId);
       await supabase.from("student_id_card_templates").update({ is_default: false }).eq("is_default", true);
-      await supabase.from("student_id_card_templates").update({ is_default: true }).eq("id", createdTpl.id);
+      await supabase.from("student_id_card_templates").update({ is_default: true }).eq("id", templateId);
+      const { error: auditError } = await supabase.from("student_id_card_template_audit_logs").insert([
+        ...(previousDefaults ?? []).map((template) => ({
+          template_id: template.id,
+          user_id: userId,
+          action: "unset_default",
+        })),
+        { template_id: templateId, user_id: userId, action: "set_default" },
+      ]);
+      if (auditError) return error(`Template saved, but default-change audit failed: ${auditError.message}`, 500);
     }
 
-    return NextResponse.json({ template: { id: createdTpl.id } }, { status: 201 });
+    revalidatePath("/students/id-cards");
+    return NextResponse.json({ template: { id: templateId } }, { status: template_id ? 200 : 201 });
   }
 
   const subjectTypeValue = form.get("subjectType");

@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requirePageAccess } from "@/lib/require-role";
 import { ExportCsvButton } from "./export-csv-button";
 import { ExportExcelButton, type ExportRow } from "./export-excel-button";
-import { ExportPdfButton } from "./export-pdf-button";
+import { ExportPdfButton } from "./export-pdf-export";
 import { StaffFilters } from "./staff-filters";
 import { StaffTable, type StaffRow } from "./staff-table";
 

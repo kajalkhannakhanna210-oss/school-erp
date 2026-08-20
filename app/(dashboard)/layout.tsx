@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       .select("page_key, icon")
       .eq("role", profile.role),
     supabase.from("profile_roles").select("role").eq("profile_id", user.id),
-    supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }),
+    supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
   ]);
 
   const allowedPageKeys = rolePageAccess ? new Set(rolePageAccess.map((access) => access.page_key)) : null;
