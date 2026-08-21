@@ -61,10 +61,14 @@ export default async function StudentsPage({
     .select("*, profiles(full_name), classes(name), sections(name), academic_sessions(name)", { count: "exact" })
     .order("admission_number");
 
+  // Apply session filter FIRST if provided
+  if (searchParams.session) {
+    query = enrollmentStudentIds?.length ? query.in("id", enrollmentStudentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
+  }
+
   // Apply basic filters
   if (searchParams.class) query = query.eq("class_id", searchParams.class);
   if (searchParams.section) query = query.eq("section_id", searchParams.section);
-  if (searchParams.session) query = enrollmentStudentIds?.length ? query.in("id", enrollmentStudentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
   if (searchParams.admission === "assigned") query = query.not("admission_number", "is", null).neq("admission_number", "");
   if (searchParams.admission === "unassigned") query = query.or("admission_number.is.null,admission_number.eq.");
 
@@ -150,12 +154,12 @@ export default async function StudentsPage({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 sm:gap-3 lg:gap-3 items-stretch">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-3 items-stretch">
         <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "all" }).toString()}`} title="Total students" count={stats.totalStudents} subtitle="All student records" colorClass="bg-ink-700" active={searchParams.tab === "all" || !searchParams.tab} />
 
         <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "new" }).toString()}`} title="New Students" count={stats.newStudents} subtitle="Without Admission Number" colorClass="bg-emerald-500" active={searchParams.tab === "new"} />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`} title="Admission No. Assigned" count={stats.studentsWithAdmissionNumber} subtitle="Admission number available" colorClass="bg-amber-500" active={searchParams.tab === "admission-assigned"} />
+        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`} title="Adm NO. Assigned" count={stats.studentsWithAdmissionNumber} subtitle="Admission number available" colorClass="bg-amber-500" active={searchParams.tab === "admission-assigned"} />
 
         <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "old" }).toString()}`} title="Old Students" count={stats.oldStudents} subtitle="Existing/old records" colorClass="bg-ink-700" active={searchParams.tab === "old"} />
 
