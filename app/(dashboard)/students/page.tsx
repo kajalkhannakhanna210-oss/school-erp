@@ -155,17 +155,65 @@ export default async function StudentsPage({
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-3 items-stretch">
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "all" }).toString()}`} title="Total students" count={stats.totalStudents} subtitle="All student records" colorClass="bg-ink-700" active={searchParams.tab === "all" || !searchParams.tab} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "all" }).toString()}`}
+          title="Total students"
+          count={stats.totalStudents}
+          subtitle="All student records"
+          colorClass="bg-ink-700"
+          active={searchParams.tab === "all" || !searchParams.tab}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="2.2"/><circle cx="16" cy="8" r="2.2"/><path d="M2 20c1.5-3 6-4 12-4s10.5 1 12 4"/></svg>}
+        />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "new" }).toString()}`} title="New Students" count={stats.newStudents} subtitle="Without Admission Number" colorClass="bg-emerald-500" active={searchParams.tab === "new"} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "new" }).toString()}`}
+          title="New Students"
+          count={stats.newStudents}
+          subtitle="Without Admission Number"
+          colorClass="bg-emerald-500"
+          active={searchParams.tab === "new"}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="2.2"/><path d="M6 20c1.2-2 3.8-3 6-3s4.8 1 6 3"/><path d="M18 5v4M15 8h6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+        />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`} title="Adm NO. Assigned" count={stats.studentsWithAdmissionNumber} subtitle="Admission number available" colorClass="bg-amber-500" active={searchParams.tab === "admission-assigned"} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`}
+          title="Adm NO. Assigned"
+          count={stats.studentsWithAdmissionNumber}
+          subtitle="Admission number available"
+          colorClass="bg-amber-500"
+          active={searchParams.tab === "admission-assigned"}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.2"/></svg>}
+        />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "old" }).toString()}`} title="Old Students" count={stats.oldStudents} subtitle="Existing/old records" colorClass="bg-ink-700" active={searchParams.tab === "old"} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "old" }).toString()}`}
+          title="Old Students"
+          count={stats.oldStudents}
+          subtitle="Existing/old records"
+          colorClass="bg-ink-700"
+          active={searchParams.tab === "old"}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+        />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "archived" }).toString()}`} title="Archived" count={stats.archivedStudents} subtitle="Archived student records" colorClass="bg-rose-500" active={searchParams.tab === "archived"} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "archived" }).toString()}`}
+          title="Archived"
+          count={stats.archivedStudents}
+          subtitle="Archived student records"
+          colorClass="bg-rose-500"
+          active={searchParams.tab === "archived"}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="4" rx="1"/><path d="M21 10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8"/><path d="M10 12v4M14 12v4" strokeWidth="1.4"/></svg>}
+        />
 
-        <SummaryCard href={`/students?${new URLSearchParams({ ...searchParams, tab: "left" }).toString()}`} title="Students Left" count={stats.studentsLeft} subtitle="Students who left school" colorClass="bg-slate-500" active={searchParams.tab === "left"} />
+        <SummaryCard
+          href={`/students?${new URLSearchParams({ ...searchParams, tab: "left" }).toString()}`}
+          title="Students Left"
+          count={stats.studentsLeft}
+          subtitle="Students who left school"
+          colorClass="bg-slate-500"
+          active={searchParams.tab === "left"}
+          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 7l5 5-5 5" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M19 12H9" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+        />
       </div>
 
       <div className="mt-2 rounded-lg border-0 bg-transparent px-0 py-0 shadow-none sm:border sm:border-ink-100 sm:bg-ink-50/50 sm:px-3 sm:py-1.5 sm:shadow-sm">
