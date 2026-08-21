@@ -63,7 +63,7 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
       {/* Content */}
       <div className="min-w-0 pr-12">
         {/* Title */}
-        <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-3 opacity-80`}>
+        <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-3 opacity-80 truncate whitespace-nowrap overflow-hidden`}>
           {title}
         </p>
 
@@ -74,7 +74,7 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
 
         {/* Subtitle */}
         {subtitle && (
-                  <p className={`mt-2 text-[11px] sm:text-sm ${colors.text} leading-tight opacity-70 whitespace-normal`}>
+                  <p className={`mt-2 text-[11px] sm:text-sm ${colors.text} leading-tight opacity-70 truncate whitespace-nowrap overflow-hidden`}>
             {subtitle}
           </p>
         )}
