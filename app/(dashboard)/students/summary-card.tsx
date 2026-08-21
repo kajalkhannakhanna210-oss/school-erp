@@ -54,35 +54,35 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
       href={href} 
       onClick={handleClick} 
       onMouseEnter={handlePrefetch} 
-      className={`relative min-h-[110px] sm:min-h-[150px] flex flex-col justify-between overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 hover:shadow-md p-4 sm:p-5 group ${
+      className={`relative min-h-[90px] sm:min-h-[120px] md:min-h-[140px] flex flex-col justify-start gap-2 overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 hover:shadow-md p-3 sm:p-4 group ${
         active 
           ? `${colorClass} border-l-8 shadow-lg` 
           : `border-gray-200 border-l-4 ${colors.border}`
       }`}
     >
       {/* Content */}
-      <div className="min-w-0 pr-12">
+      <div className="min-w-0 pr-8">
         {/* Title */}
-        <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-3 opacity-80 truncate whitespace-nowrap overflow-hidden`}>
+        <p className={`text-[11px] sm:text-xs font-bold uppercase tracking-widest ${colors.text} mb-2 opacity-80 truncate whitespace-nowrap overflow-hidden`}>
           {title}
         </p>
 
         {/* Large number */}
-        <p className="text-3xl sm:text-4xl font-black text-ink-900 leading-tight">
+        <p className="text-2xl sm:text-3xl md:text-4xl font-black text-ink-900 leading-tight">
           {count}
         </p>
 
         {/* Subtitle */}
         {subtitle && (
-                  <p className={`mt-2 text-[11px] sm:text-sm ${colors.text} leading-tight opacity-70 truncate whitespace-nowrap overflow-hidden`}>
+                  <p className={`mt-1 text-[12px] sm:text-sm ${colors.text} leading-tight opacity-70 truncate whitespace-nowrap overflow-hidden`}>
             {subtitle}
           </p>
         )}
       </div>
 
       {/* Icon badge on the right */}
-      <div className={`absolute top-5 right-5 sm:top-4 sm:right-4 h-10 w-10 sm:h-12 sm:w-12 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
-              <svg className={`h-5 w-5 sm:h-6 sm:w-6 ${colors.icon}`} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+      <div className={`absolute top-4 right-4 sm:top-4 sm:right-4 h-9 w-9 sm:h-11 sm:w-11 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105`}>
+              <svg className={`h-4 w-4 sm:h-5 sm:w-5 ${colors.icon}`} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="8" opacity="0.2" />
           <circle cx="12" cy="12" r="3" />
         </svg>
