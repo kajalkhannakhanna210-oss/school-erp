@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Badge, Button } from "@/components/ui";
-import { ConfirmDialog } from "@/components/confirm-dialog";
+// ConfirmDialog replaced by ArchiveControl modal for archive with remark/date
 import { useToast } from "@/components/toaster";
 import { setStudentActive } from "./actions";
 import { GenerateIdCardButton } from "./generate-id-card-button";
+import { ArchiveControl } from "./[id]/archive-control";
 
 function formatStudentName(name?: string | null) {
   return (name ?? "").trim().toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Unnamed student";
@@ -137,18 +138,15 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
         ))}
         {students.length === 0 && <p className="rounded-2xl bg-white px-4 py-10 text-center text-sm text-slate/50">No students match this view.</p>}
       </div>
-      <ConfirmDialog
-        open={!!archiveTarget}
-        title={archiveTarget?.is_active ? "Archive student?" : "Restore student?"}
-        description={
-          archiveTarget?.is_active
-            ? "Archived students are hidden from the active roster but their fee and attendance history is kept."
-            : "This student will reappear in the active roster."
-        }
-        confirmLabel={archiveTarget?.is_active ? "Archive" : "Restore"}
-        onConfirm={handleArchive}
-        onCancel={() => setArchiveTarget(null)}
-      />
+      {archiveTarget && (
+        <ArchiveControl
+          studentId={archiveTarget.id}
+          isActive={archiveTarget.is_active}
+          open={true}
+          onClose={() => setArchiveTarget(null)}
+          hideTrigger
+        />
+      )}
       {photoTarget?.photo_url && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" onClick={() => setPhotoTarget(null)}>
           <div className="relative max-h-[90vh] max-w-lg rounded-xl bg-white p-2 shadow-2xl" onClick={(e) => e.stopPropagation()}>
