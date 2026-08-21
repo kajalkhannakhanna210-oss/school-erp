@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink-700", active = false }: {
+export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink-700", active = false, icon }: {
   href: string;
   title: string;
   count: number | string;
   subtitle?: string;
   colorClass?: string;
   active?: boolean;
+  icon?: React.ReactNode;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -81,12 +82,16 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
       </div>
 
       {/* Icon badge on the right */}
-      <div className={`absolute top-4 right-4 sm:top-4 sm:right-4 h-9 w-9 sm:h-11 sm:w-11 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105`}>
-              <svg className={`h-4 w-4 sm:h-5 sm:w-5 ${colors.icon}`} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8" opacity="0.2" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      </div>
+      <div className={`absolute top-4 right-4 sm:top-4 sm:right-4 h-8 w-8 sm:h-9 sm:w-9 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105`}>
+              {icon ? (
+                <div className="h-5 w-5 sm:h-6 sm:w-6">{icon}</div>
+              ) : (
+                <svg className={`h-3 w-3 sm:h-4 sm:w-4 ${colors.icon}`} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="8" opacity="0.18" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </div>
 
       {loading && (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
