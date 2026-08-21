@@ -117,7 +117,7 @@ export function ArchiveControl({ studentId, isActive, open: openProp, onClose, h
                       setCalendarOpen((v) => !v);
                     }}
                     className="inline-flex items-center gap-2 rounded-md border border-ink-100 px-3 py-1 text-sm"
-                    aria-expanded={String(!!calendarOpen)}
+                    aria-expanded={!!calendarOpen}
                     disabled={pending}
                   >
                     <span className="font-mono">{String(day).padStart(2, "0")}</span>

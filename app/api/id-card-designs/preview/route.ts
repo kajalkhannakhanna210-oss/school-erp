@@ -19,28 +19,26 @@ function errorResponse(message: string, status = 400) {
  * Preview an ID-card design stored in the private
  * "id-card-designs" Supabase Storage bucket.
  *
- * Supports both:
- *   /api/id-card-designs/preview?file=<path>
+ * Supports:
+ * /api/id-card-designs/preview?file=<path>
  *
- * and legacy paths:
- *   /api/id-card-designs/preview?file=id-card-designs/<path>
+ * Also supports legacy paths:
+ * /api/id-card-designs/preview?file=id-card-designs/<path>
  */
 export async function GET(request: NextRequest) {
   const fileParam = request.nextUrl.searchParams.get("file");
 
-  // --------------------------------------------------
   // Validate file parameter
-  // --------------------------------------------------
   if (!fileParam) {
     return errorResponse("Missing file parameter.", 400);
   }
 
-  // Prevent path traversal.
+  // Prevent path traversal
   if (fileParam.includes("..")) {
     return errorResponse("Invalid file path.", 400);
   }
 
-  // Prevent absolute/local filesystem paths.
+  // Prevent absolute/local filesystem paths
   if (
     fileParam.startsWith("/") ||
     fileParam.startsWith("\\") ||
@@ -49,27 +47,25 @@ export async function GET(request: NextRequest) {
     return errorResponse("Invalid file path.", 400);
   }
 
-  // --------------------------------------------------
   // Check user permission
-  // --------------------------------------------------
   try {
     await requirePageAccess("student_id_cards");
-  } catch {
+  } catch (error) {
+    console.error("ID-card preview authorization failed:", error);
+
     return errorResponse("Not authorized.", 403);
   }
 
-  // --------------------------------------------------
   // Create Supabase admin client
-  // --------------------------------------------------
   let admin;
 
   try {
     admin = createAdminClient();
-  } catch (e: unknown) {
+  } catch (error: unknown) {
     const message =
-      e instanceof Error
-        ? e.message
-        : String(e);
+      error instanceof Error
+        ? error.message
+        : String(error);
 
     console.error(
       "Failed to create Supabase admin client:",
@@ -83,15 +79,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // --------------------------------------------------
-    // Support both current and legacy storage paths
-    // --------------------------------------------------
+    // Remove leading slashes
+    const normalizedPath = fileParam.replace(/^\/+/, "");
 
-    const normalizedPath = fileParam.replace(
-      /^\/+/,
-      ""
-    );
-
+    // Support both:
+    // filename/path
+    // id-card-designs/filename/path
     const bucketPrefix = "id-card-designs/";
 
     const bucketRelativePath =
@@ -99,19 +92,19 @@ export async function GET(request: NextRequest) {
         ? normalizedPath.substring(bucketPrefix.length)
         : normalizedPath;
 
+    // Try both possible paths without duplicates
     const candidates = Array.from(
       new Set([
         normalizedPath,
         bucketRelativePath,
       ])
-    ).filter(Boolean);
-
-    // --------------------------------------------------
-    // Try each possible storage path
-    // --------------------------------------------------
+    ).filter(
+      (path): path is string => Boolean(path)
+    );
 
     let lastStorageError: unknown = null;
 
+    // Try each possible storage path
     for (const candidate of candidates) {
       const {
         data,
@@ -120,19 +113,16 @@ export async function GET(request: NextRequest) {
         .from("id-card-designs")
         .createSignedUrl(candidate, 60);
 
+      // Successfully generated signed URL
       if (!storageError && data?.signedUrl) {
-        return NextResponse.redirect(
-          data.signedUrl
-        );
+        return NextResponse.redirect(data.signedUrl);
       }
 
+      // Save the last error for logging
       lastStorageError = storageError;
     }
 
-    // --------------------------------------------------
-    // Signed URL could not be generated
-    // --------------------------------------------------
-
+    // Could not generate a signed URL
     console.error(
       "Could not generate ID-card preview URL:",
       lastStorageError
@@ -142,11 +132,11 @@ export async function GET(request: NextRequest) {
       "Could not generate preview URL.",
       500
     );
-  } catch (e: unknown) {
+  } catch (error: unknown) {
     const message =
-      e instanceof Error
-        ? e.message
-        : String(e);
+      error instanceof Error
+        ? error.message
+        : String(error);
 
     console.error(
       "ID-card preview request failed:",
