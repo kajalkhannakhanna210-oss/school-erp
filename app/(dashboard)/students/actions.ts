@@ -134,6 +134,92 @@ export async function updateStudent(id: string, input: StudentUpdateInput) {
   return { error: profileError?.message ?? studentError?.message ?? null };
 }
 
+export async function archiveStudent(id: string, archiveDate: string, remark: string) {
+  const supabase = await createClient();
+
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "User not authenticated" };
+
+  // Update student status and record archive metadata on the students row
+  const { error: updateError } = await supabase
+    .from("students")
+    .update({ is_active: false, inactive_date: archiveDate, inactive_reason: remark || null, inactive_by: user.id })
+    .eq("id", id);
+  if (updateError) return { error: updateError.message };
+
+  // Record archival in audit table
+  const { error: auditError } = await supabase.from("student_archive_audit").insert({
+    student_id: id,
+    action: "archived",
+    archive_date: archiveDate,
+    remark: remark || null,
+    created_by: user.id,
+  });
+
+  if (auditError) {
+    return { error: `Student archived but audit record failed: ${auditError.message}` };
+  }
+
+  revalidatePath("/students");
+  revalidatePath(`/students/${id}`);
+  
+  await recordServerAction({
+    action: "Archive Student",
+    module: "Students",
+    page: "Student Profile",
+    resource: `/students/${id}`,
+    outcome: `Archived student ${id} with archive date: ${archiveDate}. Remark: ${remark}`,
+  });
+
+  return { error: null };
+}
+
+export async function restoreStudent(id: string) {
+  const supabase = await createClient();
+
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "User not authenticated" };
+
+  // Update student status and clear archive metadata on the students row
+  const { error: updateError } = await supabase
+    .from("students")
+    .update({ is_active: true, inactive_date: null, inactive_reason: null, inactive_by: null })
+    .eq("id", id);
+  if (updateError) return { error: updateError.message };
+
+  // Record restoration in audit table
+  const { error: auditError } = await supabase.from("student_archive_audit").insert({
+    student_id: id,
+    action: "restored",
+    archive_date: new Date().toISOString().split("T")[0],
+    remark: "Student restored",
+    created_by: user.id,
+  });
+
+  if (auditError) {
+    return { error: `Student restored but audit record failed: ${auditError.message}` };
+  }
+
+  revalidatePath("/students");
+  revalidatePath(`/students/${id}`);
+
+  await recordServerAction({
+    action: "Restore Student",
+    module: "Students",
+    page: "Student Directory",
+    resource: `/students/${id}`,
+    outcome: `Restored student ${id}`,
+  });
+
+  return { error: null };
+}
+
 export async function setStudentActive(id: string, isActive: boolean) {
   const supabase = await createClient();
   const { error } = await supabase.from("students").update({ is_active: isActive }).eq("id", id);
