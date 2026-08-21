@@ -16,55 +16,83 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Build current full URL (path + query) to detect navigation completion
   const currentUrl = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
 
   async function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     if (loading) return;
-    // If already on the target url, do nothing
     if (href === currentUrl) return;
-
     setLoading(true);
-    // Navigate — when pathname/searchParams change below, loading will be cleared
     router.push(href);
   }
 
-  // Prefetch target route on hover to reduce perceived load time
   async function handlePrefetch() {
     try {
       await router.prefetch(href);
     } catch {
-      // ignore prefetch errors silently
+      // ignore
     }
   }
 
-  // When the route updates (pathname or search params change), clear the loader
   useEffect(() => {
     if (loading) setLoading(false);
   }, [pathname, searchParams?.toString()]);
 
+  // Map color classes to text color and light background
+  const colorMap: Record<string, { text: string; bg: string; icon: string; border: string }> = {
+    "bg-ink-700": { text: "text-ink-700", bg: "bg-ink-100", icon: "text-ink-700", border: "border-ink-300" },
+    "bg-emerald-500": { text: "text-emerald-600", bg: "bg-emerald-100", icon: "text-emerald-500", border: "border-emerald-300" },
+    "bg-amber-500": { text: "text-amber-600", bg: "bg-amber-100", icon: "text-amber-500", border: "border-amber-300" },
+    "bg-rose-500": { text: "text-rose-600", bg: "bg-rose-100", icon: "text-rose-500", border: "border-rose-300" },
+    "bg-slate-500": { text: "text-slate-600", bg: "bg-slate-100", icon: "text-slate-500", border: "border-slate-300" },
+  };
+
+  const colors = colorMap[colorClass] || colorMap["bg-ink-700"];
+
   return (
-    <a href={href} onClick={handleClick} onMouseEnter={() => handlePrefetch()} className={`relative min-h-[120px] flex flex-col justify-between overflow-hidden rounded-lg border border-ink-100 bg-white px-3 py-3 shadow-sm sm:rounded-xl sm:px-4 sm:py-4 ${active ? "ring-2 ring-gold-300" : ""}`}>
-      {/* small dot and title */}
-      <div className="min-w-0">
-        <p className="flex items-center gap-1 text-xs leading-tight text-slate/70 sm:gap-2 sm:text-sm">
-          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${colorClass} sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5`} aria-hidden="true" />
-          <span className="truncate">{title}</span>
+    <a 
+      href={href} 
+      onClick={handleClick} 
+      onMouseEnter={handlePrefetch} 
+      className={`relative min-h-[110px] sm:min-h-[150px] flex flex-col justify-between overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 hover:shadow-md p-4 sm:p-5 group ${
+        active 
+          ? `${colorClass} border-l-8 shadow-lg` 
+          : `border-gray-200 border-l-4 ${colors.border}`
+      }`}
+    >
+      {/* Content */}
+      <div className="min-w-0 pr-16">
+        {/* Title */}
+        <p className={`text-xs font-bold uppercase tracking-widest ${colors.text} mb-3 opacity-80`}>
+          {title}
         </p>
 
-        <p className="mt-1.5 text-base font-bold text-ink-700 sm:mt-2 sm:text-lg lg:text-2xl truncate">{count}</p>
-        {subtitle && <p className="mt-0.5 text-xs text-slate/500 line-clamp-2 sm:line-clamp-1">{subtitle}</p>}
+        {/* Large number */}
+        <p className="text-3xl sm:text-4xl font-black text-ink-900 leading-tight">
+          {count}
+        </p>
+
+        {/* Subtitle */}
+        {subtitle && (
+                  <p className={`mt-2 text-xs sm:text-sm ${colors.text} leading-tight opacity-70 truncate`}>
+            {subtitle}
+          </p>
+        )}
       </div>
 
-      {/* make sure footer spacing keeps consistent */}
-      <div className="mt-1.5 text-xs text-slate/400" aria-hidden="true">&nbsp;</div>
+      {/* Icon badge on the right */}
+      <div className={`absolute top-5 right-5 sm:top-4 sm:right-4 h-10 w-10 sm:h-12 sm:w-12 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
+              <svg className={`h-5 w-5 sm:h-6 sm:w-6 ${colors.icon}`} xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" opacity="0.2" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </div>
 
       {loading && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60">
-          <svg className="h-6 w-6 animate-spin text-ink-700 sm:h-8 sm:w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
+          <svg className="h-8 w-8 animate-spin text-ink-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+            <path className="opacity-100" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
           </svg>
         </div>
       )}
