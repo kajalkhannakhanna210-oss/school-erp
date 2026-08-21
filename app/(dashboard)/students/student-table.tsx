@@ -51,7 +51,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
         <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-ink-100 bg-ink-50/70 text-left text-xs font-bold uppercase tracking-[0.12em] text-slate/60">
-            <th className="px-4 py-3">Admission No</th>
+            <th className="px-4 py-3">Adm No.</th>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Class / Section</th>
             <th className="px-4 py-3">Mobile</th>
@@ -118,7 +118,7 @@ export function StudentTable({ students, canManage }: { students: StudentRow[]; 
               <Link href={`/students/${s.id}`} className="flex min-w-0 items-center gap-3 font-semibold text-ink-700">
                 <span className="block truncate text-sm font-semibold">{formatStudentName(s.profiles?.full_name)}</span>
               </Link>
-              <p className="truncate text-xs font-mono text-slate/70">Admission: {s.admission_number || "Not assigned"}</p>
+              <p className="truncate text-xs font-mono text-slate/70">Adm No: {s.admission_number || "Not assigned"}</p>
               <p className="mt-1 truncate text-xs text-slate/70">{s.mobile_number || "No mobile number"}</p>
               <p className="truncate text-xs text-slate/60">{s.classes?.name || "No class"}{s.sections?.name && ` · ${s.sections.name}`}</p>
             </div>

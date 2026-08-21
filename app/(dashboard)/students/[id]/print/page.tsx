@@ -71,7 +71,7 @@ export default async function StudentInfoPrintPage({ params }: { params: { id: s
               <h2 className="font-display text-2xl font-semibold text-ink-700">{s.profiles?.full_name}</h2>
               <div className="mt-1 text-xs text-slate-600 font-mono">
                 <div>Student ID: {s.id}</div>
-                <div>Admission No: {s.admission_number ?? "Not Assigned"}</div>
+                <div>Adm No: {s.admission_number ?? "Not Assigned"}</div>
                 <div>Academic Session: {s.academic_sessions?.name ?? "—"}</div>
               </div>
             </div>

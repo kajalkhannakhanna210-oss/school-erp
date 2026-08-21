@@ -11,8 +11,8 @@ const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
     "Total Students",
     "New Admissions",
-    "With Admission No",
-    "Without Admission No",
+    "With Adm No.",
+    "Without Adm No.",
     "Total Staff",
     "Today's Collection",
     "Monthly Collection",
@@ -265,8 +265,8 @@ export default async function DashboardPage() {
 
   const values: Record<string, string> = {
     "Total Students": studentCount != null ? String(studentCount) : "—",
-    "With Admission No": withAdmissionCount != null ? String(withAdmissionCount) : "—",
-    "Without Admission No": withoutAdmissionCount != null ? String(withoutAdmissionCount) : "—",
+    "With Adm No.": withAdmissionCount != null ? String(withAdmissionCount) : "—",
+    "Without Adm No.": withoutAdmissionCount != null ? String(withoutAdmissionCount) : "—",
     "My Students": studentCount != null ? String(studentCount) : "—",
     "Total Staff": staffCount != null ? String(staffCount) : "—",
     "Attendance to Mark Today": attendanceToMarkToday ?? "—",
@@ -304,7 +304,7 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <p className="mt-2 font-display text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">{values[w] ?? "—"}</p>
-              <p className="mt-0.5 text-xs text-gray-500">{w === "With Admission No" ? "Assigned" : w === "Without Admission No" ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p>
+              <p className="mt-0.5 text-xs text-gray-500">{w === "With Adm No." ? "Assigned" : w === "Without Adm No." ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p>
             </Card>
           );
         })}

@@ -61,7 +61,7 @@ export default async function CertificatePrintPage({
         {/* Certificate Numbers */}
         <div className="mt-6 flex justify-between font-mono text-sm font-bold text-slate-800">
           <div>TC No: <span className="underline">{request.certificate_number}</span></div>
-          <div>Admission No: <span className="underline">{request.admission_number}</span></div>
+          <div>Adm No: <span className="underline">{request.admission_number}</span></div>
         </div>
 
         {/* Body Content */}

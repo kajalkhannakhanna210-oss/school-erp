@@ -14,7 +14,7 @@ export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudents
     setProcessing("csv");
     const headers = [
       "Certificate No",
-      "Admission No",
+      "Adm No.",
       "Student Name",
       "Class",
       "Section",
@@ -52,7 +52,7 @@ export function ExportLeavingStudentsButtons({ requests }: ExportLeavingStudents
     if (!requests || requests.length === 0) return;
     setProcessing("excel");
     const headers = [
-      "Certificate No\tAdmission No\tStudent Name\tClass\tSection\tLeaving Date\tReason\tStatus\tClearance Status",
+      "Certificate No\tAdm No.\tStudent Name\tClass\tSection\tLeaving Date\tReason\tStatus\tClearance Status",
     ];
 
     const rows = requests.map(

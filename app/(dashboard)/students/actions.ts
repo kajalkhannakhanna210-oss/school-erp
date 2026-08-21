@@ -148,7 +148,15 @@ export async function archiveStudent(id: string, archiveDate: string, remark: st
     .from("students")
     .update({ is_active: false, inactive_date: archiveDate, inactive_reason: remark || null, inactive_by: user.id })
     .eq("id", id);
-  if (updateError) return { error: updateError.message };
+  if (updateError) {
+    const msg = updateError.message || "Unknown database error";
+    if (msg.includes("inactive_by") || msg.includes("inactive_date") || msg.includes("inactive_reason")) {
+      return {
+        error: `Database schema missing archival columns (inactive_date/inactive_reason/inactive_by). Apply migration 0049 to add them. Run locally: node ./scripts/apply-0049-migration.mjs (set DATABASE_URL or SUPABASE_DB_URL). See supabase/migrations/0049_add_student_inactive_fields.sql for SQL.`,
+      };
+    }
+    return { error: updateError.message };
+  }
 
   // Record archival in audit table
   const { error: auditError } = await supabase.from("student_archive_audit").insert({
@@ -191,7 +199,15 @@ export async function restoreStudent(id: string) {
     .from("students")
     .update({ is_active: true, inactive_date: null, inactive_reason: null, inactive_by: null })
     .eq("id", id);
-  if (updateError) return { error: updateError.message };
+  if (updateError) {
+    const msg = updateError.message || "Unknown database error";
+    if (msg.includes("inactive_by") || msg.includes("inactive_date") || msg.includes("inactive_reason")) {
+      return {
+        error: `Database schema missing archival columns (inactive_date/inactive_reason/inactive_by). Apply migration 0049 to add them. Run locally: node ./scripts/apply-0049-migration.mjs (set DATABASE_URL or SUPABASE_DB_URL). See supabase/migrations/0049_add_student_inactive_fields.sql for SQL.`,
+      };
+    }
+    return { error: updateError.message };
+  }
 
   // Record restoration in audit table
   const { error: auditError } = await supabase.from("student_archive_audit").insert({

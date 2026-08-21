@@ -245,7 +245,7 @@ export function StudentIdCardView({
         <td class="card-cell">
           <div class="header">ACADEMIC PUBLIC SCHOOL - ID CARD (v${card.version})</div>
           <div class="title">${snap.student_name || 'Student'}</div>
-          <div class="field"><b>Admission No:</b> ${snap.admission_number || 'N/A'}</div>
+          <div class="field"><b>Adm No:</b> ${snap.admission_number || 'N/A'}</div>
           <div class="field"><b>Class / Sec:</b> ${snap.class_name || ''} - ${snap.section_name || ''}</div>
           <div class="field"><b>Roll No:</b> ${snap.roll_number || 'N/A'}</div>
           <div class="field"><b>Mobile:</b> ${snap.mobile_number || 'N/A'}</div>
@@ -657,7 +657,7 @@ export function StudentIdCardView({
                     />
                   </th>
                   <th className="p-3">Student Name</th>
-                  <th className="p-3">Admission No</th>
+                  <th className="p-3">Adm No.</th>
                   <th className="p-3">Class / Sec</th>
                   <th className="p-3">Version</th>
                   <th className="p-3">Status</th>
@@ -882,7 +882,7 @@ export function StudentIdCardView({
                     />
                   </th>
                   <th className="p-3">Student Name</th>
-                  <th className="p-3">Admission No</th>
+                  <th className="p-3">Adm No.</th>
                   <th className="p-3">Class / Sec</th>
                   <th className="p-3">Roll No</th>
                   <th className="p-3 text-right">Action</th>
@@ -1233,7 +1233,7 @@ export function StudentIdCardView({
                   Identity Card Preview: {previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || "Unnamed student"}
                 </h3>
                 <p className="text-xs text-slate-500 font-mono">
-                  Admission No: {previewCard.snapshot?.admission_number || "N/A"} · Version v{previewCard.version || 1}
+                  Adm No: {previewCard.snapshot?.admission_number || "N/A"} · Version v{previewCard.version || 1}
                 </p>
               </div>
               <button

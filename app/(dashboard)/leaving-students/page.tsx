@@ -211,7 +211,7 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
                       <div>
                         <h3 className="font-bold text-sm text-slate-900">{r.student_name}</h3>
                         <p className="text-xs text-slate-500 font-mono mt-0.5">
-                          ADM: {r.admission_number} • {(r.classes as any)?.name} {(r.sections as any)?.name ? `- ${(r.sections as any).name}` : ""}
+                          Adm No: {r.admission_number} • {(r.classes as any)?.name} {(r.sections as any)?.name ? `- ${(r.sections as any).name}` : ""}
                         </p>
                       </div>
                       <Badge variant={statusBadgeVariant(r.status as LeavingRequestStatus)}>
@@ -264,7 +264,7 @@ export default async function LeavingStudentsPage({ searchParams }: { searchPara
             <thead className="border-b border-ink-100 bg-ink-50 font-mono text-xs uppercase tracking-wider text-slate/70">
               <tr>
                 <th className="px-4 py-3.5">Cert No.</th>
-                <th className="px-4 py-3.5">Admission No.</th>
+                <th className="px-4 py-3.5">Adm No.</th>
                 <th className="px-4 py-3.5">Student Name</th>
                 <th className="px-4 py-3.5">Class / Sec</th>
                 <th className="px-4 py-3.5">Leaving Date</th>

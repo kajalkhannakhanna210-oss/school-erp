@@ -61,9 +61,16 @@ export default async function StudentsPage({
     .select("*, profiles(full_name), classes(name), sections(name), academic_sessions(name)", { count: "exact" })
     .order("admission_number");
 
-  // Apply session filter FIRST if provided
+  // Apply session filter FIRST if provided. If no enrollments exist for this session,
+  // do not apply an impossible-ID filter (it would always return zero rows) — instead
+  // leave the query unfiltered so the user still sees student data.
   if (searchParams.session) {
-    query = enrollmentStudentIds?.length ? query.in("id", enrollmentStudentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
+    if (enrollmentStudentIds?.length) {
+      query = query.in("id", enrollmentStudentIds);
+    } else {
+      // no enrollments found for session — log for debugging and do not filter
+      console.log("students: no enrollments for session", searchParams.session);
+    }
   }
 
   // Apply basic filters
@@ -100,6 +107,15 @@ export default async function StudentsPage({
   }
 
   const { data: students, count } = await query.range(from, to);
+  // Debug log to help diagnose empty list issues
+  try {
+    // eslint-disable-next-line no-console
+    console.log('students.query.result.count=', Array.isArray(students) ? students.length : 0, 'count=', count, 'sessionFilter=', searchParams.session);
+    // eslint-disable-next-line no-console
+    console.log('students.ids=', (students ?? []).map((s:any)=>s.id).slice(0,10));
+  } catch (e) {
+    // ignore logging failures
+  }
 
   // Fetch supporting lists and stats in parallel
   const [{ data: classes }, { data: sections }, { data: sessions }, stats] = await Promise.all([
@@ -156,7 +172,7 @@ export default async function StudentsPage({
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-3 items-stretch">
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "all" }).toString()}`}
+          href={(() => { const p = { ...searchParams }; delete p.tab; const s = new URLSearchParams(p).toString(); return `/students${s ? `?${s}` : ''}` })() }
           title="Total students"
           count={stats.totalStudents}
           subtitle="All student records"
@@ -166,27 +182,27 @@ export default async function StudentsPage({
         />
 
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "new" }).toString()}`}
+          href={'/students?tab=new'}
           title="New Students"
           count={stats.newStudents}
-          subtitle="Without Admission Number"
+          subtitle="Without Adm No."
           colorClass="bg-emerald-500"
           active={searchParams.tab === "new"}
           icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="2.2"/><path d="M6 20c1.2-2 3.8-3 6-3s4.8 1 6 3"/><path d="M18 5v4M15 8h6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
         />
 
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "admission-assigned" }).toString()}`}
-          title="Adm NO. Assigned"
+          href={'/students?tab=admission-assigned'}
+          title="Adm No. Assigned"
           count={stats.studentsWithAdmissionNumber}
-          subtitle="Admission number available"
+          subtitle="Adm No available"
           colorClass="bg-amber-500"
           active={searchParams.tab === "admission-assigned"}
           icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.2"/></svg>}
         />
 
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "old" }).toString()}`}
+          href={'/students?tab=old'}
           title="Old Students"
           count={stats.oldStudents}
           subtitle="Existing/old records"
@@ -196,7 +212,7 @@ export default async function StudentsPage({
         />
 
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "archived" }).toString()}`}
+          href={'/students?tab=archived'}
           title="Archived"
           count={stats.archivedStudents}
           subtitle="Archived student records"
@@ -206,7 +222,7 @@ export default async function StudentsPage({
         />
 
         <SummaryCard
-          href={`/students?${new URLSearchParams({ ...searchParams, tab: "left" }).toString()}`}
+          href={'/students?tab=left'}
           title="Students Left"
           count={stats.studentsLeft}
           subtitle="Students who left school"

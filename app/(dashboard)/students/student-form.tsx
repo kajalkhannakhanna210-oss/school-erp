@@ -288,7 +288,7 @@ export function StudentForm({
           <div className="grid gap-4 sm:grid-cols-2">
             {mode === "create" && (
               <div>
-                <Label htmlFor="admission_number">Admission number</Label>
+                <Label htmlFor="admission_number">Adm No.</Label>
                 <Input
                   id="admission_number"
                   placeholder="Optional — auto-generated if blank"
@@ -303,14 +303,14 @@ export function StudentForm({
                   }
                 />
                 <p className="mt-1 text-xs text-slate/60">
-                  Optional. A unique admission number will be generated if left
+                  Optional. A unique Adm No. will be generated if left
                   blank.
                 </p>
               </div>
             )}
             {mode === "edit" && (
               <div>
-                <Label htmlFor="admission_number_edit">Admission number</Label>
+                <Label htmlFor="admission_number_edit">Adm No.</Label>
                 <Input
                   ref={admissionInputRef}
                   id="admission_number_edit"
@@ -325,7 +325,7 @@ export function StudentForm({
                   }
                 />
                 <p className="mt-1 text-xs text-slate/60">
-                  Update or assign the admission number.
+                  Update or assign the Adm No.
                 </p>
               </div>
             )}

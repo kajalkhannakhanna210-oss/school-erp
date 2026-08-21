@@ -9,7 +9,7 @@ import { generateStudentIdCards } from "./id-cards/actions";
 // Small helper to generate Word doc for a single card
 function downloadCardAsWord(card: any) {
   const snap = card.snapshot || {};
-  const html = `<!doctype html><html><head><meta charset='utf-8'><title>ID Card</title></head><body><h2>${snap.student_name || 'Student'}</h2><p>Admission No: ${snap.admission_number || 'N/A'}</p><p>Class: ${snap.class_name || ''} - ${snap.section_name || ''}</p><p>Roll: ${snap.roll_number || 'N/A'}</p><p>Mobile: ${snap.mobile_number || 'N/A'}</p></body></html>`;
+  const html = `<!doctype html><html><head><meta charset='utf-8'><title>ID Card</title></head><body><h2>${snap.student_name || 'Student'}</h2><p>Adm No: ${snap.admission_number || 'N/A'}</p><p>Class: ${snap.class_name || ''} - ${snap.section_name || ''}</p><p>Roll: ${snap.roll_number || 'N/A'}</p><p>Mobile: ${snap.mobile_number || 'N/A'}</p></body></html>`;
   const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -105,7 +105,7 @@ export function GenerateIdCardButton({
     </style></head><body><div class="card">
       <div class="header">ACADEMIC PUBLIC SCHOOL</div>
       <div class="title">${snap.student_name || 'Student'}</div>
-      <div class="field"><b>Admission No:</b> ${snap.admission_number || 'N/A'}</div>
+      <div class="field"><b>Adm No:</b> ${snap.admission_number || 'N/A'}</div>
       <div class="field"><b>Class / Sec:</b> ${snap.class_name || ''} - ${snap.section_name || ''}</div>
       <div class="field"><b>Roll:</b> ${snap.roll_number || 'N/A'}</div>
       <div class="field"><b>Mobile:</b> ${snap.mobile_number || 'N/A'}</div>
@@ -149,7 +149,7 @@ export function GenerateIdCardButton({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Identity Card Preview: {previewCard.snapshot?.student_name || previewCard.snapshot?.admission_number || 'Unnamed student'}</h3>
-                <p className="text-xs text-slate-500">Admission No: {previewCard.snapshot?.admission_number || 'N/A'}</p>
+                <p className="text-xs text-slate-500">Adm No: {previewCard.snapshot?.admission_number || 'N/A'}</p>
               </div>
               <button onClick={() => setPreviewCard(null)} className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 text-sm font-bold">✕</button>
             </div>

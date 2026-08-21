@@ -88,7 +88,7 @@ export function StudentFilters({
       </div>
       <div className="order-last w-full md:order-none md:ml-auto md:w-72">
         <Input className="mt-0 min-h-10"
-          placeholder="Search name, admission no, mobile"
+          placeholder="Search name, Adm No, mobile"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />

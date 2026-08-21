@@ -1,0 +1,44 @@
+name: Apply migration 0049 (students.inactive_*)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  apply-migration:
+    name: Apply Migration 0049
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          # The migration runner needs the 'pg' package; ensure it's installed if not present
+          node -e "try{require('pg');console.log('pg present')}catch(e){process.exit(1)}" || npm install pg --no-audit --no-fund --no-progress
+
+      - name: Run migration 0049
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "ERROR: DATABASE_URL secret not set. Add it under Settings → Secrets → Actions."; exit 1
+          fi
+          echo "Running migration 0049..."
+          node ./scripts/apply-0049-migration.mjs
+
+      - name: Verify columns (optional)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "Verifying students table columns..."
+          node -e "const { Client } = require('pg');(async()=>{const c=new Client({connectionString:process.env.DATABASE_URL});await c.connect();const r=await c.query("SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='students' AND column_name IN ('inactive_date','inactive_reason','inactive_by')");console.log('found:',r.rows.map(r=>r.column_name));await c.end();process.exit(r.rows.length===3?0:2)})().catch(e=>{console.error(e);process.exit(3)})"
+
+      - name: Success message
+        if: success()
+        run: echo "Migration 0049 applied (or columns already existed)."

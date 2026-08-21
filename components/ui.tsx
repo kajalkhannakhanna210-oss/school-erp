@@ -5,6 +5,7 @@ import {
   type HTMLAttributes,
   type InputHTMLAttributes,
   type LabelHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from "react";
 
 export const Button = forwardRef<
@@ -41,6 +42,20 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
   )
 );
 Input.displayName = "Input";
+
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  ({ className, ...props }, ref) => (
+    <textarea
+      ref={ref}
+      className={cn(
+        "mt-1.5 w-full rounded-lg border border-ink-100 bg-white px-3 py-2.5 text-sm text-slate shadow-sm transition placeholder:text-slate/40 focus:border-ink-600 focus:outline-none focus:ring-4 focus:ring-ink-50 disabled:cursor-not-allowed disabled:bg-ink-50",
+        className
+      )}
+      {...props}
+    />
+  )
+);
+Textarea.displayName = "Textarea";
 
 export function Label({ className, ...props }: LabelHTMLAttributes<HTMLLabelElement>) {
   return (

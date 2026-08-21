@@ -82,7 +82,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
             <td style="padding-left:12px;vertical-align:top">
               <h3 style="margin:0 0 6px 0">${escapeHtml(student.profiles?.full_name ?? "-")}</h3>
               <div style="font-size:13px;color:#222">Student ID: <b>${escapeHtml(student.id)}</b></div>
-              <div style="font-size:13px;color:#222">Admission No: <b>${escapeHtml(student.admission_number ?? "-")}</b></div>
+              <div style="font-size:13px;color:#222">Adm No: <b>${escapeHtml(student.admission_number ?? "-")}</b></div>
               <div style="font-size:13px;color:#222">Registration No: <b>${escapeHtml(student.roll_number ?? "-")}</b></div>
               <div style="font-size:13px;color:#222">DOB: <b>${escapeHtml(student.date_of_birth ?? "-")}</b></div>
               <div style="font-size:13px;color:#222">Gender: <b>${escapeHtml(student.gender ?? "-")}</b></div>
@@ -269,7 +269,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const fieldValue = (key: string) => {
       if (key === "student_name") return snap.student_name || "Student Name";
       if (key === "class_section") return `${snap.class_name || ""} - ${snap.section_name || ""}`;
-      if (key === "admission_number") return snap.admission_number || "Admission No.";
+      if (key === "admission_number") return snap.admission_number || "Adm No.";
       return "";
     };
     const fieldHtml = fields.map((field: any) => {
@@ -297,7 +297,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     </style></head><body><div class="card">
       <div class="header">ACADEMIC PUBLIC SCHOOL</div>
       <div class="title">${snap.student_name || 'Student'}</div>
-      <div class="field"><b>Admission No:</b> ${snap.admission_number || 'N/A'}</div>
+      <div class="field"><b>Adm No:</b> ${snap.admission_number || 'N/A'}</div>
       <div class="field"><b>Class / Sec:</b> ${snap.class_name || ''} - ${snap.section_name || ''}</div>
       <div class="field"><b>Roll:</b> ${snap.roll_number || 'N/A'}</div>
       <div class="field"><b>Mobile:</b> ${snap.mobile_number || 'N/A'}</div>

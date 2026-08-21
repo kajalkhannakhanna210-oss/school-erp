@@ -102,7 +102,7 @@ async function getPendingFeesReport(
   return {
     title: "Pending Fees",
     columns: [
-      { key: "admission_number", label: "Admission No" },
+      { key: "admission_number", label: "Adm No." },
       { key: "name", label: "Name" },
       { key: "class", label: "Class" },
       { key: "outstanding", label: "Outstanding (Rs.)", align: "right" },
@@ -134,7 +134,7 @@ async function getConcessionReport(
   return {
     title: "Concession Report",
     columns: [
-      { key: "admission_number", label: "Admission No" },
+      { key: "admission_number", label: "Adm No." },
       { key: "name", label: "Name" },
       { key: "class", label: "Class" },
       { key: "fee_head", label: "Fee Head" },
@@ -181,7 +181,7 @@ async function getLateFeeReport(supabase: SupabaseServerClient, filters: Record<
 
 function lateFeeColumns(): ReportColumn[] {
   return [
-    { key: "admission_number", label: "Admission No" },
+    { key: "admission_number", label: "Adm No." },
     { key: "name", label: "Name" },
     { key: "class", label: "Class" },
     { key: "fee_head", label: "Fee Head" },
@@ -244,7 +244,7 @@ async function getAttendanceSummaryReport(
 
 function attendanceColumns(): ReportColumn[] {
   return [
-    { key: "admission_number", label: "Admission No" },
+    { key: "admission_number", label: "Adm No." },
     { key: "name", label: "Name" },
     { key: "class", label: "Class" },
     { key: "present", label: "Present", align: "right" },

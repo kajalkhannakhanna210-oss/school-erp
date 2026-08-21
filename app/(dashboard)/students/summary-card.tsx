@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink-700", active = false, icon }: {
   href: string;
@@ -19,14 +20,7 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
 
   const currentUrl = `${pathname}${searchParams?.toString() ? `?${searchParams.toString()}` : ""}`;
 
-  async function handleClick(e: React.MouseEvent) {
-    e.preventDefault();
-    if (loading) return;
-    if (href === currentUrl) return;
-    setLoading(true);
-    router.push(href);
-  }
-
+  // Use Link for navigation to ensure full App Router data fetches.
   async function handlePrefetch() {
     try {
       await router.prefetch(href);
@@ -51,16 +45,16 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
   const colors = colorMap[colorClass] || colorMap["bg-ink-700"];
 
   return (
-    <a 
-      href={href} 
-      onClick={handleClick} 
-      onMouseEnter={handlePrefetch} 
+    <Link
+      href={href}
+      prefetch={false}
+      onMouseEnter={handlePrefetch}
+      onClick={() => setLoading(true)}
       className={`relative min-h-[90px] sm:min-h-[120px] md:min-h-[140px] flex flex-col justify-start gap-2 overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 hover:shadow-md p-3 sm:p-4 group ${
         active 
           ? `${colorClass} border-l-8 shadow-lg` 
           : `border-gray-200 border-l-4 ${colors.border}`
-      }`}
-    >
+      }`}>
       {/* Content */}
       <div className="min-w-0 pr-8">
         {/* Title */}
@@ -101,6 +95,6 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
           </svg>
         </div>
       )}
-    </a>
+    </Link>
   );
 }

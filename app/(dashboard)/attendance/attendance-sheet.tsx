@@ -103,7 +103,7 @@ export function AttendanceSheet({
       <table className="mt-4 w-full text-sm">
         <thead>
           <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
-            <th className="py-2">Admission No</th>
+            <th className="py-2">Adm No.</th>
             <th className="py-2">Name</th>
             <th className="py-2">Status</th>
           </tr>

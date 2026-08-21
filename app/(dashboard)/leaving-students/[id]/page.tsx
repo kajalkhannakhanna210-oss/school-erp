@@ -79,7 +79,7 @@ export default async function LeavingRequestDetailsPage({
             Leaving Request: {request.student_name}
           </h1>
           <p className="mt-1 text-sm text-slate/60">
-            Admission No: <span className="font-mono font-semibold">{request.admission_number}</span> · Class:{" "}
+            Adm No: <span className="font-mono font-semibold">{request.admission_number}</span> · Class:{" "}
             {(request.classes as any)?.name} {(request.sections as any)?.name ? `- ${(request.sections as any).name}` : ""}
           </p>
         </div>
