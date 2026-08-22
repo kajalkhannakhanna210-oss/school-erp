@@ -44,6 +44,7 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
 
   // Determine resource path for page key
   const pagePathMap: Record<string, string> = {
+    enquiries: "/enquiries",
     students: "/students",
     admission_allotment: "/students/admission-allotment",
     staff: "/staff",

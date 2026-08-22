@@ -12,10 +12,12 @@ import { StaffTable, type StaffRow } from "./staff-table";
 
 const PAGE_SIZE = 10;
 
+import { getSelectedSessionCookie } from "../session-actions";
+
 export default async function StaffPage({
   searchParams,
 }: {
-    searchParams: { q?: string; status?: string; session?: string; page?: string };
+    searchParams: { q?: string; status?: string; page?: string; session?: string };
 }) {
   try {
     await requirePageAccess("staff");
@@ -24,6 +26,7 @@ export default async function StaffPage({
   }
 
   const supabase = await createClient();
+  const selectedSessionId = searchParams.session || (await getSelectedSessionCookie());
   const admin = createAdminClient();
 
   const page = Math.max(1, Number(searchParams.page ?? "1"));
@@ -31,8 +34,8 @@ export default async function StaffPage({
   const to = from + PAGE_SIZE - 1;
   let enrollmentIds: string[] | null = null;
   let enrollmentStatus = new Map<string, boolean>();
-  if (searchParams.session) {
-    const { data: enrollments } = await admin.from("staff_enrollments").select("staff_id, is_active").eq("session_id", searchParams.session);
+  if (selectedSessionId) {
+    const { data: enrollments } = await admin.from("staff_enrollments").select("staff_id, is_active").eq("session_id", selectedSessionId);
     enrollmentIds = (enrollments ?? []).map((row) => row.staff_id);
     enrollmentStatus = new Map((enrollments ?? []).map((row) => [row.staff_id, row.is_active]));
   }
@@ -41,17 +44,17 @@ export default async function StaffPage({
     .from("staff")
     .select("*, profiles!staff_id_fkey(full_name)", { count: "exact" })
     .order("employee_id");
-  if (searchParams.session) query = enrollmentIds?.length ? query.in("id", enrollmentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
+  if (selectedSessionId) query = enrollmentIds?.length ? query.in("id", enrollmentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000");
 
   if (searchParams.q) {
     const q = searchParams.q.replace(/[,()]/g, "");
     query = query.or(`employee_id.ilike.%${q}%,department.ilike.%${q}%,designation.ilike.%${q}%`);
   }
-  if (searchParams.status === "active" && !searchParams.session) query = query.eq("is_active", true);
-  if (searchParams.status === "inactive" && !searchParams.session) query = query.eq("is_active", false);
+  if (searchParams.status === "active" && !selectedSessionId) query = query.eq("is_active", true);
+  if (searchParams.status === "inactive" && !selectedSessionId) query = query.eq("is_active", false);
 
   const { data: staff, count } = await query.range(from, to);
-  const sessionStaff = searchParams.session ? (staff ?? []).filter((member) => searchParams.status === "active" ? enrollmentStatus.get(member.id) : searchParams.status === "inactive" ? !enrollmentStatus.get(member.id) : true) : (staff ?? []);
+  const sessionStaff = selectedSessionId ? (staff ?? []).filter((member) => searchParams.status === "active" ? enrollmentStatus.get(member.id) : searchParams.status === "inactive" ? !enrollmentStatus.get(member.id) : true) : (staff ?? []);
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
   const rows = await Promise.all(
     sessionStaff.map(async (s) => {
@@ -62,7 +65,7 @@ export default async function StaffPage({
     }),
   ) as unknown as StaffRow[];
   let allStaffQuery = admin.from("staff").select("*, profiles!staff_id_fkey(full_name)").order("employee_id");
-  if (searchParams.session) allStaffQuery = enrollmentIds?.length ? allStaffQuery.in("id", enrollmentIds) : allStaffQuery.eq("id", "00000000-0000-0000-0000-000000000000");
+  if (selectedSessionId) allStaffQuery = enrollmentIds?.length ? allStaffQuery.in("id", enrollmentIds) : allStaffQuery.eq("id", "00000000-0000-0000-0000-000000000000");
   const { data: allStaff } = await allStaffQuery;
   const totalStaff = allStaff?.length ?? 0;
   const activeStaff = (allStaff ?? []).filter((member) => member.is_active).length;

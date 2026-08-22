@@ -99,7 +99,7 @@ export default async function StudentIdCardsPage({ searchParams }: PageProps) {
 
   let studentQuery = supabase
     .from("students")
-    .select("id, roll_number, admission_number, profiles(full_name), classes(id, name), sections(id, name)")
+    .select("id, roll_number, admission_number, profiles!students_id_fkey(full_name), classes(id, name), sections(id, name)")
     .eq("is_active", true)
     .not("admission_number", "is", null)
     .neq("admission_number", "");
@@ -145,3 +145,4 @@ export default async function StudentIdCardsPage({ searchParams }: PageProps) {
     </div>
   );
 }
+

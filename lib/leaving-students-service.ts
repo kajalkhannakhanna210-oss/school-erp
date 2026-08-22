@@ -27,7 +27,7 @@ export async function createLeavingRequest(data: LeavingRequestData, userId: str
   // Validate student exists and has active profile
   const { data: student, error: studentError } = await supabase
     .from("students")
-    .select("*, profiles(full_name)")
+    .select("*, profiles!students_id_fkey(full_name)")
     .eq("id", data.studentId)
     .single();
 

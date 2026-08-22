@@ -62,11 +62,11 @@ export default async function DashboardPage() {
 
   const { count: studentCount } =
     role === "super_admin" || role === "staff"
-      ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true)
+      ? await supabase.from("students").select("*", { count: "exact", head: true })
       : { count: null };
 
-  const { count: withAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true).not("admission_number", "is", null) : { count: null };
-  const { count: withoutAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).eq("is_active", true).is("admission_number", null) : { count: null };
+  const { count: withAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).not("admission_number", "is", null).neq("admission_number", "") : { count: null };
+  const { count: withoutAdmissionCount } = role === "super_admin" ? await supabase.from("students").select("*", { count: "exact", head: true }).or("admission_number.is.null,admission_number.eq.") : { count: null };
 
   const { count: staffCount } =
     role === "super_admin"
@@ -162,7 +162,7 @@ export default async function DashboardPage() {
 
     const { data: recent } = await supabase
       .from("payments")
-      .select("amount, paid_at, students(profiles(full_name)), fee_heads(name)")
+      .select("amount, paid_at, students(profiles!students_id_fkey(full_name)), fee_heads(name)")
       .eq("status", "paid")
       .order("paid_at", { ascending: false })
       .limit(5);
@@ -390,3 +390,4 @@ export default async function DashboardPage() {
     </div>
   );
 }
+

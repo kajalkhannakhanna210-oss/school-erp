@@ -9,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 import { Button, Card, Input, Label } from "@/components/ui";
+import { DatePickerCalendar } from "@/components/date-picker-calendar";
 import { useToast } from "@/components/toaster";
 import { createStudent, updateStudent } from "./actions";
 import { createClient } from "@/lib/supabase/client";
@@ -356,14 +357,10 @@ export function StudentForm({
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="date_of_birth">Date of birth</Label>
-              <Input
-                id="date_of_birth"
-                type="date"
+              <DatePickerCalendar
+                label="Date of birth"
                 value={form.date_of_birth}
-                onChange={(e) =>
-                  setForm({ ...form, date_of_birth: e.target.value })
-                }
+                onChange={(date) => setForm({ ...form, date_of_birth: date })}
               />
             </div>
             <div>
@@ -499,15 +496,11 @@ export function StudentForm({
             </div>
           </div>
           <div>
-            <Label htmlFor="admission_date">Admission date</Label>
-            <Input
-              id="admission_date"
-              type="date"
+            <DatePickerCalendar
+              label="Admission date"
               required
               value={form.admission_date}
-              onChange={(e) =>
-                setForm({ ...form, admission_date: e.target.value })
-              }
+              onChange={(date) => setForm({ ...form, admission_date: date })}
             />
           </div>
           <Button type="submit" disabled={pending} className="w-full">

@@ -94,13 +94,19 @@ export function AdmissionAllotmentForm({
     sections.filter(
       (section) => !s.classes || section.class_id === (s.classes as any).id,
     );
-  const row = (s: Student, mobile = false) => (
-    <div
-      key={s.id}
-      className={
-        mobile ? "space-y-3 border-b border-ink-100 px-2 last:border-0" : ""
-      }
-    >
+  const row = (s: Student, mobile = false) => {
+    const isSelected = selected.includes(s.id);
+    return (
+      <div
+        key={s.id}
+        className={
+          mobile
+            ? `space-y-3 border-b border-ink-100 p-3 transition-colors last:border-0 ${
+                isSelected ? "bg-[#e6f4ea]" : ""
+              }`
+            : ""
+        }
+      >
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -161,8 +167,7 @@ export function AdmissionAllotmentForm({
       {mobile && (
         <Button
           type="button"
-          variant="ghost"
-          className="w-full border border-ink-100"
+          className="w-full bg-ink-700 text-white hover:bg-ink-600"
           disabled={pending}
           onClick={() => save([s.id])}
         >
@@ -170,7 +175,8 @@ export function AdmissionAllotmentForm({
         </Button>
       )}
     </div>
-  );
+    );
+  };
   return (
     <Card className="border-ink-100 p-0 shadow-sm">
       <div className="flex items-center justify-between gap-2 border-b border-ink-100 bg-ink-50/70 px-4 py-2.5">
@@ -178,6 +184,7 @@ export function AdmissionAllotmentForm({
           Admission numbers
         </h2>
         <Button
+          className="bg-ink-700 text-white hover:bg-ink-600"
           disabled={!selected.length || pending}
           onClick={() => save(selected)}
         >
@@ -207,8 +214,17 @@ export function AdmissionAllotmentForm({
             </tr>
           </thead>
           <tbody>
-            {students.map((s) => (
-              <tr key={s.id} className="border-b border-ink-100 last:border-0">
+            {students.map((s) => {
+              const isSelected = selected.includes(s.id);
+              return (
+                <tr
+                  key={s.id}
+                  className={`border-b border-ink-100 transition-colors last:border-0 ${
+                    isSelected
+                      ? "bg-[#e6f4ea] hover:bg-[#d4edda]"
+                      : "hover:bg-ink-50/40"
+                  }`}
+                >
                 <td className="px-4 py-3">
                   <input
                     type="checkbox"
@@ -258,7 +274,7 @@ export function AdmissionAllotmentForm({
                 </td>
                 <td className="px-4 py-3">
                   <Button
-                    variant="ghost"
+                    className="bg-ink-700 text-white hover:bg-ink-600"
                     disabled={pending}
                     onClick={() => save([s.id])}
                   >
@@ -266,7 +282,8 @@ export function AdmissionAllotmentForm({
                   </Button>
                 </td>
               </tr>
-            ))}
+            );
+          })}
           </tbody>
         </table>
       </div>

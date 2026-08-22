@@ -126,7 +126,7 @@ export function DashboardSidebar({
 
           if (isDashboard && singleItem) {
             const active = isNavItemActive(singleItem, pathname, currentTab);
-            const href = selectedSession ? `${singleItem.href}${singleItem.href.includes("?") ? "&" : "?"}session=${selectedSession}` : singleItem.href;
+            const href = singleItem.href;
 
             return (
               <div key={section.key} className="border-b border-white/15 pb-2.5 last:border-b-0">

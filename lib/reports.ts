@@ -118,7 +118,7 @@ async function getConcessionReport(
   let query = supabase
     .from("student_concessions")
     .select(
-      "concession_type, value, students!inner(admission_number, class_id, profiles(full_name), classes(name), sections(name)), fee_heads(name)"
+      "concession_type, value, students!inner(admission_number, class_id, profiles!students_id_fkey(full_name), classes(name), sections(name)), fee_heads(name)"
     );
   if (filters.class) query = query.eq("students.class_id", filters.class);
   const { data } = await query;
@@ -160,7 +160,7 @@ async function getLateFeeReport(supabase: SupabaseServerClient, filters: Record<
   const studentIds = [...new Set(withLateFee.map((l) => l.student_id))];
   const { data: students } = await supabase
     .from("students")
-    .select("id, admission_number, profiles(full_name), classes(name), sections(name)")
+    .select("id, admission_number, profiles!students_id_fkey(full_name), classes(name), sections(name)")
     .in("id", studentIds);
   const studentMap = new Map(((students ?? []) as any[]).map((s) => [s.id, s]));
 
@@ -221,7 +221,7 @@ async function getAttendanceSummaryReport(
   }
   const { data: students } = await supabase
     .from("students")
-    .select("id, admission_number, profiles(full_name), classes(name), sections(name)")
+    .select("id, admission_number, profiles!students_id_fkey(full_name), classes(name), sections(name)")
     .in("id", studentIds);
 
   const rows = ((students ?? []) as any[]).map((s) => {
@@ -268,7 +268,7 @@ async function withStudentDetails(
 
   const { data: students } = await supabase
     .from("students")
-    .select("id, admission_number, profiles(full_name), classes(name), sections(name)")
+    .select("id, admission_number, profiles!students_id_fkey(full_name), classes(name), sections(name)")
     .in("id", studentIds);
 
   return ((students ?? []) as any[]).map((s) =>

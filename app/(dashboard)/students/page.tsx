@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
+import { getSelectedSessionCookie } from "../session-actions";
 import { ExportCsvButton } from "./export-csv-button";
 import { StudentFilters } from "./student-filters";
 import nextDynamic from "next/dynamic";
@@ -11,9 +12,10 @@ const StudentTable = nextDynamic(() => import("./student-table").then((mod) => m
   ssr: false,
   loading: () => (
     <div className="p-6">
-      <div className="animate-pulse space-y-2">
-        <div className="h-4 w-48 rounded bg-ink-50" />
-        <div className="h-3 w-full rounded bg-ink-50" />
+      <div className="animate-pulse space-y-4">
+        <div className="h-10 w-full rounded bg-ink-50" />
+        <div className="h-10 w-full rounded bg-ink-50" />
+        <div className="h-10 w-full rounded bg-ink-50" />
       </div>
     </div>
   ),
@@ -40,36 +42,41 @@ export default async function StudentsPage({
   }
 
   const supabase = await createClient();
+  const selectedSessionId = searchParams.session || (await getSelectedSessionCookie());
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
   const canManage = profile?.role === "super_admin";
 
   const page = Math.max(1, Number(searchParams.page ?? "1"));
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   let enrollmentStudentIds: string[] | null = null;
-  if (searchParams.session) {
-    const { data: enrollments } = await supabase.from("student_enrollments").select("student_id").eq("session_id", searchParams.session);
+  if (selectedSessionId) {
+    const { data: enrollments } = await supabase.from("student_enrollments").select("student_id").eq("session_id", selectedSessionId);
     enrollmentStudentIds = (enrollments ?? []).map((row) => row.student_id);
   }
 
   let query = supabase
     .from("students")
-    .select("*, profiles(full_name), classes(name), sections(name), academic_sessions(name)", { count: "exact" })
+    .select("*, profiles!students_id_fkey(full_name), classes(name), sections(name), academic_sessions(name)", { count: "exact" })
     .order("admission_number");
 
   // Apply session filter FIRST if provided. If no enrollments exist for this session,
   // do not apply an impossible-ID filter (it would always return zero rows) — instead
   // leave the query unfiltered so the user still sees student data.
-  if (searchParams.session) {
+  if (selectedSessionId) {
     if (enrollmentStudentIds?.length) {
-      query = query.in("id", enrollmentStudentIds);
+      query = query.or(`session_id.eq.${selectedSessionId},id.in.(${enrollmentStudentIds.join(",")})`);
     } else {
-      // no enrollments found for session — log for debugging and do not filter
-      console.log("students: no enrollments for session", searchParams.session);
+      query = query.eq("session_id", selectedSessionId);
     }
   }
 
@@ -86,13 +93,43 @@ export default async function StudentsPage({
   if (searchParams.tab === "admission-assigned") {
     query = query.not("admission_number", "is", null).neq("admission_number", "");
   }
+  if (searchParams.tab === "old") {
+    if (selectedSessionId) {
+      const { data: selectedSession } = await supabase.from("academic_sessions").select("start_date").eq("id", selectedSessionId).maybeSingle();
+      if (selectedSession?.start_date) {
+        const { data: earlierSessions } = await supabase.from("academic_sessions").select("id").lt("start_date", selectedSession.start_date);
+        const earlierSessionIds = (earlierSessions ?? []).map((s) => s.id);
+        if (earlierSessionIds.length) {
+          const { data: oldEnrollments } = await supabase.from("student_enrollments").select("student_id").in("session_id", earlierSessionIds);
+          const oldStudentIds = (oldEnrollments ?? []).map((e) => e.student_id);
+          if (oldStudentIds.length) {
+            query = query.in("id", oldStudentIds);
+          } else {
+            query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+          }
+        } else {
+          query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+        }
+      }
+    } else {
+      const { data: allEnrollments } = await supabase.from("student_enrollments").select("student_id");
+      const counts = new Map<string, number>();
+      (allEnrollments ?? []).forEach((e) => counts.set(e.student_id, (counts.get(e.student_id) ?? 0) + 1));
+      const repeatingIds = Array.from(counts.entries()).filter(([, cnt]) => cnt > 1).map(([id]) => id);
+      if (repeatingIds.length) {
+        query = query.in("id", repeatingIds);
+      } else {
+        query = query.eq("id", "00000000-0000-0000-0000-000000000000");
+      }
+    }
+  }
   if (searchParams.tab === "archived") {
     query = query.eq("is_active", false);
   }
   if (searchParams.tab === "left") {
     // find leaving student ids for session (if session provided) or all
-    const { data: leaving } = searchParams.session
-      ? await supabase.from("student_leaving_requests").select("student_id").eq("status", "student_left").eq("session_id", searchParams.session)
+    const { data: leaving } = selectedSessionId
+      ? await supabase.from("student_leaving_requests").select("student_id").eq("status", "student_left").eq("session_id", selectedSessionId)
       : await supabase.from("student_leaving_requests").select("student_id").eq("status", "student_left");
     const leftIds = (leaving ?? []).map((r: any) => r.student_id);
     if (leftIds.length === 0) query = query.eq("id", "00000000-0000-0000-0000-000000000000");
@@ -110,7 +147,7 @@ export default async function StudentsPage({
   // Debug log to help diagnose empty list issues
   try {
     // eslint-disable-next-line no-console
-    console.log('students.query.result.count=', Array.isArray(students) ? students.length : 0, 'count=', count, 'sessionFilter=', searchParams.session);
+    console.log('students.query.result.count=', Array.isArray(students) ? students.length : 0, 'count=', count, 'sessionFilter=', selectedSessionId);
     // eslint-disable-next-line no-console
     console.log('students.ids=', (students ?? []).map((s:any)=>s.id).slice(0,10));
   } catch (e) {
@@ -122,15 +159,21 @@ export default async function StudentsPage({
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("sections").select("id, name, class_id").order("name"),
     supabase.from("academic_sessions").select("id, name, is_current, start_date").order("start_date", { ascending: false }),
-    getStudentStats(supabase, searchParams.session),
+    getStudentStats(supabase, selectedSessionId),
   ]);
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+  
+  // Generate signed URLs in parallel
   const rows = await Promise.all((students ?? []).map(async (student: any) => {
     let photo_url: string | null = null;
     if (student.photo_path) {
-      const { data: signed } = await supabase.storage.from("student-photos").createSignedUrl(student.photo_path, 60 * 10);
-      photo_url = signed?.signedUrl ?? null;
+      try {
+        const { data: signed } = await supabase.storage.from("student-photos").createSignedUrl(student.photo_path, 60 * 10);
+        photo_url = signed?.signedUrl ?? null;
+      } catch {
+        photo_url = null;
+      }
     }
     return { ...student, photo_url } as StudentRow;
   }));
@@ -168,69 +211,77 @@ export default async function StudentsPage({
             </>
           )}
         </div>
-      </div>
+      </div>      {(() => {
+        const getTabHref = (t?: string) => {
+          const p = { ...searchParams };
+          delete p.page;
+          if (t) p.tab = t;
+          else delete p.tab;
+          const s = new URLSearchParams(p as any).toString();
+          return `/students${s ? `?${s}` : ''}`;
+        };
+        return (
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3 lg:grid-cols-6 lg:gap-3 xl:gap-4 items-stretch auto-rows-fr">
+            <SummaryCard
+              href={getTabHref()}
+              title="Total students"
+              count={stats.totalStudents}
+              subtitle="All student records"
+              colorClass="bg-ink-700"
+              active={searchParams.tab === "all" || !searchParams.tab}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="2.2"/><circle cx="16" cy="8" r="2.2"/><path d="M2 20c1.5-3 6-4 12-4s10.5 1 12 4"/></svg>}
+            />
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 lg:gap-3 items-stretch">
-        <SummaryCard
-          href={(() => { const p = { ...searchParams }; delete p.tab; const s = new URLSearchParams(p).toString(); return `/students${s ? `?${s}` : ''}` })() }
-          title="Total students"
-          count={stats.totalStudents}
-          subtitle="All student records"
-          colorClass="bg-ink-700"
-          active={searchParams.tab === "all" || !searchParams.tab}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="2.2"/><circle cx="16" cy="8" r="2.2"/><path d="M2 20c1.5-3 6-4 12-4s10.5 1 12 4"/></svg>}
-        />
+            <SummaryCard
+              href={getTabHref("new")}
+              title="New Students"
+              count={stats.newStudents}
+              subtitle="Without Adm No."
+              colorClass="bg-emerald-500"
+              active={searchParams.tab === "new"}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="2.2"/><path d="M6 20c1.2-2 3.8-3 6-3s4.8 1 6 3"/><path d="M18 5v4M15 8h6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            />
 
-        <SummaryCard
-          href={'/students?tab=new'}
-          title="New Students"
-          count={stats.newStudents}
-          subtitle="Without Adm No."
-          colorClass="bg-emerald-500"
-          active={searchParams.tab === "new"}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="2.2"/><path d="M6 20c1.2-2 3.8-3 6-3s4.8 1 6 3"/><path d="M18 5v4M15 8h6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-        />
+            <SummaryCard
+              href={getTabHref("admission-assigned")}
+              title="Adm No. Assigned"
+              count={stats.studentsWithAdmissionNumber}
+              subtitle="Adm No available"
+              colorClass="bg-amber-500"
+              active={searchParams.tab === "admission-assigned"}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.2"/></svg>}
+            />
 
-        <SummaryCard
-          href={'/students?tab=admission-assigned'}
-          title="Adm No. Assigned"
-          count={stats.studentsWithAdmissionNumber}
-          subtitle="Adm No available"
-          colorClass="bg-amber-500"
-          active={searchParams.tab === "admission-assigned"}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.2"/></svg>}
-        />
+            <SummaryCard
+              href={getTabHref("old")}
+              title="Old Students"
+              count={stats.oldStudents}
+              subtitle="Existing/old records"
+              colorClass="bg-ink-700"
+              active={searchParams.tab === "old"}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+            />
 
-        <SummaryCard
-          href={'/students?tab=old'}
-          title="Old Students"
-          count={stats.oldStudents}
-          subtitle="Existing/old records"
-          colorClass="bg-ink-700"
-          active={searchParams.tab === "old"}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7"/><path d="M12 8v4l3 2" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-        />
+            <SummaryCard
+              href={getTabHref("archived")}
+              title="Archived"
+              count={stats.archivedStudents}
+              subtitle="Archived student records"
+              colorClass="bg-rose-500"
+              active={searchParams.tab === "archived"}
+              icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="4" rx="1"/><path d="M21 10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8"/><path d="M10 12v4M14 12v4" strokeWidth="1.4"/></svg>}
+            />
 
-        <SummaryCard
-          href={'/students?tab=archived'}
-          title="Archived"
-          count={stats.archivedStudents}
-          subtitle="Archived student records"
-          colorClass="bg-rose-500"
-          active={searchParams.tab === "archived"}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="6" width="18" height="4" rx="1"/><path d="M21 10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8"/><path d="M10 12v4M14 12v4" strokeWidth="1.4"/></svg>}
-        />
-
-        <SummaryCard
-          href={'/students?tab=left'}
-          title="Students Left"
-          count={stats.studentsLeft}
-          subtitle="Students who left school"
-          colorClass="bg-slate-500"
-          active={searchParams.tab === "left"}
-          icon={<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 7l5 5-5 5" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M19 12H9" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-        />
-      </div>
+            <SummaryCard
+              href={getTabHref("left")}
+              title="Students Left"
+              count={stats.studentsLeft}
+              subtitle="Students who left school"
+              colorClass="bg-slate-500"
+            />
+          </div>
+        );
+      })()}
 
       <div className="mt-2 rounded-lg border-0 bg-transparent px-0 py-0 shadow-none sm:border sm:border-ink-100 sm:bg-ink-50/50 sm:px-3 sm:py-1.5 sm:shadow-sm">
         <StudentFilters classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} defaultSessionId={defaultSessionId} />

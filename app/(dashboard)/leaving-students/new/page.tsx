@@ -37,7 +37,7 @@ export default async function NewLeavingRequestPage({
   // Fetch active students for selector dropdown, filtering out students with an active request
   const { data: rawStudents } = await supabase
     .from("students")
-    .select("id, admission_number, father_name, mother_name, admission_date, profiles(full_name), classes(name), sections(name)")
+    .select("id, admission_number, father_name, mother_name, admission_date, profiles!students_id_fkey(full_name), classes(name), sections(name)")
     .eq("is_active", true)
     .order("admission_number");
 
@@ -224,3 +224,4 @@ export default async function NewLeavingRequestPage({
     </div>
   );
 }
+

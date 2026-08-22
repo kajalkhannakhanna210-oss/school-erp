@@ -25,7 +25,7 @@ export async function GET(
   const { data: payment } = await supabase
     .from("payments")
     .select(
-      "student_id, receipt_number, amount, paid_at, razorpay_payment_id, fee_heads(name), students(admission_number, profiles(full_name), classes(name), sections(name))"
+      "student_id, receipt_number, amount, paid_at, razorpay_payment_id, fee_heads(name), students(admission_number, profiles!students_id_fkey(full_name), classes(name), sections(name))"
     )
     .eq("id", params.paymentId)
     .eq("status", "paid")

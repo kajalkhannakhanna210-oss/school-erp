@@ -7,6 +7,7 @@ import { RoleSwitcher } from "./role-switcher";
 import { DashboardMobileNavigation } from "./mobile-navigation";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { SessionSelector } from "./students/session-selector";
+import { getSelectedSessionCookie } from "./session-actions";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
+  const selectedSessionId = await getSelectedSessionCookie();
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -73,7 +75,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         <div className="sticky top-0 z-40 min-h-16 lg:hidden" style={{ backgroundColor: "#222F57" }}>
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2 text-white"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold text-xs font-bold text-ink-900">R</div><span className="truncate font-display font-bold">Registrar</span></div>
-            <div className="ml-auto flex items-center gap-2"><SessionSelector sessions={sessions ?? []} className="text-white" /><DashboardMobileNavigation items={visibleNav} sections={sections} /></div>
+            <div className="ml-auto flex items-center gap-2"><SessionSelector sessions={sessions ?? []} initialSessionId={selectedSessionId} className="text-white" /><DashboardMobileNavigation items={visibleNav} sections={sections} /></div>
           </div>
         </div>
         <header className="relative z-0 flex flex-wrap items-center justify-between gap-3 border-b border-ink-100/80 bg-white px-4 py-3 pb-3 shadow-sm sm:px-5 sm:py-4 sm:pb-4 lg:z-50 lg:px-8">
@@ -88,7 +90,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           </div>
           <div className="absolute right-4 top-3 flex flex-col items-end justify-center gap-2 sm:static sm:flex-row sm:items-center sm:gap-3">
             <RoleSwitcher role={profile.role} roles={(roleMemberships ?? []).map((item) => item.role)} />
-            <SessionSelector sessions={sessions ?? []} className="hidden sm:flex" />
+            <SessionSelector sessions={sessions ?? []} initialSessionId={selectedSessionId} className="hidden sm:flex" />
           </div>
         </header>
         <main className="min-h-[calc(100vh-4.5rem)] min-w-0 overflow-x-hidden bg-cover bg-fixed bg-center p-4 sm:p-5 lg:p-8" style={{ backgroundImage: "linear-gradient(135deg, rgba(248,249,253,.96), rgba(243,245,250,.9)), url('/about-school.jpg')" }}>{children}</main>

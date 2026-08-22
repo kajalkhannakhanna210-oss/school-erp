@@ -69,7 +69,7 @@ export async function generateStudentIdCards(input: {
   // Fetch student details to build snapshots
   const { data: students, error: studentFetchErr } = await supabase
     .from("students")
-    .select("id, roll_number, admission_number, father_name, mother_name, mobile_number, address, photo_path, profiles(full_name), classes(name), sections(name)")
+    .select("id, roll_number, admission_number, father_name, mother_name, mobile_number, address, photo_path, profiles!students_id_fkey(full_name), classes(name), sections(name)")
     .in("id", input.student_ids);
 
   if (studentFetchErr) {

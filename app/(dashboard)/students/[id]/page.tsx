@@ -50,7 +50,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   const { data: student } = await supabase
     .from("students")
-    .select("*, profiles(full_name), classes(name), sections(name), academic_sessions(name)")
+    .select("*, profiles!students_id_fkey(full_name), classes(name), sections(name), academic_sessions(name)")
     .eq("id", params.id)
     .single();
 

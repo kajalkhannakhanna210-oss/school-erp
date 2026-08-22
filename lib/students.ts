@@ -11,13 +11,15 @@ export async function getStudentStats(supabaseClient: Awaited<ReturnType<typeof 
   }
 
   function applyEnrollment(query: any) {
-    if (!enrollmentStudentIds) return query;
-    if (enrollmentStudentIds.length === 0) return query.eq("id", "00000000-0000-0000-0000-000000000000");
-    return query.in("id", enrollmentStudentIds);
+    if (!sessionId) return query;
+    if (enrollmentStudentIds && enrollmentStudentIds.length > 0) {
+      return query.or(`session_id.eq.${sessionId},id.in.(${enrollmentStudentIds.join(",")})`);
+    }
+    return query.eq("session_id", sessionId);
   }
 
   // Counts — use enrollment filter first, then apply other filters
-  // Total: all students in session (or all active students if no session)
+  // Total: all student records (both active and archived)
   let totalQ = supabase.from("students").select("id", { count: "exact", head: true });
   if (sessionId) totalQ = applyEnrollment(totalQ);
 

@@ -50,7 +50,7 @@ export function DashboardSidebarNavigation({ items, collapsed = false }: { items
       <ul className="mt-1 space-y-1 list-none p-0 m-0">
         {items.map((item) => {
           const active = isNavItemActive(item, pathname, currentTab);
-          const href = selectedSession ? `${item.href}${item.href.includes("?") ? "&" : "?"}session=${selectedSession}` : item.href;
+          const href = item.href;
 
           const baseClasses = collapsed ? "flex items-center justify-center h-10 w-full text-center px-0 rounded-lg transition" : "flex items-center gap-2.5 rounded-lg py-2 px-3 text-sm font-semibold transition";
           const stateClasses = active ? "bg-white/20 text-white font-bold border-l-[3px] border-gold shadow-sm pl-2.5" : "border-transparent text-white/80 hover:bg-white/10 hover:text-white";

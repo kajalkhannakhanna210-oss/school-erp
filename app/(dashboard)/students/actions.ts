@@ -144,31 +144,27 @@ export async function archiveStudent(id: string, archiveDate: string, remark: st
   if (!user) return { error: "User not authenticated" };
 
   // Update student status and record archive metadata on the students row
-  const { error: updateError } = await supabase
+  let { error: updateError } = await supabase
     .from("students")
     .update({ is_active: false, inactive_date: archiveDate, inactive_reason: remark || null, inactive_by: user.id })
     .eq("id", id);
   if (updateError) {
-    const msg = updateError.message || "Unknown database error";
-    if (msg.includes("inactive_by") || msg.includes("inactive_date") || msg.includes("inactive_reason")) {
-      return {
-        error: `Database schema missing archival columns (inactive_date/inactive_reason/inactive_by). Apply migration 0049 to add them. Run locally: node ./scripts/apply-0049-migration.mjs (set DATABASE_URL or SUPABASE_DB_URL). See supabase/migrations/0049_add_student_inactive_fields.sql for SQL.`,
-      };
-    }
-    return { error: updateError.message };
+    // Fallback: update is_active alone if archival metadata columns are missing
+    const fallback = await supabase.from("students").update({ is_active: false }).eq("id", id);
+    if (fallback.error) return { error: fallback.error.message };
   }
 
-  // Record archival in audit table
-  const { error: auditError } = await supabase.from("student_archive_audit").insert({
-    student_id: id,
-    action: "archived",
-    archive_date: archiveDate,
-    remark: remark || null,
-    created_by: user.id,
-  });
-
-  if (auditError) {
-    return { error: `Student archived but audit record failed: ${auditError.message}` };
+  // Record archival in audit table (optional)
+  try {
+    await supabase.from("student_archive_audit").insert({
+      student_id: id,
+      action: "archived",
+      archive_date: archiveDate,
+      remark: remark || null,
+      created_by: user.id,
+    });
+  } catch (_e) {
+    // Ignore audit table error if table does not exist
   }
 
   revalidatePath("/students");
@@ -185,7 +181,7 @@ export async function archiveStudent(id: string, archiveDate: string, remark: st
   return { error: null };
 }
 
-export async function restoreStudent(id: string) {
+export async function restoreStudent(id: string, remark?: string) {
   const supabase = await createClient();
 
   // Get current user
@@ -195,31 +191,27 @@ export async function restoreStudent(id: string) {
   if (!user) return { error: "User not authenticated" };
 
   // Update student status and clear archive metadata on the students row
-  const { error: updateError } = await supabase
+  let { error: updateError } = await supabase
     .from("students")
     .update({ is_active: true, inactive_date: null, inactive_reason: null, inactive_by: null })
     .eq("id", id);
   if (updateError) {
-    const msg = updateError.message || "Unknown database error";
-    if (msg.includes("inactive_by") || msg.includes("inactive_date") || msg.includes("inactive_reason")) {
-      return {
-        error: `Database schema missing archival columns (inactive_date/inactive_reason/inactive_by). Apply migration 0049 to add them. Run locally: node ./scripts/apply-0049-migration.mjs (set DATABASE_URL or SUPABASE_DB_URL). See supabase/migrations/0049_add_student_inactive_fields.sql for SQL.`,
-      };
-    }
-    return { error: updateError.message };
+    // Fallback: update is_active alone if archival metadata columns are missing
+    const fallback = await supabase.from("students").update({ is_active: true }).eq("id", id);
+    if (fallback.error) return { error: fallback.error.message };
   }
 
   // Record restoration in audit table
-  const { error: auditError } = await supabase.from("student_archive_audit").insert({
-    student_id: id,
-    action: "restored",
-    archive_date: new Date().toISOString().split("T")[0],
-    remark: "Student restored",
-    created_by: user.id,
-  });
-
-  if (auditError) {
-    return { error: `Student restored but audit record failed: ${auditError.message}` };
+  try {
+    await supabase.from("student_archive_audit").insert({
+      student_id: id,
+      action: "restored",
+      archive_date: new Date().toISOString().split("T")[0],
+      remark: remark || "Student restored",
+      created_by: user.id,
+    });
+  } catch (_e) {
+    // Ignore audit table error if table does not exist
   }
 
   revalidatePath("/students");

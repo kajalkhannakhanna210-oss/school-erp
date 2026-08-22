@@ -107,7 +107,7 @@ export function DashboardMobileNavigation({
 
                   if (isDashboard && singleItem) {
                     const active = isNavItemActive(singleItem, pathname, currentTab);
-                    const href = selectedSession ? `${singleItem.href}${singleItem.href.includes("?") ? "&" : "?"}session=${selectedSession}` : singleItem.href;
+                    const href = singleItem.href;
 
                     return (
                       <div key={section.key} className="border-b border-white/15 pb-2">
@@ -156,7 +156,7 @@ export function DashboardMobileNavigation({
                         <div className="mt-1 pl-4 space-y-1">
                           {secItems.map((subItem) => {
                             const active = isNavItemActive(subItem, pathname, currentTab);
-                            const href = selectedSession ? `${subItem.href}${subItem.href.includes("?") ? "&" : "?"}session=${selectedSession}` : subItem.href;
+                            const href = subItem.href;
 
                             return (
                               <Link

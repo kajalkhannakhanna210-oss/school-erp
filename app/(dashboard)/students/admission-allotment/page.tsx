@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { AdmissionAllotmentForm } from "./form";
+import { getSelectedSessionCookie } from "../../session-actions";
 
 export default async function AdmissionAllotmentPage({ searchParams }: { searchParams: { session?: string } }) {
   try {
@@ -12,13 +13,25 @@ export default async function AdmissionAllotmentPage({ searchParams }: { searchP
   }
 
   const supabase = await createClient();
+  const selectedSessionId = searchParams.session || (await getSelectedSessionCookie());
+
   let enrollmentIds: string[] | null = null;
-  if (searchParams.session) {
-    const { data: enrollments } = await supabase.from("student_enrollments").select("student_id").eq("session_id", searchParams.session);
+  if (selectedSessionId) {
+    const { data: enrollments } = await supabase.from("student_enrollments").select("student_id").eq("session_id", selectedSessionId);
     enrollmentIds = (enrollments ?? []).map((row) => row.student_id);
   }
   const [{ data: students }, { data: sections }, { data: assignedStudents }] = await Promise.all([
-    (() => { let query = supabase.from("students").select("id, admission_number, mobile_number, photo_path, class_id, section_id, profiles(full_name), classes(id, name), sections(name)").is("admission_number", null); if (searchParams.session) query = enrollmentIds?.length ? query.in("id", enrollmentIds) : query.eq("id", "00000000-0000-0000-0000-000000000000"); return query.order("admission_number"); })(),
+    (() => {
+      let query = supabase.from("students").select("id, admission_number, mobile_number, photo_path, class_id, section_id, profiles!students_id_fkey(full_name), classes(id, name), sections(name)").is("admission_number", null);
+      if (selectedSessionId) {
+        if (enrollmentIds && enrollmentIds.length > 0) {
+          query = query.or(`session_id.eq.${selectedSessionId},id.in.(${enrollmentIds.join(",")})`);
+        } else {
+          query = query.eq("session_id", selectedSessionId);
+        }
+      }
+      return query.order("created_at", { ascending: false });
+    })(),
     supabase.from("sections").select("id, name, class_id").order("name"),
     supabase.from("students").select("admission_number").not("admission_number", "is", null),
   ]);

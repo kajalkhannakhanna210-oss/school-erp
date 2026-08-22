@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { AssignForm } from "./assign-form";
+import { getSelectedSessionCookie } from "../../session-actions";
 
 export default async function ClassTeachersPage({
   searchParams,
@@ -56,7 +57,7 @@ export default async function ClassTeachersPage({
     })
     .filter((s) => s.name && s.sessionIds.length > 0);
   const selectedSessionId =
-    searchParams.session ?? sessions?.find((session) => session.is_current)?.id ?? sessions?.[0]?.id ?? "";
+    searchParams.session ?? (await getSelectedSessionCookie()) ?? sessions?.find((session) => session.is_current)?.id ?? sessions?.[0]?.id ?? "";
   const assignmentsWithPhotos = await Promise.all((assignments ?? []).map(async (assignment) => {
     const staffMember = (staffRows ?? []).find((member) => member.id === assignment.staff_id);
     const { data: signed } = staffMember?.photo_path

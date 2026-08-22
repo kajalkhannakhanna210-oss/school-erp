@@ -53,7 +53,7 @@ export default async function MarksEntryPage({
       supabase.from("exams").select("id, name, is_published").eq("id", examId).single(),
       supabase
         .from("students")
-        .select("id, admission_number, profiles(full_name)")
+        .select("id, admission_number, profiles!students_id_fkey(full_name)")
         .eq("class_id", classId)
         .eq("section_id", sectionId)
         .eq("is_active", true)
@@ -117,3 +117,4 @@ export default async function MarksEntryPage({
     </div>
   );
 }
+
