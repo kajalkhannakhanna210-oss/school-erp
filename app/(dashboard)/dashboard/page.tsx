@@ -292,8 +292,18 @@ export default async function DashboardPage() {
             { dot: "bg-red-500", label: "bg-red-100 text-red-700" },
           ];
           const color = colors[index % 5];
-          
-          return (
+
+          // Map some dashboard widgets to a target href so clicking them navigates
+          const hrefMap: Record<string, string | undefined> = {
+            "Total Students": "/students",
+            "My Students": "/students",
+            "With Adm No.": "/students?tab=admission-assigned",
+            "Without Adm No.": "/students?tab=new",
+            "New Admissions": "/students",
+          };
+          const href = hrefMap[w] ?? (w.includes("Students") ? "/students" : undefined);
+
+          const card = (
             <Card key={w} className="min-w-0 rounded-lg border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-2 sm:p-3 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2 flex-1">
@@ -307,6 +317,8 @@ export default async function DashboardPage() {
               <p className="mt-0.5 text-xs text-gray-500">{w === "With Adm No." ? "Assigned" : w === "Without Adm No." ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p>
             </Card>
           );
+
+          return href ? <Link key={w} href={href}>{card}</Link> : card;
         })}
       </div>
 
