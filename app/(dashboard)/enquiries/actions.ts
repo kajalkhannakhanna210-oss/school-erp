@@ -61,12 +61,22 @@ export async function createEnquiryAction(formData: {
     }
   }
 
-  const year = new Date().getFullYear();
-  const randomId = String(
-    Math.floor(1000 + Math.random() * 9000)
-  );
-
-  const enquiry_id = `ENQ${year}${randomId}`;
+  // Generate a unique enquiry_id using the DB-side generator for concurrency safety
+  let enquiry_id: string | null = null;
+  try {
+    const { data: genData, error: genError } = await supabase.rpc("generate_enquiry_id");
+    if (!genError && genData) {
+      // supabase.rpc may return scalar or array; normalize
+      enquiry_id = Array.isArray(genData) ? genData[0] : genData as unknown as string;
+    }
+  } catch (e) {
+    // fall back to a JS-generated ID if RPC fails
+  }
+  if (!enquiry_id) {
+    const year = new Date().getFullYear();
+    const randomId = String(Math.floor(1000 + Math.random() * 9000));
+    enquiry_id = `ENQ${year}${randomId}`;
+  }
 
   const status: EnquiryStatus =
     formData.assigned_staff_id
