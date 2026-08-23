@@ -2,12 +2,16 @@
 
 -- 1. Reusable staff-module scope table
 create table if not exists public.staff_module_scopes (
+  id bigserial primary key,
   staff_id uuid not null references public.profiles(id) on delete cascade,
   module_key text not null,
   scope_type text not null check (scope_type in ('ALL','CLASS','SECTION','OWN_ASSIGNED')),
-  resource_id uuid null,
-  primary key (staff_id, module_key, scope_type, coalesce(resource_id::text, ''))
+  resource_id uuid null
 );
+
+-- enforce logical uniqueness (treat NULL resource_id as '')
+create unique index if not exists ux_staff_module_scopes_unique
+  on public.staff_module_scopes (staff_id, module_key, scope_type, coalesce(resource_id::text, ''));
 
 create index if not exists idx_staff_module_scopes_staff on public.staff_module_scopes(staff_id);
 create index if not exists idx_staff_module_scopes_module on public.staff_module_scopes(module_key);
