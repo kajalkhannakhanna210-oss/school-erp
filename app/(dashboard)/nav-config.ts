@@ -51,7 +51,8 @@ export const navItems: NavItem[] = [
 export const navSections = [
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
-  { key: "students", label: "Students", keys: ["enquiries", "students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
+  { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
+  { key: "admissions", label: "Admissions", keys: ["enquiries"] },
   { key: "staff", label: "Staff", keys: ["staff", "staff_sessions"] },
   { key: "exams", label: "Examinations", keys: ["exams"] },
   { key: "fees", label: "Fees & Finance", keys: ["fees", "payments"] },
