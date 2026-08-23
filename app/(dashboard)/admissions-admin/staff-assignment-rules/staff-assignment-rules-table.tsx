@@ -33,24 +33,28 @@ export function StaffAssignmentRulesTable({
   const { push } = useToast();
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
-  const [classSelections, setClassSelections] = useState<Map<string, Set<string>>>(
+  const [classSelections, setClassSelections] = useState<
+    Map<string, Set<string>>
+  >(
     new Map(
       staff.map((s) => [
         s.id,
         new Set(staffClassMap.get(s.id) || []),
-      ])
-    )
+      ]),
+    ),
   );
 
   const handleToggleClass = (staffId: string, classId: string) => {
     setClassSelections((prev) => {
       const newMap = new Map(prev);
       const staffClasses = new Set(newMap.get(staffId) || []);
+
       if (staffClasses.has(classId)) {
         staffClasses.delete(classId);
       } else {
         staffClasses.add(classId);
       }
+
       newMap.set(staffId, staffClasses);
       return newMap;
     });
@@ -58,9 +62,24 @@ export function StaffAssignmentRulesTable({
 
   const handleSave = async (staffId: string) => {
     setSaving(staffId);
+
     try {
-      const selectedClasses = Array.from(classSelections.get(staffId) || []);
-      const res = await setStaffModuleScopes(staffId, selectedClasses);
+      const selectedClasses = Array.from(
+        classSelections.get(staffId) || [],
+      );
+
+      // setStaffModuleScopes requires:
+      // 1. staffId
+      // 2. all
+      // 3. classIds
+      //
+      // This table assigns specific classes, so "all" is false.
+      const res = await setStaffModuleScopes(
+        staffId,
+        false,
+        selectedClasses,
+      );
+
       if (res?.error) {
         push(res.error, "error");
       } else {
@@ -88,22 +107,32 @@ export function StaffAssignmentRulesTable({
         <div key={s.id} className="border-b last:border-b-0">
           <button
             onClick={() =>
-              setExpandedStaff(expandedStaff === s.id ? null : s.id)
+              setExpandedStaff(
+                expandedStaff === s.id ? null : s.id,
+              )
             }
-            className="w-full px-4 py-3 text-left hover:bg-ink-50 transition-colors"
+            className="w-full px-4 py-3 text-left transition-colors hover:bg-ink-50"
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <p className="font-semibold text-ink-900">{s.full_name}</p>
-                <p className="text-sm text-slate-600">{s.email}</p>
+                <p className="font-semibold text-ink-900">
+                  {s.full_name}
+                </p>
+                <p className="text-sm text-slate-600">
+                  {s.email}
+                </p>
               </div>
+
               <div className="flex items-center gap-3">
                 <div className="text-right">
                   <div className="text-sm font-semibold text-ink-700">
                     {classSelections.get(s.id)?.size || 0} classes
                   </div>
-                  <div className="text-xs text-slate-500">assigned</div>
+                  <div className="text-xs text-slate-500">
+                    assigned
+                  </div>
                 </div>
+
                 <svg
                   className={`h-5 w-5 text-slate-400 transition-transform ${
                     expandedStaff === s.id ? "rotate-180" : ""
@@ -129,21 +158,33 @@ export function StaffAssignmentRulesTable({
               <p className="mb-3 text-sm font-semibold text-ink-900">
                 Select Classes for {s.full_name}
               </p>
+
               <div className="mb-4 grid gap-2 sm:grid-cols-2 md:grid-cols-3">
                 {classes.map((cls) => (
-                  <label key={cls.id} className="flex items-center gap-2 p-2 rounded hover:bg-white cursor-pointer">
+                  <label
+                    key={cls.id}
+                    className="flex cursor-pointer items-center gap-2 rounded p-2 hover:bg-white"
+                  >
                     <input
                       type="checkbox"
-                      checked={classSelections.get(s.id)?.has(cls.id) || false}
-                      onChange={() => handleToggleClass(s.id, cls.id)}
+                      checked={
+                        classSelections.get(s.id)?.has(cls.id) ||
+                        false
+                      }
+                      onChange={() =>
+                        handleToggleClass(s.id, cls.id)
+                      }
                       className="h-4 w-4 rounded border-ink-300 text-ink-700"
                     />
-                    <span className="text-sm text-ink-900">{cls.name}</span>
+
+                    <span className="text-sm text-ink-900">
+                      {cls.name}
+                    </span>
                   </label>
                 ))}
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="flex justify-end gap-2">
                 <Button
                   onClick={() => setExpandedStaff(null)}
                   variant="secondary"
@@ -151,12 +192,15 @@ export function StaffAssignmentRulesTable({
                 >
                   Cancel
                 </Button>
+
                 <Button
                   onClick={() => handleSave(s.id)}
                   disabled={saving === s.id}
                   className="h-10 px-4 text-sm"
                 >
-                  {saving === s.id ? "Saving..." : "Save Classes"}
+                  {saving === s.id
+                    ? "Saving..."
+                    : "Save Classes"}
                 </Button>
               </div>
             </div>
