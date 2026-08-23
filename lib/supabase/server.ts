@@ -1,8 +1,14 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 
 export async function createClient() {
-  const cookieStore = await cookies();
+  // Lazy-import to avoid bundling next/headers into contexts where it's not available
+  const { createServerClient } = await import("@supabase/ssr");
+  let cookieStore: any;
+  try {
+    const headers = await import("next/headers");
+    cookieStore = await headers.cookies();
+  } catch (e) {
+    throw new Error("createClient must be called from a Next.js Server Component where next/headers is available");
+  }
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
