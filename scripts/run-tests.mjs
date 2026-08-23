@@ -27,6 +27,23 @@ if (compile.status !== 0) {
   process.exit(compile.status ?? 1);
 }
 
+// Post-process compiled files to rewrite '@/lib/' imports into relative paths under .test-dist/lib
+import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
+function rewriteDir(dir) {
+  for (const name of readdirSync(dir)) {
+    const full = resolve(dir, name);
+    const st = statSync(full);
+    if (st.isDirectory()) rewriteDir(full);
+    else if (st.isFile() && full.endsWith('.js')) {
+      let content = readFileSync(full, 'utf8');
+      // Only rewrite imports that start with "@/lib/" to "./"
+      content = content.replace(/@\/lib\//g, './');
+      writeFileSync(full, content, 'utf8');
+    }
+  }
+}
+rewriteDir(outDir);
+
 const node = process.execPath;
 const testFiles = [
   resolve(outDir, "tests", "public-forms-core.test.js"),
