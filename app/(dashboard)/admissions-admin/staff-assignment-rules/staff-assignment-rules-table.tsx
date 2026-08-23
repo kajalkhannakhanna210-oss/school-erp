@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Badge } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import { setStaffModuleScopes } from "@/app/(dashboard)/staff/actions";
 
@@ -187,7 +187,7 @@ export function StaffAssignmentRulesTable({
               <div className="flex justify-end gap-2">
                 <Button
                   onClick={() => setExpandedStaff(null)}
-                  variant="secondary"
+                  variant="outline"
                   className="h-10 px-4 text-sm"
                 >
                   Cancel
