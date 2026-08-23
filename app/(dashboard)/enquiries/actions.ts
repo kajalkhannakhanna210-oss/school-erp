@@ -443,10 +443,6 @@ export async function addFollowupAction(
     (enquiry?.status as EnquiryStatus) ??
     "Follow-up";
 
-  let nextStatus: EnquiryStatus =
-    (enquiry?.status as EnquiryStatus) ??
-    "Follow-up";
-
   if (
     nextStatus === "New" ||
     nextStatus === "Assigned"

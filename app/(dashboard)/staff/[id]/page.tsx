@@ -132,7 +132,6 @@ export default async function StaffDetailPage({ params, searchParams }: { params
           <h2 className="font-display text-lg text-ink-700">Admission Enquiry Scopes</h2>
           <p className="mt-1 text-sm text-slate/60">Configure which classes this staff member may handle for Admission Enquiries.</p>
           <div className="mt-4">
-            {/* @ts-expect-error Server component -> client props */}
             <ScopesEditor staffId={s.id} allClasses={(allClasses ?? []) as any} assignedScopes={(scopes ?? []) as any} />
           </div>
         </Card>

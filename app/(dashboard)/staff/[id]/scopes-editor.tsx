@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
 import { useToast } from "@/components/toaster";
-import { setStaffModuleScopes } from "./actions";
+import { setStaffModuleScopes } from "../actions";
 
 export function ScopesEditor({ staffId, allClasses, assignedScopes }: { staffId: string; allClasses: { id: string; name: string }[]; assignedScopes: { scope_type: string; resource_id: string | null }[] }) {
   const { push } = useToast();

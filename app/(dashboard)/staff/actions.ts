@@ -250,9 +250,18 @@ export async function setStaffPermissions(staffId: string, permissionKeys: strin
   return { error: null };
 }
 
+import { userHasPermission } from "@/lib/enquiries";
+
 export async function setStaffModuleScopes(staffId: string, all: boolean, classIds: string[]) {
-  // Only super_admin may change staff module scopes via this admin UI
-  const user = await requireSuperAdmin();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not signed in" };
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+  const isSuper = profile?.role === "super_admin";
+  const canManage = await userHasPermission(supabase, user.id, "admission_enquiry.manage_configuration");
+  if (!isSuper && !canManage) return { error: "You are not authorized to manage admission scopes" };
+
   const admin = createAdminClient();
   // Clean existing admission_enquiry scopes
   const { error: delErr } = await admin.from("staff_module_scopes").delete().eq("staff_id", staffId).eq("module_key", "admission_enquiry");
