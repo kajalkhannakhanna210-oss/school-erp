@@ -249,3 +249,34 @@ export async function setStaffPermissions(staffId: string, permissionKeys: strin
   revalidatePath(`/staff/${staffId}`);
   return { error: null };
 }
+
+export async function setStaffModuleScopes(staffId: string, all: boolean, classIds: string[]) {
+  // Only super_admin may change staff module scopes via this admin UI
+  const user = await requireSuperAdmin();
+  const admin = createAdminClient();
+  // Clean existing admission_enquiry scopes
+  const { error: delErr } = await admin.from("staff_module_scopes").delete().eq("staff_id", staffId).eq("module_key", "admission_enquiry");
+  if (delErr) return { error: delErr.message };
+
+  if (all) {
+    const { error: insertErr } = await admin.from("staff_module_scopes").insert([{ staff_id: staffId, module_key: "admission_enquiry", scope_type: "ALL", resource_id: null }]);
+    if (insertErr) return { error: insertErr.message };
+  } else if (classIds && classIds.length > 0) {
+    const rows = classIds.map((c) => ({ staff_id: staffId, module_key: "admission_enquiry", scope_type: "CLASS", resource_id: c }));
+    const { error: insertErr } = await admin.from("staff_module_scopes").insert(rows);
+    if (insertErr) return { error: insertErr.message };
+  }
+
+  await recordServerAction({
+    action: "Update Staff Admission Scopes",
+    module: "Admission Enquiry",
+    page: "Staff Profile",
+    resource: `/staff/${staffId}`,
+    outcome: `${user?.id} updated admission scopes for staff ${staffId}`,
+    statusCode: 200,
+  });
+
+  revalidatePath(`/staff/${staffId}`);
+  return { error: null };
+}
+

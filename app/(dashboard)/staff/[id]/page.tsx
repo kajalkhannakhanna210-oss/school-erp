@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ArchiveControl } from "./archive-control";
 import { PermissionsEditor } from "./permissions-editor";
 import { PhotoUpload } from "./photo-upload";
+import { ScopesEditor } from "./scopes-editor";
 
 function formatDate(value: string | null) {
   if (!value) return null;
@@ -41,9 +42,11 @@ export default async function StaffDetailPage({ params, searchParams }: { params
   if (!member) notFound();
   const s = member as any;
 
-  const [{ data: allPermissions }, { data: assigned }] = await Promise.all([
+  const [{ data: allPermissions }, { data: assigned }, { data: allClasses }, { data: scopes }] = await Promise.all([
     supabase.from("permissions").select("key, label"),
     supabase.from("staff_permissions").select("permission_key").eq("staff_id", params.id),
+    supabase.from("classes").select("id, name").order("sort_order"),
+    supabase.from("staff_module_scopes").select("scope_type, resource_id").eq("staff_id", params.id).eq("module_key", "admission_enquiry"),
   ]);
 
   let photoUrl: string | null = null;
@@ -122,6 +125,15 @@ export default async function StaffDetailPage({ params, searchParams }: { params
               allPermissions={allPermissions ?? []}
               assignedKeys={(assigned ?? []).map((a) => a.permission_key)}
             />
+          </div>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <h2 className="font-display text-lg text-ink-700">Admission Enquiry Scopes</h2>
+          <p className="mt-1 text-sm text-slate/60">Configure which classes this staff member may handle for Admission Enquiries.</p>
+          <div className="mt-4">
+            {/* @ts-expect-error Server component -> client props */}
+            <ScopesEditor staffId={s.id} allClasses={(allClasses ?? []) as any} assignedScopes={(scopes ?? []) as any} />
           </div>
         </Card>
       </div>
