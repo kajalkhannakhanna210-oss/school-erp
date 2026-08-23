@@ -12,37 +12,13 @@ mkdirSync(outDir, { recursive: true });
 
 const tsc = resolve(projectRoot, "node_modules", "typescript", "bin", "tsc");
 
-// Compile selected files with CLI options so we get emitted JS and path aliases resolve via baseUrl
+// Compile using a test-specific tsconfig so path aliases resolve and emit JS
 const compile = spawnSync(
   process.execPath,
   [
     tsc,
-    "--outDir",
-    outDir,
-    "--rootDir",
-    projectRoot,
-    "--module",
-    "commonjs",
-    "--moduleResolution",
-    "node",
-    "--target",
-    "es2020",
-    "--esModuleInterop",
-    "--skipLibCheck",
-    "--baseUrl",
-    projectRoot,
-    "tests/public-forms-core.test.ts",
-    "tests/super-admin-session.test.ts",
-    "tests/documents-security.test.ts",
-    "tests/leaving-students.test.ts",
-    "tests/id-card-designs.test.ts",
-    "tests/enquiries.test.ts",
-    "tests/staff-scopes.test.ts",
-    "lib/security/public-forms-core.ts",
-    "lib/security/super-admin-session.ts",
-    "lib/security/documents.ts",
-    "lib/leaving-students.ts",
-    "lib/enquiries.ts",
+    "--project",
+    resolve(projectRoot, "tsconfig.test.json")
   ],
   { cwd: projectRoot, stdio: "inherit" }
 );
