@@ -12,33 +12,15 @@ mkdirSync(outDir, { recursive: true });
 
 const tsc = resolve(projectRoot, "node_modules", "typescript", "bin", "tsc");
 
+// Compile the full project using tsconfig so path aliases like '@/lib/...' resolve correctly
 const compile = spawnSync(
   process.execPath,
   [
     tsc,
+    "--project",
+    resolve(projectRoot, "tsconfig.json"),
     "--outDir",
     outDir,
-    "--rootDir",
-    projectRoot,
-    "--module",
-    "commonjs",
-    "--moduleResolution",
-    "node",
-    "--target",
-    "es2020",
-    "--esModuleInterop",
-    "--skipLibCheck",
-    "tests/public-forms-core.test.ts",
-    "tests/super-admin-session.test.ts",
-    "tests/documents-security.test.ts",
-    "tests/leaving-students.test.ts",
-    "tests/id-card-designs.test.ts",
-    "tests/enquiries.test.ts",
-    "lib/security/public-forms-core.ts",
-    "lib/security/super-admin-session.ts",
-    "lib/security/documents.ts",
-    "lib/leaving-students.ts",
-    "lib/enquiries.ts",
   ],
   { cwd: projectRoot, stdio: "inherit" }
 );
