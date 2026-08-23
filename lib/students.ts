@@ -13,7 +13,8 @@ export async function getStudentStats(supabaseClient: Awaited<ReturnType<typeof 
   function applyEnrollment(query: any) {
     if (!sessionId) return query;
     if (enrollmentStudentIds && enrollmentStudentIds.length > 0) {
-      return query.or(`session_id.eq.${sessionId},id.in.(${enrollmentStudentIds.join(",")})`);
+      const quoted = enrollmentStudentIds.map((id) => `'${id}'`).join(",");
+      return query.or(`session_id.eq.${sessionId},id.in.(${quoted})`);
     }
     return query.eq("session_id", sessionId);
   }

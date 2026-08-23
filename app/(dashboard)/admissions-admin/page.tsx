@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
+import Link from "next/link";
+import { Button } from "@/components/ui";
 
 export default async function AdmissionsAdminPage() {
   try {
@@ -19,6 +21,16 @@ export default async function AdmissionsAdminPage() {
     <div>
       <h1 className="font-display text-2xl text-ink-700">Admissions &amp; alumni</h1>
       <p className="mt-1 text-sm text-slate/60">Review public registrations and applications.</p>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Link href="/admissions-admin/staff-assignment-rules">
+          <div className="rounded-lg border border-ink-100 bg-white p-4 hover:shadow-md transition-shadow cursor-pointer">
+            <h3 className="font-semibold text-ink-900">Staff Assignment Rules</h3>
+            <p className="mt-1 text-sm text-slate-600">Assign designated classes to admission staff</p>
+          </div>
+        </Link>
+      </div>
+
       <section className="mt-8"><h2 className="font-display text-xl text-ink-700">Admission applications</h2><div className="mt-3 overflow-auto rounded-xl border border-ink-100 bg-white"><table className="w-full text-sm"><thead><tr className="text-left"><th className="p-3">Student</th><th>Class</th><th>Parent</th><th>Phone</th><th>Status</th></tr></thead><tbody>{(applications ?? []).map((a) => <tr key={a.id} className="border-t"><td className="p-3">{a.student_name}</td><td>{a.applying_for}</td><td>{a.parent_name}<br /><span className="text-slate/60">{a.parent_email}</span></td><td>{a.phone}</td><td>{a.status}</td></tr>)}</tbody></table></div></section>
       <section className="mt-8"><h2 className="font-display text-xl text-ink-700">Alumni registrations</h2><ul className="mt-3 space-y-2">{(alumni ?? []).map((a) => <li key={a.id} className="rounded-lg border border-ink-100 bg-white p-4"><b>{a.full_name}</b> — {a.graduation_year} · {a.email}</li>)}</ul></section>
       <section className="mt-8"><h2 className="font-display text-xl text-ink-700">Fee structure</h2><p className="mt-2 text-sm text-slate/60">{(fees ?? []).length} fee records published.</p></section>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
 export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink-700", active = false, icon }: {
@@ -27,6 +26,28 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
     } catch {
       // ignore
     }
+
+    // Also prefetch student data for this href via our API and cache in sessionStorage
+    try {
+      const url = new URL(href, window.location.origin);
+      // Only prefetch when hitting the students page
+      if (url.pathname === '/students') {
+        // read selected session from localStorage (session-selector writes it there)
+        const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
+        const baseSearch = url.search ? url.search : '';
+        const cacheSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '');
+        // Add no_sign=1 to speed up prefetch by skipping signed URL generation
+        const fetchSearch = cacheSearch ? `${cacheSearch}&no_sign=1` : '?no_sign=1';
+        const apiUrl = `/api/students${fetchSearch}`;
+        const res = await fetch(apiUrl, { credentials: 'same-origin' });
+        if (res.ok) {
+          const json = await res.json();
+          try { sessionStorage.setItem(`students_prefetch:${cacheSearch}`, JSON.stringify({ ts: Date.now(), data: json })); } catch { /* ignore storage errors */ }
+        }
+      }
+    } catch {
+      // ignore any prefetch failures
+    }
   }
 
   useEffect(() => {
@@ -42,11 +63,34 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
     }
   }, [loading]);
 
-  const handleClick = () => {
-    if (active || currentUrl === href) {
-      return;
-    }
+  const handleClick = async (e: React.MouseEvent) => {
+    if (active || currentUrl === href) return;
+    e.preventDefault();
     setLoading(true);
+
+    // If prefetched data exists, navigate immediately. Otherwise, start prefetch and wait briefly.
+    try {
+      const url = new URL(href, window.location.origin);
+      const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
+      const baseSearch = url.search ? url.search : '';
+      const cacheSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '');
+      const key = `students_prefetch:${cacheSearch}`;
+      if (!sessionStorage.getItem(key)) {
+        // start prefetch (non-blocking)
+        void handlePrefetch();
+        // wait up to 300ms for prefetch to populate sessionStorage
+        const start = Date.now();
+        while (Date.now() - start < 300) {
+          if (sessionStorage.getItem(key)) break;
+          // small sleep
+          await new Promise((r) => setTimeout(r, 40));
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      router.push(href);
+    }
   };
 
   // Map color classes to text color and light background
@@ -61,10 +105,10 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
   const colors = colorMap[colorClass] || colorMap["bg-ink-700"];
 
   return (
-    <Link
+    <a
       href={href}
-      prefetch={false}
       onMouseEnter={handlePrefetch}
+      onPointerDown={handlePrefetch}
       onClick={handleClick}
       className={`relative flex flex-col justify-between gap-2 overflow-hidden rounded-2xl border-2 bg-white transition-all duration-200 hover:shadow-md p-3 sm:p-4 lg:p-3 group min-h-[90px] sm:min-h-[110px] lg:min-h-[120px] ${
         active 
@@ -111,6 +155,6 @@ export function SummaryCard({ href, title, count, subtitle, colorClass = "bg-ink
           </svg>
         </div>
       )}
-    </Link>
+    </a>
   );
 }

@@ -12,6 +12,7 @@ export const navItems: NavItem[] = [
 
   // Students submenu items
   { key: "enquiries", label: "Admission Enquiry", href: "/enquiries", roles: ["super_admin", "staff"], icon: "📑" },
+  { key: "staff_assignment_rules", label: "Staff Assignment Rules", href: "/admissions-admin/staff-assignment-rules", roles: ["super_admin"], icon: "👥" },
   { key: "students", label: "Student Directory", href: "/students", roles: ["super_admin", "staff"], icon: "♟" },
   { key: "add_student", label: "Add Student", href: "/students/new", roles: ["super_admin", "staff"], icon: "+" },
   { key: "admission_allotment", label: "Admission Allotment", href: "/students/admission-allotment", roles: ["super_admin"], icon: "✓" },
@@ -52,7 +53,7 @@ export const navSections = [
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
   { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
-  { key: "admissions", label: "Admissions", keys: ["enquiries"] },
+  { key: "admissions", label: "Admissions", keys: ["enquiries", "staff_assignment_rules"] },
   { key: "staff", label: "Staff", keys: ["staff", "staff_sessions"] },
   { key: "exams", label: "Examinations", keys: ["exams"] },
   { key: "fees", label: "Fees & Finance", keys: ["fees", "payments"] },
@@ -78,6 +79,9 @@ export function isNavItemActive(item: NavItem, pathname?: string | null, current
   }
   if (item.key === "enquiries") {
     return pathname === "/enquiries" || pathname.startsWith("/enquiries/");
+  }
+  if (item.key === "staff_assignment_rules") {
+    return pathname === "/admissions-admin/staff-assignment-rules" || pathname.startsWith("/admissions-admin/staff-assignment-rules/");
   }
   if (item.key === "students") {
     return (

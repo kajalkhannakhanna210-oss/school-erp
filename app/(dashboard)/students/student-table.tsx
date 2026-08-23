@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Badge, Button } from "@/components/ui";
 // ConfirmDialog replaced by ArchiveControl modal for archive with remark/date
 import { useToast } from "@/components/toaster";
@@ -25,23 +26,88 @@ export type StudentRow = {
   sections: { name: string } | null;
 };
 
-export function StudentTable({ students, canManage }: { students: StudentRow[]; canManage: boolean }) {
+export function StudentTable({ students: initialStudents, canManage }: { students: StudentRow[]; canManage: boolean }) {
   const { push } = useToast();
+  const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [archiveTarget, setArchiveTarget] = useState<StudentRow | null>(null);
   const [photoTarget, setPhotoTarget] = useState<StudentRow | null>(null);
+
+  // internal state so we can hydrate prefetched data from sessionStorage
+  const [students, setStudents] = useState<StudentRow[]>(initialStudents ?? []);
+
+  // On mount, attempt to load prefetched rows for current query if available
+  useEffect(() => {
+    function hydratePrefetch() {
+      try {
+        const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
+        const baseSearch = window.location.search ? window.location.search : '';
+        const cacheSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '');
+        const key = `students_prefetch:${cacheSearch}`;
+        const raw = sessionStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const ttlMs = 2 * 60 * 1000; // 2 minutes
+          const now = Date.now();
+          if (parsed && parsed.ts && now - parsed.ts < ttlMs && parsed.data && Array.isArray(parsed.data.rows)) {
+            setStudents(parsed.data.rows);
+          } else {
+            // expired — remove
+            try { sessionStorage.removeItem(key); } catch {}
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    hydratePrefetch();
+  }, []);
+
+  // When initialStudents changes (from server refresh due to session change), update state
+  useEffect(() => {
+    setStudents(initialStudents ?? []);
+  }, [initialStudents]);
+
+  // Watch for URL/searchParams changes and refetch from API
+  useEffect(() => {
+    const fetchUpdatedStudents = async () => {
+      try {
+        const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
+        const baseSearch = window.location.search ? window.location.search : '';
+        const fetchSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '') + '&no_sign=1';
+        const res = await fetch(`/api/students${fetchSearch}`, { credentials: 'same-origin' });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.rows)) {
+            setStudents(json.rows);
+          }
+        }
+      } catch (e) {
+        // ignore fetch errors, keep showing existing data
+      }
+    };
+    
+    fetchUpdatedStudents();
+  }, [searchParams?.toString()]);
 
   function handleArchive() {
     if (!archiveTarget) return;
     const next = !archiveTarget.is_active;
     startTransition(async () => {
-      const { error } = await setStudentActive(archiveTarget.id, next);
-      setArchiveTarget(null);
-      if (error) {
-        push(error, "error");
-        return;
+      try {
+        const res = await setStudentActive(archiveTarget.id, next);
+        setArchiveTarget(null);
+        const error = res?.error ?? (res === undefined ? "No response from server" : null);
+        if (error) {
+          push(error, "error");
+          return;
+        }
+        push(next ? "Student restored" : "Student archived");
+      } catch (e: any) {
+        setArchiveTarget(null);
+        push(e?.message ?? String(e), "error");
       }
-      push(next ? "Student restored" : "Student archived");
     });
   }
 

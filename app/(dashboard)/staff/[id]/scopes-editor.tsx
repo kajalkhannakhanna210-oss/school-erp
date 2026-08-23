@@ -19,12 +19,17 @@ export function ScopesEditor({ staffId, allClasses, assignedScopes }: { staffId:
 
   function save() {
     startTransition(async () => {
-      const { error } = await setStaffModuleScopes(staffId, all, selected);
-      if (error) {
-        push(error, "error");
-        return;
+      try {
+        const res = await setStaffModuleScopes(staffId, all, selected);
+        const error = res?.error ?? (res === undefined ? "No response from server" : null);
+        if (error) {
+          push(error, "error");
+          return;
+        }
+        push("Admission scopes updated");
+      } catch (e: any) {
+        push(e?.message ?? String(e), "error");
       }
-      push("Admission scopes updated");
     });
   }
 

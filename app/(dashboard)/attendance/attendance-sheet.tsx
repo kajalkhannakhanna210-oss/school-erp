@@ -5,6 +5,7 @@ import { Badge, Button, Card } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
 import { resubmitAttendance, submitAttendance, unlockAttendance } from "./actions";
+import { callServerAction } from "@/lib/client-action";
 
 const STATUSES = [
   { value: "present", label: "Present" },
@@ -50,17 +51,19 @@ export function AttendanceSheet({
   function handleSubmit() {
     const records = students.map((s) => ({ student_id: s.id, status: statuses[s.id] }));
     startTransition(async () => {
-      const result = batch
-        ? await resubmitAttendance(batch.id, records)
-        : await submitAttendance({
+      const action = batch
+        ? () => resubmitAttendance(batch.id, records)
+        : () => submitAttendance({
             class_id: classId,
             section_id: sectionId,
             session_id: sessionId,
             attendance_date: date,
             records,
           });
-      if (result.error) {
-        push(result.error, "error");
+      const res = await callServerAction(action);
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
+      if (error) {
+        push(error, "error");
         return;
       }
       push("Attendance submitted and locked");
@@ -70,8 +73,9 @@ export function AttendanceSheet({
   function handleUnlock() {
     if (!batch) return;
     startTransition(async () => {
-      const { error } = await unlockAttendance(batch.id, label);
+      const res = await callServerAction(() => unlockAttendance(batch.id, label));
       setUnlockOpen(false);
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
       if (error) {
         push(error, "error");
         return;

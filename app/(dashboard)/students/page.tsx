@@ -20,6 +20,8 @@ const StudentTable = nextDynamic(() => import("./student-table").then((mod) => m
     </div>
   ),
 });
+
+const ClientShell = nextDynamic(() => import('./client-shell').then((m) => m.ClientStudentsShell), { ssr: false });
 import { BulkStudentUpdate } from "./bulk-update";
 import { StudentDirectoryMenu, StudentDirectoryMenuItem } from "./student-directory-menu";
 import { StudentFilterToggle } from "./student-filter-toggle";
@@ -74,7 +76,9 @@ export default async function StudentsPage({
   // leave the query unfiltered so the user still sees student data.
   if (selectedSessionId) {
     if (enrollmentStudentIds?.length) {
-      query = query.or(`session_id.eq.${selectedSessionId},id.in.(${enrollmentStudentIds.join(",")})`);
+      // Build OR: session_id = selectedSession OR id IN (enrolled student ids)
+      const quotedIds = enrollmentStudentIds.map((id) => `'${id}'`).join(",");
+      query = query.or(`session_id.eq.${selectedSessionId},id.in.(${quotedIds})`);
     } else {
       query = query.eq("session_id", selectedSessionId);
     }
@@ -181,6 +185,7 @@ export default async function StudentsPage({
   // choose default session for filter select if none provided
   const defaultSessionId = (sessions ?? []).find((s: any) => s.is_current)?.id ?? "";
 
+  const useClientMode = searchParams.tab === 'client' || searchParams.client === '1';
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-ink-100 border-l-4 border-l-gold-500 bg-white px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-4">
@@ -284,7 +289,7 @@ export default async function StudentsPage({
       })()}
 
       <div className="mt-2 rounded-lg border-0 bg-transparent px-0 py-0 shadow-none sm:border sm:border-ink-100 sm:bg-ink-50/50 sm:px-3 sm:py-1.5 sm:shadow-sm">
-        <StudentFilters classes={classes ?? []} sections={sections ?? []} sessions={sessions ?? []} defaultSessionId={defaultSessionId} />
+        <StudentFilters classes={classes ?? []} sections={sections ?? []} />
       </div>
 
       <div className="mt-2">

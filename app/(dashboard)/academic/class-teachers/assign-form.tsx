@@ -5,6 +5,7 @@ import { Button, Card, Label } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { useToast } from "@/components/toaster";
 import { assignClassTeacher, removeClassTeacher } from "./actions";
+import { callServerAction } from "@/lib/client-action";
 import { ClassTeacherExports } from "./export-buttons";
 
 type Option = { id: string; name: string };
@@ -103,7 +104,8 @@ export function AssignForm({
     e.preventDefault();
     if (!form.class_id || !form.section_id || !assignmentSessionId || !form.staff_id) return;
     startTransition(async () => {
-      const { error } = await assignClassTeacher({ ...form, session_id: assignmentSessionId });
+      const res = await callServerAction(() => assignClassTeacher({ ...form, session_id: assignmentSessionId }));
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
       if (error) {
         push(error, "error");
         return;
@@ -116,8 +118,9 @@ export function AssignForm({
   function handleRemove() {
     if (!removeId) return;
     startTransition(async () => {
-      const { error } = await removeClassTeacher(removeId);
+      const res = await callServerAction(() => removeClassTeacher(removeId));
       setRemoveId(null);
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
       if (error) {
         push(error, "error");
         return;

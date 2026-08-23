@@ -21,6 +21,7 @@ import {
   createDesignation,
   deleteDesignation,
 } from "./actions";
+import { callServerAction } from "@/lib/client-action";
 
 type Session = { id: string; name: string; start_date: string; end_date: string; is_current: boolean };
 type ClassRow = { id: string; name: string; sort_order: number };
@@ -89,7 +90,8 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
   function handleCreate(e: FormEvent) {
     e.preventDefault();
     startTransition(async () => {
-      const { error } = await createSession(form);
+      const res = await callServerAction(() => createSession(form));
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
       if (error) {
         push(error, "error");
         return;
@@ -102,8 +104,9 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
   function handleDelete() {
     if (!deleteId) return;
     startTransition(async () => {
-      const { error } = await deleteSession(deleteId);
+      const res = await callServerAction(() => deleteSession(deleteId));
       setDeleteId(null);
+      const error = res?.error ?? (res === undefined ? "No response from server" : null);
       if (error) {
         push(error, "error");
         return;
@@ -112,7 +115,7 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
     });
   }
   function makeCurrent(id: string) {
-    startTransition(async () => { const { error } = await setCurrentSession(id); if (error) push(error, "error"); else push("Current session updated"); });
+    startTransition(async () => { const res = await callServerAction(() => setCurrentSession(id)); const error = res?.error ?? (res === undefined ? "No response from server" : null); if (error) push(error, "error"); else push("Current session updated"); });
   }
 
   return (

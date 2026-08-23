@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { Button, Card, Input, Label } from "@/components/ui";
+import { DatePickerCalendar } from "@/components/date-picker-calendar";
 import { useToast } from "@/components/toaster";
 import { createStaffFromForm, updateStaffFromForm } from "./actions";
 
@@ -174,14 +175,16 @@ export function StaffForm({
               />
             </div>
             <div>
-              <Label htmlFor="joining_date">Joining date</Label>
-              <Input
-                id="joining_date"
-                name="joining_date"
-                type="date"
-                required
+              <DatePickerCalendar
                 value={form.joining_date}
-                onChange={(e) => setForm({ ...form, joining_date: e.target.value })}
+                onChange={(date) => setForm({ ...form, joining_date: date })}
+                label="Joining date"
+                required
+              />
+              <input
+                type="hidden"
+                name="joining_date"
+                value={form.joining_date}
               />
             </div>
           </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Badge, Button, Card } from "@/components/ui";
 import { createClient } from "@/lib/supabase/server";
+import { userHasPermission } from "@/lib/enquiries";
 import { ArchiveControl } from "./archive-control";
 import { PermissionsEditor } from "./permissions-editor";
 import { PhotoUpload } from "./photo-upload";
@@ -31,7 +32,9 @@ export default async function StaffDetailPage({ params, searchParams }: { params
     .eq("id", user!.id)
     .single();
 
-  if (viewerProfile?.role !== "super_admin") redirect("/dashboard");
+  const isSuper = viewerProfile?.role === "super_admin";
+  const canManage = user ? await userHasPermission(supabase, user.id, "admission_enquiry.manage_configuration") : false;
+  if (!isSuper && !canManage) redirect("/dashboard");
 
   const { data: member } = await supabase
     .from("staff")
@@ -42,12 +45,31 @@ export default async function StaffDetailPage({ params, searchParams }: { params
   if (!member) notFound();
   const s = member as any;
 
-  const [{ data: allPermissions }, { data: assigned }, { data: allClasses }, { data: scopes }] = await Promise.all([
-    supabase.from("permissions").select("key, label"),
-    supabase.from("staff_permissions").select("permission_key").eq("staff_id", params.id),
-    supabase.from("classes").select("id, name").order("sort_order"),
-    supabase.from("staff_module_scopes").select("scope_type, resource_id").eq("staff_id", params.id).eq("module_key", "admission_enquiry"),
-  ]);
+  let allPermissions: any = null;
+  let assigned: any = null;
+  let allClasses: any = null;
+  let scopes: any = null;
+  let scopesError: string | null = null;
+
+  try {
+    const results = await Promise.all([
+      supabase.from("permissions").select("key, label"),
+      supabase.from("staff_permissions").select("permission_key").eq("staff_id", params.id),
+      supabase.from("classes").select("id, name").order("sort_order"),
+      supabase.from("staff_module_scopes").select("scope_type, resource_id").eq("staff_id", params.id).eq("module_key", "admission_enquiry"),
+    ]);
+    allPermissions = results[0].data;
+    assigned = results[1].data;
+    allClasses = results[2].data;
+    scopes = results[3].data;
+  } catch (e: any) {
+    // If staff_module_scopes table missing or query fails, continue and show a helpful message in UI
+    scopes = [];
+    allPermissions = allPermissions ?? [];
+    assigned = assigned ?? [];
+    allClasses = allClasses ?? [];
+    scopesError = e?.message ?? String(e);
+  }
 
   let photoUrl: string | null = null;
   if (s.photo_path) {
@@ -132,7 +154,11 @@ export default async function StaffDetailPage({ params, searchParams }: { params
           <h2 className="font-display text-lg text-ink-700">Admission Enquiry Scopes</h2>
           <p className="mt-1 text-sm text-slate/60">Configure which classes this staff member may handle for Admission Enquiries.</p>
           <div className="mt-4">
-            <ScopesEditor staffId={s.id} allClasses={(allClasses ?? []) as any} assignedScopes={(scopes ?? []) as any} />
+            {scopesError ? (
+              <div className="rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">The Admission Enquiry scopes feature is unavailable: {scopesError}</div>
+            ) : (
+              <ScopesEditor staffId={s.id} allClasses={(allClasses ?? []) as any} assignedScopes={(scopes ?? []) as any} />
+            )}
           </div>
         </Card>
       </div>

@@ -9,13 +9,9 @@ type Option = { id: string; name: string };
 export function StudentFilters({
   classes,
   sections,
-  sessions,
-  defaultSessionId,
 }: {
   classes: Option[];
   sections: (Option & { class_id: string })[];
-  sessions: Option[];
-  defaultSessionId?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,7 +19,6 @@ export function StudentFilters({
   const [q, setQ] = useState(searchParams?.get("q") ?? "");
   const [classId, setClassId] = useState(searchParams?.get("class") ?? "");
   const [sectionId, setSectionId] = useState(searchParams?.get("section") ?? "");
-  const [sessionId, setSessionId] = useState(searchParams?.get("session") ?? defaultSessionId ?? "");
   const [admission, setAdmission] = useState(searchParams?.get("admission") ?? "");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -42,7 +37,6 @@ export function StudentFilters({
     if (q) params.set("q", q);
     if (classId) params.set("class", classId);
     if (sectionId) params.set("section", sectionId);
-    if (sessionId) params.set("session", sessionId);
     if (admission) params.set("admission", admission);
     startTransition(() => router.push(`/students?${params.toString()}`));
   }
@@ -51,7 +45,6 @@ export function StudentFilters({
     setQ("");
     setClassId("");
     setSectionId("");
-    setSessionId("");
     setAdmission("");
     router.push("/students");
   }
@@ -69,10 +62,6 @@ export function StudentFilters({
         >
           <option value="">All classes</option>
           {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm md:w-auto" value={sessionId} onChange={(e) => setSessionId(e.target.value)} aria-label="Academic session">
-          <option value="">All sessions</option>
-          {sessions.map((session) => <option key={session.id} value={session.id}>{session.name}</option>)}
         </select>
         <select className="min-h-10 w-full rounded-lg border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700 shadow-sm md:w-auto" value={admission} onChange={(e) => setAdmission(e.target.value)} aria-label="Admission number status">
           <option value="">All admission numbers</option>

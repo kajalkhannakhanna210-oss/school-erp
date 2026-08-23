@@ -394,6 +394,12 @@ export async function getUserAdmissionScopes(
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
   if (profile?.role === "super_admin") return { all: true, ownAssigned: false, classes: [], sections: [] };
 
+  // Fetch staff_module_scopes for admission_enquiry
+  // Currently supports:
+  //   - scope_type = 'ALL' → staff has access to all enquiries
+  //   - scope_type = 'CLASS' → resource_id = class_id, staff handles specific classes
+  //   - scope_type = 'SECTION' → resource_id = section_id (future), staff handles specific sections
+  //   - scope_type = 'OWN_ASSIGNED' → staff sees only enquiries assigned to them
   const { data } = await supabase
     .from("staff_module_scopes")
     .select("scope_type, resource_id")

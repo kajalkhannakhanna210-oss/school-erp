@@ -49,6 +49,7 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
     admission_allotment: "/students/admission-allotment",
     staff: "/staff",
     staff_sessions: "/staff/session-management",
+    staff_assignment_rules: "/admissions-admin/staff-assignment-rules",
     attendance: "/attendance",
     fees: "/fees",
     payments: "/payments",

@@ -30,6 +30,11 @@ export function SessionSelector({
     setSelectedSession(session);
     if (typeof window !== "undefined") {
       localStorage.setItem("selected_session_id", session);
+      // Clear all prefetch cache when session changes so grid refreshes with new data
+      try {
+        const keys = Object.keys(sessionStorage).filter((k) => k.startsWith("students_prefetch:"));
+        keys.forEach((k) => sessionStorage.removeItem(k));
+      } catch {}
     }
     startTransition(async () => {
       await setSelectedSessionCookie(session);
