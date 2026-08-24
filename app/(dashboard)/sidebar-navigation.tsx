@@ -57,7 +57,7 @@ export function DashboardSidebarNavigation({ items, collapsed = false }: { items
 
           return (
             <li key={item.key} className="px-1">
-              <Link href={href} title={collapsed ? item.label : undefined} aria-current={active ? "page" : undefined} className={`no-underline block ${baseClasses} ${stateClasses} visited:text-white`} style={{ textDecoration: 'none' }}>
+              <Link href={href} prefetch={true} title={collapsed ? item.label : undefined} aria-current={active ? "page" : undefined} className={`no-underline block ${baseClasses} ${stateClasses} visited:text-white`} style={{ textDecoration: 'none' }}>
                 <span aria-hidden className={`text-base flex-shrink-0 ${collapsed ? "" : "mr-2.5 text-white/90"}`}>{item.icon ? <span className="text-white/90">{item.icon}</span> : IconForKey(item.key)}</span>
                 {!collapsed && <span className="capitalize text-white/95">{item.label}</span>}
               </Link>

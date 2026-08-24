@@ -36,13 +36,22 @@ export function StudentTable({ students: initialStudents, canManage }: { student
   // internal state so we can hydrate prefetched data from sessionStorage
   const [students, setStudents] = useState<StudentRow[]>(initialStudents ?? []);
 
+  // Helper to build search parameters with session fallback
+  function buildSearchParams() {
+    const params = new URLSearchParams(window.location.search);
+    const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
+    if (selectedSession && !params.has('session')) {
+      params.set('session', selectedSession);
+    }
+    return params;
+  }
+
   // On mount, attempt to load prefetched rows for current query if available
   useEffect(() => {
     function hydratePrefetch() {
       try {
-        const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
-        const baseSearch = window.location.search ? window.location.search : '';
-        const cacheSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '');
+        const params = buildSearchParams();
+        const cacheSearch = params.toString() ? `?${params.toString()}` : '';
         const key = `students_prefetch:${cacheSearch}`;
         const raw = sessionStorage.getItem(key);
         if (raw) {
@@ -69,13 +78,28 @@ export function StudentTable({ students: initialStudents, canManage }: { student
     setStudents(initialStudents ?? []);
   }, [initialStudents]);
 
-  // Watch for URL/searchParams changes and refetch from API
+  // Watch for URL/searchParams changes, hydrate cached prefetch instantly, then update from API
   useEffect(() => {
+    try {
+      const params = buildSearchParams();
+      const cacheSearch = params.toString() ? `?${params.toString()}` : '';
+      const key = `students_prefetch:${cacheSearch}`;
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const ttlMs = 2 * 60 * 1000;
+        if (parsed && parsed.ts && Date.now() - parsed.ts < ttlMs && Array.isArray(parsed.data?.rows)) {
+          setStudents(parsed.data.rows);
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     const fetchUpdatedStudents = async () => {
       try {
-        const selectedSession = typeof window !== 'undefined' ? localStorage.getItem('selected_session_id') : null;
-        const baseSearch = window.location.search ? window.location.search : '';
-        const fetchSearch = baseSearch + (selectedSession ? `${baseSearch ? '&' : '?'}session=${selectedSession}` : '') + '&no_sign=1';
+        const params = buildSearchParams();
+        const fetchSearch = params.toString() ? `?${params.toString()}` : '';
         const res = await fetch(`/api/students${fetchSearch}`, { credentials: 'same-origin' });
         if (res.ok) {
           const json = await res.json();

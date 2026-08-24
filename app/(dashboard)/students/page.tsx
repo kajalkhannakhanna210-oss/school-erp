@@ -35,7 +35,7 @@ export const dynamic = "force-dynamic";
 export default async function StudentsPage({
   searchParams,
 }: {
-    searchParams: { q?: string; class?: string; section?: string; session?: string; admission?: string; page?: string; filters?: string; tab?: string };
+    searchParams: { q?: string; class?: string; section?: string; session?: string; admission?: string; page?: string; filters?: string; tab?: string; client?: string };
 }) {
   try {
     await requirePageAccess("students");

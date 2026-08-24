@@ -26,18 +26,31 @@ export function SessionSelector({
 
   const [selectedSession, setSelectedSession] = useState(defaultSessionId);
 
+  useEffect(() => {
+    if (initialSessionId) {
+      setSelectedSession(initialSessionId);
+    }
+  }, [initialSessionId]);
+
   function changeSession(session: string) {
     setSelectedSession(session);
     if (typeof window !== "undefined") {
       localStorage.setItem("selected_session_id", session);
-      // Clear all prefetch cache when session changes so grid refreshes with new data
       try {
-        const keys = Object.keys(sessionStorage).filter((k) => k.startsWith("students_prefetch:"));
-        keys.forEach((k) => sessionStorage.removeItem(k));
+        sessionStorage.clear();
       } catch {}
     }
+
+    const currentSearch = typeof window !== "undefined" ? window.location.search : (searchParams?.toString() ? `?${searchParams.toString()}` : "");
+    const params = new URLSearchParams(currentSearch);
+    params.set("session", session);
+    params.delete("page");
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : pathname;
+    const targetUrl = `${currentPath}?${params.toString()}`;
+
     startTransition(async () => {
       await setSelectedSessionCookie(session);
+      router.push(targetUrl);
       router.refresh();
     });
   }

@@ -21,6 +21,7 @@ export const navItems: NavItem[] = [
 
   // Staff
   { key: "staff", label: "Staff Members", href: "/staff", roles: ["super_admin"], icon: "♚" },
+  { key: "add_staff", label: "Add Staff", href: "/staff/new", roles: ["super_admin"], icon: "+" },
   { key: "staff_sessions", label: "Staff Sessions", href: "/staff/session-management", roles: ["super_admin"], icon: "◷" },
 
   // Examinations
@@ -54,7 +55,7 @@ export const navSections = [
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
   { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
   { key: "admissions", label: "Admissions", keys: ["enquiries", "staff_assignment_rules"] },
-  { key: "staff", label: "Staff", keys: ["staff", "staff_sessions"] },
+  { key: "staff", label: "Staff", keys: ["staff", "add_staff", "staff_sessions"] },
   { key: "exams", label: "Examinations", keys: ["exams"] },
   { key: "fees", label: "Fees & Finance", keys: ["fees", "payments"] },
   { key: "documents", label: "Document Management", keys: ["documents"] },
@@ -107,8 +108,13 @@ export function isNavItemActive(item: NavItem, pathname?: string | null, current
   if (item.key === "staff") {
     return (
       pathname === "/staff" ||
-      (pathname.startsWith("/staff/") && !pathname.startsWith("/staff/session-management"))
+      (pathname.startsWith("/staff/") &&
+        !pathname.startsWith("/staff/new") &&
+        !pathname.startsWith("/staff/session-management"))
     );
+  }
+  if (item.key === "add_staff") {
+    return pathname === "/staff/new" || pathname === "/staff/add";
   }
   if (item.key === "staff_sessions") {
     return pathname === "/staff/session-management" || pathname.startsWith("/staff/session-management/");

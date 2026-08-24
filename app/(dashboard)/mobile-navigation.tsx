@@ -162,6 +162,7 @@ export function DashboardMobileNavigation({
                               <Link
                                 key={subItem.href}
                                 href={href}
+                                prefetch={true}
                                 onClick={() => setOpen(false)}
                                 className={`flex items-center gap-3 rounded-lg py-2 px-3 text-xs font-semibold transition ${
                                   active ? "bg-white/20 text-white font-bold border-l-[3px] border-gold pl-2.5" : "text-white/80 hover:bg-white/10 hover:text-white"

@@ -132,6 +132,94 @@ export type EnquiryStats = {
   conversionRate: number;
 };
 
+// Action-specific Scope Types & Helpers for Admission Enquiry
+export type AdmissionActionKey =
+  | 'create'
+  | 'view'
+  | 'edit'
+  | 'assign'
+  | 'followup'
+  | 'change_status'
+  | 'report'
+  | 'export';
+
+export type UserActionScope = {
+  all: boolean;
+  ownAssigned: boolean;
+  classes: string[];
+  sections: string[];
+};
+
+export async function getUserActionScope(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  userId: string | null | undefined,
+  actionKey: AdmissionActionKey
+): Promise<UserActionScope> {
+  const supabase = supabaseClient ?? (await createClient());
+  if (!userId) return { all: false, ownAssigned: false, classes: [], sections: [] };
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile?.role === "super_admin") return { all: true, ownAssigned: false, classes: [], sections: [] };
+
+  // Fetch staff_module_scopes for admission_enquiry matching action_key OR fallback 'ALL'
+  const { data } = await supabase
+    .from("staff_module_scopes")
+    .select("scope_type, resource_id, action_key")
+    .eq("staff_id", userId)
+    .eq("module_key", "admission_enquiry");
+
+  const rows = data ?? [];
+  // Filter for matching action_key or 'ALL' (fallback for backward compatibility)
+  const actionRows = rows.filter((r: any) => !r.action_key || r.action_key === "ALL" || r.action_key === actionKey);
+
+  return {
+    all: actionRows.some((r: any) => r.scope_type === "ALL"),
+    ownAssigned: actionRows.some((r: any) => r.scope_type === "OWN_ASSIGNED"),
+    classes: actionRows.filter((r: any) => r.scope_type === "CLASS" && r.resource_id).map((r: any) => String(r.resource_id)),
+    sections: actionRows.filter((r: any) => r.scope_type === "SECTION" && r.resource_id).map((r: any) => String(r.resource_id)),
+  };
+}
+
+export async function getUserAdmissionScopes(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  userId: string | null | undefined
+) {
+  return getUserActionScope(supabaseClient, userId, 'view');
+}
+
+export async function canPerformEnquiryAction(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  userId: string | null | undefined,
+  actionKey: AdmissionActionKey,
+  enquiryClassId?: string | null,
+  enquiryAssignedStaffId?: string | null
+): Promise<{ allowed: boolean; reason?: string }> {
+  if (!userId) return { allowed: false, reason: "Not signed in" };
+  const supabase = supabaseClient ?? (await createClient());
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile?.role === "super_admin") return { allowed: true };
+
+  // 1. Permission check
+  const permKey = `admission_enquiry.${actionKey === 'report' ? 'view_reports' : actionKey}`;
+  const hasPerm = await userHasPermission(supabase, userId, permKey);
+  if (!hasPerm) return { allowed: false, reason: `Missing permission: ${permKey}` };
+
+  // 2. Action Scope check
+  const scope = await getUserActionScope(supabase, userId, actionKey);
+  if (scope.all) return { allowed: true };
+
+  if (enquiryClassId) {
+    if (scope.classes.includes(enquiryClassId)) return { allowed: true };
+  }
+
+  if (scope.ownAssigned && enquiryAssignedStaffId && enquiryAssignedStaffId === userId) {
+    return { allowed: true };
+  }
+
+  return { allowed: false, reason: `Action '${actionKey}' is not authorized for the specified class or enquiry` };
+}
+
 export async function getEnquiryStats(
   supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
   sessionId?: string
@@ -227,36 +315,29 @@ export async function getEnquiries(
     .from("enquiries")
     .select("*, classes(name), academic_sessions(name), assigned_staff:profiles!enquiries_assigned_staff_id_fkey(full_name, email)", { count: "exact" });
 
-  // Apply user scopes when not super admin
+  // Apply user action scopes for view when not super admin
   if (!isSuper) {
-    const scopes = await getUserAdmissionScopes(supabase, user.id);
+    const scopes = await getUserActionScope(supabase, user.id, 'view');
     const classFilter = scopes.classes ?? [];
     const ownAssigned = scopes.ownAssigned ?? false;
     const allowAll = scopes.all ?? false;
 
     if (!allowAll) {
-      // If user has neither class list nor ownAssigned, deny
       if ((!classFilter || classFilter.length === 0) && !ownAssigned) {
-        return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "No scope configured for admission enquiries" };
+        return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "No scope configured for viewing admission enquiries" };
       }
 
-      // If caller provided a class filter, ensure it is inside allowed classes
       if (filters.class_id) {
         if (classFilter && classFilter.length > 0) {
           if (!classFilter.includes(filters.class_id)) {
-            // If they only have ownAssigned scope and not class, block
             if (!ownAssigned) return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "Access denied for the selected class" };
-            // else allow but will later restrict by assigned_staff
           }
         } else if (!ownAssigned) {
           return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "Access denied for the selected class" };
         }
       }
 
-      // Build where clause: either class IN (allowed) OR assigned_staff_id = user.id when ownAssigned
       if (ownAssigned && classFilter && classFilter.length > 0) {
-        // e.g. class in (...) OR assigned_staff_id = user.id
-        const classesStr = classFilter.map((c: string) => `'${c}'`).join(",");
         query = query.or(`class_id.in.(${classFilter.map((c: string) => c).join(',')}) , assigned_staff_id.eq.${user.id}`);
       } else if (ownAssigned) {
         query = query.eq("assigned_staff_id", user.id);
@@ -385,36 +466,6 @@ export async function userHasPermission(
   return !!data;
 }
 
-export async function getUserAdmissionScopes(
-  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
-  userId: string | null | undefined
-) {
-  const supabase = supabaseClient ?? (await createClient());
-  if (!userId) return { all: false, ownAssigned: false, classes: [] as string[], sections: [] as string[] };
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-  if (profile?.role === "super_admin") return { all: true, ownAssigned: false, classes: [], sections: [] };
-
-  // Fetch staff_module_scopes for admission_enquiry
-  // Currently supports:
-  //   - scope_type = 'ALL' → staff has access to all enquiries
-  //   - scope_type = 'CLASS' → resource_id = class_id, staff handles specific classes
-  //   - scope_type = 'SECTION' → resource_id = section_id (future), staff handles specific sections
-  //   - scope_type = 'OWN_ASSIGNED' → staff sees only enquiries assigned to them
-  const { data } = await supabase
-    .from("staff_module_scopes")
-    .select("scope_type, resource_id")
-    .eq("staff_id", userId)
-    .eq("module_key", "admission_enquiry");
-
-  const rows = data ?? [];
-  return {
-    all: rows.some((r: any) => r.scope_type === "ALL"),
-    ownAssigned: rows.some((r: any) => r.scope_type === "OWN_ASSIGNED"),
-    classes: rows.filter((r: any) => r.scope_type === "CLASS").map((r: any) => r.resource_id),
-    sections: rows.filter((r: any) => r.scope_type === "SECTION").map((r: any) => r.resource_id),
-  };
-}
-
 export async function getStaffOptions(
   supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
   classId?: string
@@ -422,35 +473,36 @@ export async function getStaffOptions(
   const supabase = supabaseClient ?? (await createClient());
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, full_name, role")
     .in("role", ["super_admin", "staff"])
     .order("full_name");
 
-  const base = (data ?? []) as { id: string; full_name: string }[];
+  const base = (data ?? []) as { id: string; full_name: string; role: string }[];
 
-  // fetch module-scopes for these staff and attach
-  const staffIds = base.map((s) => s.id);
-  const { data: scopes } = await supabase
-    .from("staff_module_scopes")
-    .select("staff_id, scope_type, resource_id")
-    .in("staff_id", staffIds)
-    .eq("module_key", "admission_enquiry");
+  // Target staff assignment rule (Rule #23):
+  // Filter eligible target staff based on staff's Admission Enquiry Follow-up Permission + Follow-up Scope containing enquiry class.
+  const eligibleStaff: { id: string; full_name: string; designated_classes?: string[] }[] = [];
 
-  const map = new Map<string, { classes: string[]; all: boolean }>();
-  for (const s of (scopes ?? [])) {
-    if (!map.has(s.staff_id)) map.set(s.staff_id, { classes: [], all: false });
-    const e = map.get(s.staff_id)!;
-    if (s.scope_type === "ALL") e.all = true;
-    if (s.scope_type === "CLASS" && s.resource_id) e.classes.push(s.resource_id);
+  for (const member of base) {
+    if (member.role === "super_admin") {
+      eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: [] });
+      continue;
+    }
+
+    const hasFollowupPerm = await userHasPermission(supabase, member.id, "admission_enquiry.followup");
+    if (!hasFollowupPerm) continue;
+
+    const followupScope = await getUserActionScope(supabase, member.id, "followup");
+    if (classId) {
+      if (followupScope.all || followupScope.classes.includes(classId)) {
+        eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: followupScope.classes });
+      }
+    } else {
+      eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: followupScope.classes });
+    }
   }
 
-  const enriched = base.map((b) => ({ ...b, designated_classes: map.get(b.id)?.classes ?? [], _all: map.get(b.id)?.all ?? false } as any));
-
-  if (classId) {
-    return enriched.filter((s) => (s._all === true) || (Array.isArray(s.designated_classes) && s.designated_classes.includes(classId))).sort((a, b) => a.full_name.localeCompare(b.full_name));
-  }
-
-  return enriched.sort((a, b) => a.full_name.localeCompare(b.full_name));
+  return eligibleStaff.sort((a, b) => a.full_name.localeCompare(b.full_name));
 }
 
 export async function getEnquiryReportData(
@@ -459,6 +511,14 @@ export async function getEnquiryReportData(
   filters: EnquiryFilters = {}
 ) {
   const supabase = supabaseClient ?? (await createClient());
+  const { data: authUser } = await supabase.auth.getUser();
+  if (!authUser?.user) return [];
+
+  // Check report permission & scope
+  const hasReportPerm = await userHasPermission(supabase, authUser.user.id, "admission_enquiry.view_reports");
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", authUser.user.id).maybeSingle();
+  if (profile?.role !== "super_admin" && !hasReportPerm) return [];
+
   const { rows } = await getEnquiries(supabase, { ...filters, pageSize: 1000, page: 1 });
 
   if (reportType === 'enquiry') {
@@ -550,7 +610,6 @@ export async function getEnquiryReportData(
     }));
   }
 
-  // Conversion report
   const statusMap = new Map<string, number>();
   for (const r of rows) {
     statusMap.set(r.status, (statusMap.get(r.status) ?? 0) + 1);
@@ -565,3 +624,4 @@ export async function getEnquiryReportData(
     };
   });
 }
+

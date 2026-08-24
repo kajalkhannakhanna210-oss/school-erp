@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { callServerAction } from '../lib/client-action';
 
 describe('callServerAction', () => {

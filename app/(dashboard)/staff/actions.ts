@@ -78,6 +78,20 @@ export async function createStaff(input: StaffInput) {
     return { error: photoError?.message ?? insertError?.message ?? "Could not save staff member." };
   }
 
+  // Enroll new staff into current academic session if available
+  try {
+    const { data: currentSession } = await admin.from("academic_sessions").select("id").eq("is_current", true).maybeSingle();
+    if (currentSession?.id) {
+      await admin.from("staff_enrollments").upsert({
+        staff_id: created.user.id,
+        session_id: currentSession.id,
+        is_active: true,
+      }, { onConflict: "staff_id,session_id" });
+    }
+  } catch {
+    // ignore enrollment insert failures
+  }
+
   await recordServerAction({
     action: "Create Staff",
     module: "Staff",
@@ -252,7 +266,10 @@ export async function setStaffPermissions(staffId: string, permissionKeys: strin
 
 import { userHasPermission } from "@/lib/enquiries";
 
-export async function setStaffModuleScopes(staffId: string, all: boolean, classIds: string[]) {
+export async function setStaffActionScopes(
+  staffId: string,
+  scopes: { actionKey: string; all: boolean; classIds: string[]; sectionIds?: string[] }[]
+) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not signed in" };
@@ -263,29 +280,57 @@ export async function setStaffModuleScopes(staffId: string, all: boolean, classI
   if (!isSuper && !canManage) return { error: "You are not authorized to manage admission scopes" };
 
   const admin = createAdminClient();
-  // Clean existing admission_enquiry scopes
+  // Delete existing admission_enquiry scopes for target staff
   const { error: delErr } = await admin.from("staff_module_scopes").delete().eq("staff_id", staffId).eq("module_key", "admission_enquiry");
   if (delErr) return { error: delErr.message };
 
-  if (all) {
-    const { error: insertErr } = await admin.from("staff_module_scopes").insert([{ staff_id: staffId, module_key: "admission_enquiry", scope_type: "ALL", resource_id: null }]);
-    if (insertErr) return { error: insertErr.message };
-  } else if (classIds && classIds.length > 0) {
-    const rows = classIds.map((c) => ({ staff_id: staffId, module_key: "admission_enquiry", scope_type: "CLASS", resource_id: c }));
-    const { error: insertErr } = await admin.from("staff_module_scopes").insert(rows);
+  const rowsToInsert: any[] = [];
+  for (const s of scopes) {
+    if (s.all) {
+      rowsToInsert.push({ staff_id: staffId, module_key: "admission_enquiry", action_key: s.actionKey, scope_type: "ALL", resource_id: null });
+    } else {
+      if (s.classIds && s.classIds.length > 0) {
+        for (const cid of s.classIds) {
+          rowsToInsert.push({ staff_id: staffId, module_key: "admission_enquiry", action_key: s.actionKey, scope_type: "CLASS", resource_id: cid });
+        }
+      }
+      if (s.sectionIds && s.sectionIds.length > 0) {
+        for (const sid of s.sectionIds) {
+          rowsToInsert.push({ staff_id: staffId, module_key: "admission_enquiry", action_key: s.actionKey, scope_type: "SECTION", resource_id: sid });
+        }
+      }
+    }
+  }
+
+  if (rowsToInsert.length > 0) {
+    const { error: insertErr } = await admin.from("staff_module_scopes").insert(rowsToInsert);
     if (insertErr) return { error: insertErr.message };
   }
 
   await recordServerAction({
-    action: "Update Staff Admission Scopes",
+    action: "Update Staff Action-Specific Admission Scopes",
     module: "Admission Enquiry",
     page: "Staff Profile",
     resource: `/staff/${staffId}`,
-    outcome: `${user?.id} updated admission scopes for staff ${staffId}`,
+    outcome: `${user?.id} updated action scopes for staff ${staffId}`,
     statusCode: 200,
   });
 
   revalidatePath(`/staff/${staffId}`);
   return { error: null };
+}
+
+export async function setStaffModuleScopes(staffId: string, all: boolean, classIds: string[]) {
+  const payload = [
+    { actionKey: "create", all, classIds },
+    { actionKey: "view", all, classIds },
+    { actionKey: "edit", all, classIds },
+    { actionKey: "assign", all, classIds },
+    { actionKey: "followup", all, classIds },
+    { actionKey: "change_status", all, classIds },
+    { actionKey: "report", all, classIds },
+    { actionKey: "export", all, classIds },
+  ];
+  return setStaffActionScopes(staffId, payload);
 }
 

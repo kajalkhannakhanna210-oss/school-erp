@@ -132,6 +132,7 @@ export function DashboardSidebar({
               <div key={section.key} className="border-b border-white/15 pb-2.5 last:border-b-0">
                 <Link
                   href={href}
+                  prefetch={true}
                   title={collapsed ? singleItem.label : undefined}
                   className={`flex items-center gap-2.5 rounded-lg py-2 px-3 text-sm font-semibold transition no-underline ${
                     active ? "bg-white/20 text-white font-bold border-l-[3px] border-gold shadow-sm pl-2.5" : "text-white/80 hover:bg-white/10 hover:text-white"
