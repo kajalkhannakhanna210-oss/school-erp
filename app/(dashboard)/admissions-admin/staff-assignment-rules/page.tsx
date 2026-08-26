@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { StaffAssignmentRulesTable } from "./staff-assignment-rules-table";
 
+export const dynamic = "force-dynamic";
+
 export default async function StaffAssignmentRulesPage() {
   try {
     await requirePageAccess("staff_assignment_rules");

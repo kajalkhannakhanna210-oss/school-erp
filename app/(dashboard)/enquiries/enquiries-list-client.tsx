@@ -9,10 +9,12 @@ import { ExportEnquiryButton } from "./export-enquiry-button";
 
 export function EnquiriesListClient({
   rows,
+  total,
   canManage,
   staffList,
 }: {
   rows: EnquiryRow[];
+  total: number;
   canManage: boolean;
   staffList: { id: string; full_name: string }[];
 }) {
@@ -52,7 +54,10 @@ export function EnquiriesListClient({
     <div>
       <div className="flex flex-col justify-between gap-3 border-b border-ink-100 bg-ink-50/60 px-4 py-3 sm:flex-row sm:items-center">
         <h2 className="font-display text-base font-bold text-ink-700">
-          Enquiry Directory ({rows.length} records)
+          Enquiry Directory
+          <span className="ml-2 rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-semibold text-slate/70">
+            {total} {total === 1 ? "record" : "records"}
+          </span>
         </h2>
 
         <ExportEnquiryButton rows={exportRows} />

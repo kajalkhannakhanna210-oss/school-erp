@@ -227,11 +227,28 @@ export async function getEnquiryStats(
   const supabase = supabaseClient ?? (await createClient());
   const todayStr = new Date().toISOString().slice(0, 10);
 
+  const { data: authUser } = await supabase.auth.getUser();
+  const userId = authUser?.user?.id;
+  let viewScope: UserActionScope | null = null;
+  if (userId) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+    if (profile?.role !== "super_admin") {
+      if (!(await userHasPermission(supabase, userId, "admission_enquiry.view"))) {
+        return { total: 0, newCount: 0, assignedCount: 0, followupCount: 0, interestedCount: 0, wonCount: 0, lostCount: 0, closedCount: 0, todayFollowups: 0, overdueFollowups: 0, upcomingFollowups: 0, noNextFollowup: 0, conversionRate: 0 };
+      }
+      viewScope = await getUserActionScope(supabase, userId, "view");
+    }
+  }
+
   let baseQ = supabase.from("enquiries").select("id, status, next_followup_date");
   if (sessionId) baseQ = baseQ.eq("session_id", sessionId);
 
   const { data: rows } = await baseQ;
-  const list = rows ?? [];
+  const list = (rows ?? []).filter((item: any) => {
+    if (!viewScope || viewScope.all) return true;
+    return (item.class_id && viewScope.classes.includes(item.class_id)) ||
+      (viewScope.ownAssigned && item.assigned_staff_id === userId);
+  });
 
   const total = list.length;
   let newCount = 0;

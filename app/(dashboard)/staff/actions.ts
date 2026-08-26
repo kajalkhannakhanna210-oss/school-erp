@@ -317,6 +317,7 @@ export async function setStaffActionScopes(
   });
 
   revalidatePath(`/staff/${staffId}`);
+  revalidatePath("/admissions-admin/staff-assignment-rules");
   return { error: null };
 }
 

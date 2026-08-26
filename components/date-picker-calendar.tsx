@@ -12,6 +12,8 @@ interface DatePickerCalendarProps {
 export function DatePickerCalendar({ value, onChange, label, required }: DatePickerCalendarProps) {
   const [showCalendar, setShowCalendar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [calendarPosition, setCalendarPosition] = useState<{ top: number; left: number } | null>(null);
 
   const parsedDate = value ? new Date(value) : null;
   const initialDate = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date();
@@ -24,6 +26,29 @@ export function DatePickerCalendar({ value, onChange, label, required }: DatePic
       if (!isNaN(d.getTime())) setDisplayDate(d);
     }
   }, [value]);
+
+  useEffect(() => {
+    if (!showCalendar || !buttonRef.current) return;
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    const popupHeight = 440;
+    const popupWidth = 290;
+    const gap = 6;
+    const openAbove = window.innerHeight - rect.bottom < popupHeight;
+    setCalendarPosition({
+      top: Math.max(8, openAbove ? rect.top - popupHeight - gap : rect.bottom + gap),
+      left: Math.min(Math.max(8, rect.left), window.innerWidth - popupWidth - 8),
+    });
+  }, [showCalendar]);
+
+  useEffect(() => {
+    if (!showCalendar) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showCalendar]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -87,6 +112,7 @@ export function DatePickerCalendar({ value, onChange, label, required }: DatePic
       )}
 
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setShowCalendar(!showCalendar)}
         className="flex min-h-11 w-full items-center justify-between rounded-lg border border-ink-100 bg-white px-3.5 py-2.5 text-sm text-slate shadow-sm transition focus:border-ink-600 focus:outline-none focus:ring-4 focus:ring-ink-50"
@@ -100,7 +126,10 @@ export function DatePickerCalendar({ value, onChange, label, required }: DatePic
       </button>
 
       {showCalendar && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-[290px] rounded-xl border border-ink-100 bg-white p-3.5 shadow-xl">
+        <div
+          className="fixed z-[100] max-h-[calc(100vh-1rem)] w-[290px] overflow-y-auto rounded-xl border border-ink-100 bg-white p-3.5 shadow-xl"
+          style={calendarPosition ?? { visibility: "hidden" }}
+        >
           {/* Header Selectors */}
           <div className="mb-3 flex gap-2">
             <select

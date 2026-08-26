@@ -131,14 +131,16 @@ export async function POST(req: NextRequest) {
     const assignedRoles = new Set<string>([profile.role, ...(userRoles ?? []).map((row: { role: string }) => row.role)]);
     if (profile.role === "super_admin" && role === "staff") assignedRoles.add("staff");
 
-    if (!assignedRoles.has(role)) {
+    // Super admins use the normal /login page and should not be rejected just
+    // because the role tabs default to Student or Staff after a refresh.
+    if (profile.role !== "super_admin" && !assignedRoles.has(role)) {
       await supabase.auth.signOut();
       await logSecurityEvent({ eventType: "sign_in_role_denied", userId: data.user.id, identifier: identifier.value, request: req, metadata: { role } });
       await recordLoginActivity({ eventType: "role_access_denied", status: "blocked", userId: data.user.id, identifier: identifier.value, request: req, failureReason: "role_not_assigned", metadata: { requestedRole: role } });
       return NextResponse.json({ error: genericAuthError }, { status: 401 });
     }
 
-    if (profile.role !== role) {
+    if (profile.role !== "super_admin" && profile.role !== role) {
       await supabase.rpc("set_my_active_role", { next_role: role });
     }
   }

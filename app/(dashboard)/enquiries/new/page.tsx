@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
-import { getStaffOptions } from "@/lib/enquiries";
+import { getUserActionScope, userHasPermission } from "@/lib/enquiries-server";
 import { EnquiryForm } from "./form";
 
 export const dynamic = "force-dynamic";
@@ -15,34 +16,63 @@ export default async function NewEnquiryPage() {
   }
 
   const supabase = await createClient();
-  const [{ data: classes }, { data: sessions }, staffList] = await Promise.all([
+  const [{ data: classes }, { data: sessions }, { data: activeStaff }, { data: staffScopes }] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
-    getStaffOptions(supabase),
+    supabase.from("staff").select("id, is_active, profiles!staff_id_fkey(full_name)").eq("is_active", true),
+    supabase.from("staff_module_scopes").select("staff_id, scope_type, resource_id, action_key").eq("module_key", "admission_enquiry"),
   ]);
 
+  const scopeByStaff = new Map<string, { all: boolean; classes: string[] }>();
+  for (const row of staffScopes ?? []) {
+    if (row.action_key && row.action_key !== "ALL" && row.action_key !== "view") continue;
+    const current = scopeByStaff.get(row.staff_id) ?? { all: false, classes: [] };
+    if (row.scope_type === "ALL") current.all = true;
+    if (row.scope_type === "CLASS" && row.resource_id) current.classes.push(String(row.resource_id));
+    scopeByStaff.set(row.staff_id, current);
+  }
+  const staffList = (activeStaff ?? [])
+    .filter((staff: any) => scopeByStaff.has(staff.id))
+    .map((staff: any) => ({
+      id: staff.id,
+      full_name: staff.profiles?.full_name ?? "Unnamed staff",
+      designated_classes: scopeByStaff.get(staff.id)?.classes ?? [],
+      has_all_scope: scopeByStaff.get(staff.id)?.all ?? false,
+    }))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  // Only expose classes the current user can create enquiries for. The server
+  // action performs the same check again because client-side filtering is not
+  // an authorization boundary.
+  const { data: authUser } = await supabase.auth.getUser();
+  let createClasses = classes ?? [];
+  if (authUser.user) {
+    const hasCreatePermission = await userHasPermission(supabase, authUser.user.id, "admission_enquiry.create");
+    const createScope = await getUserActionScope(supabase, authUser.user.id, "create");
+    if (!hasCreatePermission || !createScope.all) {
+      createClasses = hasCreatePermission
+        ? createClasses.filter((c) => createScope.classes.includes(String(c.id)))
+        : [];
+    }
+  } else {
+    createClasses = [];
+  }
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="min-w-0 space-y-3">
+      <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
-          <div className="flex items-center gap-2 text-xs text-slate/60">
-            <Link href="/enquiries" className="hover:text-ink-700">
-              Admission Enquiries
-            </Link>
-            <span>/</span>
-            <span className="font-semibold text-ink-700">New Enquiry</span>
-          </div>
-          <h1 className="mt-1 font-display text-2xl font-bold text-ink-700">Record New Admission Enquiry</h1>
+          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-gold-700">Admission Management</p>
+          <h1 className="mt-0.5 font-display text-xl font-semibold text-ink-700 sm:text-2xl">Record New Admission Enquiry</h1>
+          <p className="mt-0.5 text-xs text-slate/70">Capture a new admission enquiry and route it to the right staff member.</p>
         </div>
-        <Link href="/enquiries">
-          <button className="rounded-lg border border-ink-100 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 shadow-xs hover:bg-ink-50">
-            ← Back to List
-          </button>
+        <Link href="/enquiries" className="shrink-0">
+          <Button variant="outline" className="h-10 px-4 text-sm font-semibold shadow-sm">← Admission Enquiries</Button>
         </Link>
       </div>
 
       <EnquiryForm
-        classes={classes ?? []}
+        classes={createClasses}
         sessions={sessions ?? []}
         staffList={staffList}
       />

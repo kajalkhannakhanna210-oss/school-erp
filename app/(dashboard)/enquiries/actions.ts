@@ -40,6 +40,14 @@ export async function createEnquiryAction(formData: {
     return { error: "Student name is required" };
   }
 
+  if (!formData.class_id) {
+    return { error: "Class Interested is required" };
+  }
+
+  if (!formData.dob) {
+    return { error: "Date of Birth is required" };
+  }
+
   if (!formData.parent_name?.trim()) {
     return { error: "Parent/guardian name is required" };
   }
@@ -54,16 +62,15 @@ export async function createEnquiryAction(formData: {
     return { error: canCreate.reason || "You are not authorized to create enquiries for this class" };
   }
 
-  // Generate a unique enquiry_id using the DB-side generator for concurrency safety
+  // Generate the ID and load the current profile together; both are
+  // independent network requests on the save path.
   let enquiry_id: string | null = null;
-  try {
-    const { data: genData, error: genError } = await supabase.rpc("generate_enquiry_id");
-    if (!genError && genData) {
-      // supabase.rpc may return scalar or array; normalize
-      enquiry_id = Array.isArray(genData) ? genData[0] : genData as unknown as string;
-    }
-  } catch (e) {
-    // fall back to a JS-generated ID if RPC fails
+  const [{ data: genData, error: genError }, { data: currentProfile }] = await Promise.all([
+    supabase.rpc("generate_enquiry_id"),
+    supabase.from("profiles").select("id, role").eq("id", user.id).maybeSingle(),
+  ]);
+  if (!genError && genData) {
+    enquiry_id = Array.isArray(genData) ? genData[0] : genData as unknown as string;
   }
   if (!enquiry_id) {
     const year = new Date().getFullYear();
@@ -71,23 +78,34 @@ export async function createEnquiryAction(formData: {
     enquiry_id = `ENQ${year}${randomId}`;
   }
 
-  const status: EnquiryStatus =
-    formData.assigned_staff_id
-      ? "Assigned"
-      : "New";
+  // New enquiries without an explicit assignee are owned by a super admin.
+  let assignedStaffId = formData.assigned_staff_id?.trim() || null;
+  if (!assignedStaffId) {
+    if (currentProfile?.role === "super_admin") {
+      assignedStaffId = user.id;
+    } else {
+      const { data: superAdmin } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("role", "super_admin")
+        .limit(1)
+        .maybeSingle();
+      assignedStaffId = superAdmin?.id ?? null;
+    }
+  }
+
+  if (!assignedStaffId) return { error: "No super admin is available for assignment" };
+
+  const status: EnquiryStatus = "Assigned";
 
   // If assigning to a staff on creation, validate that staff is eligible for the class
-  if (formData.assigned_staff_id) {
-    // check assigned staff has at least one admission_enquiry permission
-    const { data: anyProfile } = await supabase.from("profiles").select("role").eq("id", formData.assigned_staff_id).maybeSingle();
+  if (assignedStaffId && assignedStaffId !== user.id) {
+    const { data: anyProfile } = await supabase.from("profiles").select("role").eq("id", assignedStaffId).maybeSingle();
     if (anyProfile?.role !== "super_admin") {
-      // ensure staff has any admission_enquiry.* permission
-      const { data: perms } = await supabase.from("staff_permissions").select("permission_key").eq("staff_id", formData.assigned_staff_id).like("permission_key", "admission_enquiry.%");
-      if (!perms || perms.length === 0) return { error: "Selected staff does not have admission enquiry permissions" };
-
-      // ensure staff scope covers the selected class
-      const { data: stScopes } = await supabase.from("staff_module_scopes").select("scope_type, resource_id").eq("staff_id", formData.assigned_staff_id).eq("module_key", "admission_enquiry");
-      const stRows = stScopes ?? [];
+      // Assignment eligibility is based on the target staff member's View
+      // Scope for the selected class.
+      const { data: stScopes } = await supabase.from("staff_module_scopes").select("scope_type, resource_id, action_key").eq("staff_id", assignedStaffId).eq("module_key", "admission_enquiry");
+      const stRows = (stScopes ?? []).filter((r: any) => !r.action_key || r.action_key === "ALL" || r.action_key === "view");
       const stAll = stRows.some((r: any) => r.scope_type === "ALL");
       const stHasClass = stRows.some((r: any) => r.scope_type === "CLASS" && r.resource_id === formData.class_id);
       if (!stAll && !stHasClass) return { error: "Selected staff is not designated for the chosen class" };
@@ -113,8 +131,7 @@ export async function createEnquiryAction(formData: {
         formData.enquiry_type || "Offline",
       source: formData.source || "Walk-in",
       remarks: formData.remarks?.trim() || null,
-      assigned_staff_id:
-        formData.assigned_staff_id || null,
+      assigned_staff_id: assignedStaffId,
       status,
       created_by: user.id,
     })
@@ -125,29 +142,26 @@ export async function createEnquiryAction(formData: {
     return { error: error.message };
   }
 
-  await supabase
-    .from("enquiry_audit_logs")
-    .insert({
+  // These records do not affect the newly-created enquiry response, so write
+  // them concurrently to avoid adding another full network round-trip.
+  await Promise.all([
+    supabase.from("enquiry_audit_logs").insert({
       enquiry_id: enquiry.id,
       user_id: user.id,
       action: "Enquiry Created",
       previous_status: null,
       new_status: status,
       details: `Created enquiry ${enquiry_id} for ${formData.student_name}`,
-    });
-
-  if (formData.assigned_staff_id) {
-    await supabase
-      .from("enquiry_assignment_history")
-      .insert({
-        enquiry_id: enquiry.id,
-        assigned_to:
-          formData.assigned_staff_id,
-        assigned_by: user.id,
-        remarks:
-          "Initial assignment upon enquiry creation",
-      });
-  }
+    }),
+    assignedStaffId
+      ? supabase.from("enquiry_assignment_history").insert({
+          enquiry_id: enquiry.id,
+          assigned_to: assignedStaffId,
+          assigned_by: user.id,
+          remarks: "Initial assignment upon enquiry creation",
+        })
+      : Promise.resolve({ error: null }),
+  ]);
 
   revalidatePath("/enquiries");
 

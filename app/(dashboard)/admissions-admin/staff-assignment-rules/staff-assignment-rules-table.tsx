@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import { setStaffActionScopes } from "@/app/(dashboard)/staff/actions";
@@ -39,6 +40,7 @@ export function StaffAssignmentRulesTable({
   assignedScopes,
 }: StaffAssignmentRulesTableProps) {
   const { push } = useToast();
+  const router = useRouter();
   const [expandedStaff, setExpandedStaff] = useState<string | null>(null);
   const [activeTabMap, setActiveTabMap] = useState<Map<string, ActionKey>>(new Map());
   const [saving, setSaving] = useState<string | null>(null);
@@ -152,7 +154,7 @@ export function StaffAssignmentRulesTable({
         push(res.error, "error");
       } else {
         push("Action-specific rules updated successfully", "success");
-        setExpandedStaff(null);
+        router.refresh();
       }
     } catch (e: any) {
       push(e?.message || "Failed to save", "error");
