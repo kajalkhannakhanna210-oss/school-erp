@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
   const selectedSessionId = await getSelectedSessionCookie();

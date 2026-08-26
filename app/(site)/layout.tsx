@@ -36,6 +36,8 @@ const FOOTER_LINKS = [
 
 export const revalidate = 300;
 
+export const dynamic = "force-dynamic";
+
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const supabase = createPublicClient();
 
