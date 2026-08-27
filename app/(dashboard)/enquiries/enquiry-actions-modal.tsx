@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
+import { DatePickerCalendar } from "@/components/date-picker-calendar";
 import { useToast } from "@/components/toaster";
 import { assignStaffAction, addFollowupAction, updateEnquiryStatusAction } from "./actions";
 import { EnquiryRow, ENQUIRY_STATUSES, FOLLOWUP_TYPES, EnquiryStatus, FollowupType } from "@/lib/enquiries";
@@ -155,18 +156,7 @@ export function EnquiryActionsModal({
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate/70 mb-1">
-                    Follow-up Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={followupDate}
-                    onChange={(e) => setFollowupDate(e.target.value)}
-                    className="w-full rounded-lg border border-ink-100 p-2.5 text-sm"
-                    required
-                  />
-                </div>
+                <DatePickerCalendar label="Follow-up Date" required value={followupDate} onChange={setFollowupDate} />
               </div>
 
               <div>
@@ -183,17 +173,7 @@ export function EnquiryActionsModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate/70 mb-1">
-                  Next Follow-up Date (Optional)
-                </label>
-                <input
-                  type="date"
-                  value={nextFollowupDate}
-                  onChange={(e) => setNextFollowupDate(e.target.value)}
-                  className="w-full rounded-lg border border-ink-100 p-2.5 text-sm"
-                />
-              </div>
+              <DatePickerCalendar label="Next Follow-up Date (Optional)" value={nextFollowupDate} onChange={setNextFollowupDate} />
             </>
           )}
 

@@ -9,6 +9,7 @@ import type {
 } from "@/lib/enquiries";
 import { isValidEnquiryTransition } from "@/lib/enquiries";
 import { userHasPermission, getUserAdmissionScopes, getUserActionScope, canPerformEnquiryAction } from "@/lib/enquiries-server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function createEnquiryAction(formData: {
   student_name: string;
@@ -162,6 +163,27 @@ export async function createEnquiryAction(formData: {
         })
       : Promise.resolve({ error: null }),
   ]);
+
+  // Broadcast only after the authorized INSERT has succeeded. The payload
+  // contains only the id; every receiving window re-checks authorization via
+  // its server API before displaying the enquiry.
+  try {
+    const realtime = createAdminClient();
+    const channel = realtime.channel("enquiries-live-broadcast");
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(resolve, 2000);
+      channel.subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.send({ type: "broadcast", event: "NEW_ENQUIRY", payload: { id: enquiry.id } });
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+    });
+    await realtime.removeChannel(channel);
+  } catch {
+    // The enquiry is already saved; live notification is best effort.
+  }
 
   revalidatePath("/enquiries");
 
@@ -508,8 +530,9 @@ export async function updateEnquiryStatusAction(
     };
   }
 
-  // Authorization Rule #18: check Change Status Permission + Change Status Scope
-  const canStatus = await canPerformEnquiryAction(supabase, user.id, "change_status", enquiry.class_id, enquiry.assigned_staff_id);
+  // Won/Lost have their own permissions; all other transitions use Change Status.
+  const statusAction = newStatus === "Won" ? "convert_won" : newStatus === "Lost" ? "mark_lost" : "change_status";
+  const canStatus = await canPerformEnquiryAction(supabase, user.id, statusAction, enquiry.class_id, enquiry.assigned_staff_id);
   if (!canStatus.allowed) {
     return { error: canStatus.reason || "You are not authorized to change status for this enquiry" };
   }

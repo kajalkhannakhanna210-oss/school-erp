@@ -5,6 +5,7 @@ import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { getUserActionScope, userHasPermission } from "@/lib/enquiries-server";
 import { EnquiryForm } from "./form";
+import { NewEnquiryViewport } from "./new-enquiry-viewport";
 
 export const dynamic = "force-dynamic";
 
@@ -59,10 +60,10 @@ export default async function NewEnquiryPage() {
   }
 
   return (
-    <div className="min-w-0 space-y-3">
+    <div className="min-w-0 space-y-3 overflow-hidden lg:h-[calc(100dvh-7rem)]">
+      <NewEnquiryViewport />
       <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-gold-700">Admission Management</p>
           <h1 className="mt-0.5 font-display text-xl font-semibold text-ink-700 sm:text-2xl">Record New Admission Enquiry</h1>
           <p className="mt-0.5 text-xs text-slate/70">Capture a new admission enquiry and route it to the right staff member.</p>
         </div>

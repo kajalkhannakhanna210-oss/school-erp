@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { getEnquiries, getEnquiryStats, getStaffOptions, getUserAdmissionScopes } from "@/lib/enquiries";
-import { EnquiryFilters } from "./enquiry-filters";
+import { EnquiriesDirectoryControls } from "./enquiries-directory-controls";
+import { EnquiriesNavigationLoader } from "./enquiries-navigation-loader";
 import { EnquiriesListClient } from "./enquiries-list-client";
 
 export const dynamic = "force-dynamic";
@@ -42,34 +44,40 @@ export default async function EnquiriesPage({
     ? { all: true, classes: [] as string[] }
     : await getUserAdmissionScopes(supabase, user!.id);
 
-  const page = Math.max(1, Number(searchParams.page ?? "1"));
-
+  const tabFilter = (await cookies()).get("enquiries_tab_filter")?.value;
+  const effectiveParams = { ...searchParams };
+  if (!effectiveParams.followup_due && !effectiveParams.status && tabFilter && tabFilter !== "all") {
+    if (tabFilter === "won") effectiveParams.status = "Won";
+    else effectiveParams.followup_due = tabFilter as "today" | "overdue" | "upcoming";
+  }
+  const page = Math.max(1, Number(effectiveParams.page ?? "1"));
   const [{ data: classes }, { data: sessions }, staffList, stats, { rows, total, totalPages }] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
-    getStaffOptions(supabase),
-    getEnquiryStats(supabase, searchParams.session_id),
-    getEnquiries(supabase, { ...searchParams, page, pageSize: 25 }),
+    getStaffOptions(supabase, undefined, profile?.role === "super_admin"),
+    getEnquiryStats(supabase, effectiveParams.session_id, profile?.role === "super_admin"),
+    getEnquiries(supabase, { ...effectiveParams, page, pageSize: 25 }, profile?.role === "super_admin"),
   ]);
 
-  const activeTab = searchParams.followup_due ?? (searchParams.status === "Won" ? "won" : "all");
+  const activeTab = effectiveParams.followup_due ?? (effectiveParams.status === "Won" ? "won" : "all");
   const visibleClasses = viewScope.all
     ? (classes ?? [])
     : (classes ?? []).filter((item) => viewScope.classes.includes(item.id));
 
   const buildTabHref = (due?: string, statusVal?: string) => {
-    const p = { ...searchParams };
+    const p = { ...effectiveParams };
     delete p.page;
     if (due) p.followup_due = due as any;
     else delete p.followup_due;
     if (statusVal) p.status = statusVal;
-    else if (!searchParams.status) delete p.status;
+    else delete p.status;
     const s = new URLSearchParams(p as any).toString();
     return `/enquiries${s ? `?${s}` : ""}`;
   };
 
   return (
     <div className="min-w-0 space-y-4 pb-4">
+      <EnquiriesNavigationLoader />
       {/* Top Header */}
       <div className="flex flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <div>
@@ -158,12 +166,17 @@ export default async function EnquiriesPage({
         </div>
       </div>
 
-      {/* Follow-up Dashboard Quick Tabs */}
-      <div className="flex gap-1 overflow-x-auto rounded-xl border border-ink-100 bg-white p-1 text-xs font-semibold shadow-sm">
+      {/* Follow-up Dashboard Quick Tabs and filters */}
+      <EnquiriesDirectoryControls
+        classes={visibleClasses}
+        sessions={sessions ?? []}
+        staffList={staffList}
+        activeTab={activeTab}
+        tabs={<div className="flex gap-1">
         <Link
           href={buildTabHref()}
           className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
-            activeTab === "all" ? "bg-ink-900 text-white" : "text-slate/60 hover:bg-ink-50 hover:text-ink-700"
+            activeTab === "all" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
           All Enquiries ({stats.total})
@@ -172,7 +185,7 @@ export default async function EnquiriesPage({
         <Link
           href={buildTabHref("today")}
           className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
-            activeTab === "today" ? "bg-ink-900 text-white" : "text-slate/60 hover:bg-ink-50 hover:text-ink-700"
+            activeTab === "today" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
           Due Today ({stats.todayFollowups})
@@ -181,7 +194,7 @@ export default async function EnquiriesPage({
         <Link
           href={buildTabHref("overdue")}
           className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
-            activeTab === "overdue" ? "bg-rose-600 text-white" : "text-slate/60 hover:bg-rose-50 hover:text-rose-700"
+            activeTab === "overdue" ? "bg-rose-600 text-white" : "bg-rose-50 text-rose-700 hover:bg-rose-100"
           }`}
         >
           Overdue ({stats.overdueFollowups})
@@ -190,7 +203,7 @@ export default async function EnquiriesPage({
         <Link
           href={buildTabHref("upcoming")}
           className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
-            activeTab === "upcoming" ? "bg-ink-900 text-white" : "text-slate/60 hover:bg-ink-50 hover:text-ink-700"
+            activeTab === "upcoming" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
           Upcoming ({stats.upcomingFollowups})
@@ -199,19 +212,17 @@ export default async function EnquiriesPage({
         <Link
           href={buildTabHref(undefined, "Won")}
           className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
-            activeTab === "won" ? "bg-emerald-600 text-white" : "text-slate/60 hover:bg-emerald-50 hover:text-emerald-700"
+            activeTab === "won" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
           }`}
         >
           Won / Converted ({stats.wonCount})
         </Link>
-      </div>
-
-      {/* Filters */}
-      <EnquiryFilters classes={visibleClasses} sessions={sessions ?? []} staffList={staffList} />
+        </div>}
+      />
 
       {/* Main List Table */}
       <div className="rounded-xl border border-ink-100 bg-white shadow-sm">
-        <EnquiriesListClient rows={rows} total={total} canManage={canManage} staffList={staffList} />
+        <EnquiriesListClient rows={rows} total={total} canManage={canManage} staffList={staffList} activeTab={activeTab} />
       </div>
 
       {/* Pagination */}

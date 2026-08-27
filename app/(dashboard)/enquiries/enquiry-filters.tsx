@@ -9,10 +9,16 @@ export function EnquiryFilters({
   classes,
   sessions,
   staffList,
+  showFilters: controlledShowFilters,
+  onShowFiltersChange,
+  hideToggle = false,
 }: {
   classes: { id: string; name: string }[];
   sessions: { id: string; name: string; is_current?: boolean }[];
   staffList: { id: string; full_name: string }[];
+  showFilters?: boolean;
+  onShowFiltersChange?: (show: boolean) => void;
+  hideToggle?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -28,7 +34,12 @@ export function EnquiryFilters({
   const [due, setDue] = useState(searchParams.get("followup_due") ?? "");
   const [startDate, setStartDate] = useState(searchParams.get("startDate") ?? "");
   const [endDate, setEndDate] = useState(searchParams.get("endDate") ?? "");
-  const [showFilters, setShowFilters] = useState(false);
+  const [uncontrolledShowFilters, setUncontrolledShowFilters] = useState(false);
+  const showFilters = controlledShowFilters ?? uncontrolledShowFilters;
+  const setShowFilters = (show: boolean) => {
+    onShowFiltersChange?.(show);
+    if (controlledShowFilters === undefined) setUncontrolledShowFilters(show);
+  };
 
   const activeFilterCount = [session, cls, type, source, staff, status, due, startDate, endDate]
     .filter(Boolean).length;
@@ -64,41 +75,25 @@ export function EnquiryFilters({
   };
 
   return (
-    <div className="rounded-xl border border-ink-100 bg-white p-3 shadow-sm sm:p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-xs font-bold text-ink-800">Find enquiries</p>
-          <p className="mt-0.5 text-[11px] text-slate/55">Search and narrow the directory.</p>
-        </div>
+    <>
+      {!hideToggle && <div className="flex justify-end">
         <button
           type="button"
           aria-expanded={showFilters}
-          onClick={() => setShowFilters((visible) => !visible)}
-          className={`inline-flex h-8 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition ${showFilters || activeFilterCount ? "border-ink-900 bg-ink-900 text-white" : "border-ink-100 bg-white text-ink-700 hover:bg-ink-50"}`}
+          aria-controls="enquiry-filter-panel"
+          onClick={() => setShowFilters(!showFilters)}
+          className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold shadow-sm transition ${showFilters || activeFilterCount ? "border-ink-900 bg-ink-900 text-white" : "border-ink-100 bg-white text-ink-700 hover:bg-ink-50"}`}
         >
           <span aria-hidden="true">☷</span>
-          Filters
+          {showFilters ? "Hide Filters" : "Filter"}
           {activeFilterCount > 0 && (
             <span className={`grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px] ${showFilters ? "bg-gold-400 text-ink-900" : "bg-ink-100 text-ink-700"}`}>
               {activeFilterCount}
             </span>
           )}
         </button>
-      </div>
-      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-        {/* Search */}
-        <div className={showFilters ? "xl:col-span-2" : "sm:col-span-2 lg:col-span-3 xl:col-span-4"}>
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-slate/60">Search</label>
-          <input
-            type="text"
-            placeholder="Name, ID, Parent, Mobile..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            className="mt-1 h-9 w-full rounded-lg border border-ink-100 px-3 text-xs"
-          />
-        </div>
-      </div>
-      {showFilters && <>
+      </div>}
+      {showFilters && <div id="enquiry-filter-panel" className="mt-3 rounded-xl border border-ink-100 bg-white p-3 shadow-sm sm:p-4">
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {/* Academic Session */}
         <div>
@@ -249,7 +244,19 @@ export function EnquiryFilters({
           Apply Filters
         </Button>
       </div>
-      </>}
-    </div>
+      </div>}
+      <div className="rounded-xl border border-ink-100 bg-white p-3 shadow-sm sm:p-4">
+        <label htmlFor="enquiry-search" className="block text-[11px] font-bold uppercase tracking-wider text-slate/60">Search and narrow the directory</label>
+        <input
+          id="enquiry-search"
+          type="search"
+          placeholder="Search by name, ID, parent, or mobile..."
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && applyFilters()}
+          className="mt-1 h-10 w-full rounded-lg border border-ink-100 px-3 text-sm outline-none transition focus:border-ink-700 focus:ring-2 focus:ring-ink-700/10"
+        />
+      </div>
+    </>
   );
 }

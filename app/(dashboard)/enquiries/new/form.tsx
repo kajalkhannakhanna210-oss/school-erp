@@ -99,7 +99,6 @@ export function EnquiryForm({
     // Saving is only valid from the final Assignment step. This guard keeps a
     // submit event from any earlier tab from creating an enquiry.
     if (step !== 3) return;
-
     if (!validateStep(1) || !validateStep(2) || !validateStep(3)) return;
 
     startTransition(async () => {
@@ -130,31 +129,28 @@ export function EnquiryForm({
   };
 
   return (
-    <Card className="relative border-ink-100 p-0 shadow-[0_8px_28px_rgba(30,42,74,0.07)]">
-      <div className="border-b border-ink-100 bg-ink-50/60 px-3 py-2.5 sm:px-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-gold-700">New admission lead</p>
-            <p className="mt-0.5 text-xs text-slate/60">Add the essentials and route the next step.</p>
-          </div>
-          <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 sm:inline-flex">Draft · Unsaved</span>
-        </div>
-        <div className="mt-2 grid grid-cols-3 gap-1 rounded-lg border border-ink-100 bg-white p-1">
+    <Card className="relative !p-0 border-ink-100 shadow-[0_8px_28px_rgba(30,42,74,0.07)]">
+      <div className="px-4 pt-2 sm:px-8 sm:pt-3">
+        <div className="relative grid grid-cols-3 rounded-2xl border border-[#d9e2f1] bg-white px-2 py-3 sm:px-8 sm:py-4">
+          <div className="pointer-events-none absolute left-[18%] right-[18%] top-[28px] h-px bg-[#d9e2f1] sm:top-[32px]" aria-hidden="true" />
           {["Student", "Contact", "Assignment"].map((label, index) => {
             const tabStep = (index + 1) as 1 | 2 | 3;
             const active = step === tabStep;
             const complete = step > tabStep;
             return (
-              <button
-                type="button"
-                key={label}
-                aria-current={active ? "step" : undefined}
-                onClick={() => goToStep(tabStep)}
-                className={`flex min-h-8 items-center justify-center gap-1 rounded-md px-1.5 text-[11px] font-semibold transition sm:gap-2 sm:px-3 sm:text-xs ${active ? "bg-ink-900 text-white shadow-sm" : "text-slate/55 hover:bg-ink-50 hover:text-ink-800"}`}
-              >
-                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] ${active ? "bg-gold-400 text-ink-900" : complete ? "bg-emerald-100 text-emerald-700" : "bg-ink-50 text-slate/45"}`}>{complete ? "✓" : index + 1}</span>
-                <span>{label}</span>
-              </button>
+              <div key={label} className="relative z-10 flex min-w-0 items-center justify-center">
+                <button
+                  type="button"
+                  aria-current={active ? "step" : undefined}
+                  onClick={() => goToStep(tabStep)}
+                  className={`group flex min-w-0 flex-col items-center gap-1.5 rounded-lg px-2 py-0.5 text-center text-xs font-medium transition sm:gap-2 sm:px-5 sm:text-sm ${active ? "font-semibold text-ink-900" : complete ? "text-emerald-700" : "text-slate/70 hover:text-ink-900"}`}
+                >
+                  <span className={`grid h-7 w-7 place-items-center rounded-full border-2 border-white text-[11px] font-bold shadow-sm ring-1 transition ${active ? "bg-ink-900 text-white ring-ink-900" : complete ? "bg-emerald-500 text-white ring-emerald-500" : "bg-white text-[#5680c5] ring-[#b9cceb]"}`}>
+                    {complete ? "✓" : index + 1}
+                  </span>
+                  <span className="truncate">{label}</span>
+                </button>
+              </div>
             );
           })}
         </div>

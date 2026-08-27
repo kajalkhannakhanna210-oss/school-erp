@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Card } from "@/components/ui";
-import { EnquiryRow, FollowupRow, AssignmentHistoryRow, AuditLogRow } from "@/lib/enquiries";
+import { EnquiryRow, FollowupRow, AssignmentHistoryRow, AuditLogRow, EnquiryActionPermissions } from "@/lib/enquiries";
 import { EnquiryActionsModal } from "../enquiry-actions-modal";
 
 export function DetailViewClient({
@@ -11,12 +11,14 @@ export function DetailViewClient({
   assignments,
   auditLogs,
   staffList,
+  permissions,
 }: {
   enquiry: EnquiryRow;
   followups: FollowupRow[];
   assignments: AssignmentHistoryRow[];
   auditLogs: AuditLogRow[];
   staffList: { id: string; full_name: string }[];
+  permissions: EnquiryActionPermissions;
 }) {
   const [activeTab, setActiveTab] = useState<"followups" | "assignments" | "audit">("followups");
   const [activeModal, setActiveModal] = useState<"assign" | "followup" | "status" | "won" | "lost" | null>(null);
@@ -32,37 +34,39 @@ export function DetailViewClient({
 
   return (
     <div className="space-y-6">
-      {/* Overview Card */}
+        {/* Enquiry Information */}
       <Card className="border-ink-100 p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-4">
           <div>
+            <h2 className="mb-1 font-display text-lg font-bold text-ink-700">Enquiry Information</h2>
             <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate/50">Enquiry ID</span>
             <p className="font-mono text-lg font-bold text-ink-700">{enquiry.enquiry_id}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
+            <span className="mr-1 text-xs font-bold uppercase tracking-wider text-slate/50">Quick Actions</span>
+            {permissions.followup && <Button
               className="bg-ink-700 text-white text-xs hover:bg-ink-600"
               onClick={() => setActiveModal("followup")}
             >
               + Add Follow-up
-            </Button>
-            <Button
+            </Button>}
+            {permissions.assign && <Button
               variant="outline"
               className="text-xs border-ink-100"
               onClick={() => setActiveModal("assign")}
             >
               👤 Assign Staff
-            </Button>
-            <Button
+            </Button>}
+            {permissions.change_status && <Button
               variant="outline"
               className="text-xs border-ink-100"
               onClick={() => setActiveModal("status")}
             >
               🔄 Change Status
-            </Button>
+            </Button>}
 
-            {enquiry.status !== "Won" && (
+            {permissions.convert_won && enquiry.status !== "Won" && (
               <Button
                 className="bg-emerald-600 text-white text-xs hover:bg-emerald-700"
                 onClick={() => setActiveModal("won")}
@@ -70,7 +74,7 @@ export function DetailViewClient({
                 ✓ Convert to Won
               </Button>
             )}
-            {enquiry.status !== "Lost" && enquiry.status !== "Closed" && (
+            {permissions.mark_lost && enquiry.status !== "Lost" && enquiry.status !== "Closed" && (
               <Button
                 variant="ghost"
                 className="text-rose-600 text-xs hover:bg-rose-50"
@@ -127,9 +131,9 @@ export function DetailViewClient({
             </div>
           </div>
 
-          {/* Enquiry Management Meta */}
+          {/* Assignment and status */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate/60">Enquiry Management</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate/60">Assignment</h4>
             <div>
               <span className="text-xs text-slate/50">Enquiry Mode / Source:</span>
               <p className="text-ink-700">
@@ -139,6 +143,14 @@ export function DetailViewClient({
             <div>
               <span className="text-xs text-slate/50">Assigned Staff:</span>
               <p className="font-medium text-ink-700">{enquiry.assigned_staff?.full_name || "Unassigned"}</p>
+            </div>
+            <div>
+              <span className="text-xs text-slate/50">Assignment Scope:</span>
+              <p className="text-ink-700">{enquiry.classes?.name ? `Class ${enquiry.classes.name}` : "Unassigned class"}</p>
+            </div>
+            <div>
+              <span className="text-xs text-slate/50">Current Status:</span>
+              <p className="font-semibold text-ink-700">{enquiry.status}</p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Next Follow-up Due:</span>
@@ -160,7 +172,7 @@ export function DetailViewClient({
         )}
       </Card>
 
-      {/* Tabs & Timelines */}
+      {/* Status, follow-up timeline, assignment history, and activity history */}
       <Card className="border-ink-100 p-5 shadow-sm sm:p-6">
         <div className="flex border-b border-ink-100">
           <button
@@ -169,7 +181,7 @@ export function DetailViewClient({
               activeTab === "followups" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
             }`}
           >
-            Follow-up Activity ({followups.length})
+            Follow-up Timeline ({followups.length})
           </button>
           <button
             onClick={() => setActiveTab("assignments")}
@@ -177,7 +189,7 @@ export function DetailViewClient({
               activeTab === "assignments" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
             }`}
           >
-            Staff Assignment Log ({assignments.length})
+            Assignment History ({assignments.length})
           </button>
           <button
             onClick={() => setActiveTab("audit")}
@@ -185,7 +197,7 @@ export function DetailViewClient({
               activeTab === "audit" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
             }`}
           >
-            Audit Trail ({auditLogs.length})
+            Activity History ({auditLogs.length})
           </button>
         </div>
 

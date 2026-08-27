@@ -140,6 +140,8 @@ export type AdmissionActionKey =
   | 'assign'
   | 'followup'
   | 'change_status'
+  | 'convert_won'
+  | 'mark_lost'
   | 'report'
   | 'export';
 
@@ -220,17 +222,89 @@ export async function canPerformEnquiryAction(
   return { allowed: false, reason: `Action '${actionKey}' is not authorized for the specified class or enquiry` };
 }
 
+/**
+ * Server-side guard for every operation that reads an individual enquiry or
+ * one of its child records. Never rely on a hidden button or a client filter
+ * for this check.
+ */
+export async function authorizeEnquiryAccess(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  enquiryId: string,
+  actionKey: AdmissionActionKey = "view"
+) {
+  const supabase = supabaseClient ?? (await createClient());
+  const { data: authUser } = await supabase.auth.getUser();
+  if (!authUser?.user) return { allowed: false, reason: "Not signed in" };
+
+  const { data: enquiry } = await supabase
+    .from("enquiries")
+    .select("class_id, assigned_staff_id")
+    .eq("id", enquiryId)
+    .maybeSingle();
+  if (!enquiry) return { allowed: false, reason: "Enquiry not found" };
+
+  return canPerformEnquiryAction(
+    supabase,
+    authUser.user.id,
+    actionKey,
+    enquiry.class_id,
+    enquiry.assigned_staff_id
+  );
+}
+
+export type EnquiryActionPermissions = {
+  view: boolean;
+  edit: boolean;
+  assign: boolean;
+  followup: boolean;
+  change_status: boolean;
+  convert_won: boolean;
+  mark_lost: boolean;
+};
+
+/** Resolve detail-page action permissions on the server in one pass. */
+export async function getEnquiryActionPermissions(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  enquiry: Pick<EnquiryRow, "class_id" | "assigned_staff_id">
+): Promise<EnquiryActionPermissions> {
+  const denied: EnquiryActionPermissions = { view: false, edit: false, assign: false, followup: false, change_status: false, convert_won: false, mark_lost: false };
+  const supabase = supabaseClient ?? (await createClient());
+  const { data: authUser } = await supabase.auth.getUser();
+  const userId = authUser?.user?.id;
+  if (!userId) return denied;
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile?.role === "super_admin") return { view: true, edit: true, assign: true, followup: true, change_status: true, convert_won: true, mark_lost: true };
+
+  const actionKeys = ["view", "edit", "assign", "followup", "change_status", "convert_won", "mark_lost"];
+  const [{ data: permissionRows }, { data: scopeRows }] = await Promise.all([
+    supabase.from("staff_permissions").select("permission_key").eq("staff_id", userId).in("permission_key", actionKeys.map((key) => `admission_enquiry.${key}`)),
+    supabase.from("staff_module_scopes").select("action_key, scope_type, resource_id").eq("staff_id", userId).eq("module_key", "admission_enquiry"),
+  ]);
+  const permissions = new Set((permissionRows ?? []).map((row: any) => row.permission_key));
+  const result = { ...denied };
+  for (const key of actionKeys as (keyof EnquiryActionPermissions)[]) {
+    const scopes = (scopeRows ?? []).filter((row: any) => !row.action_key || row.action_key === "ALL" || row.action_key === key);
+    const inScope = scopes.some((row: any) => row.scope_type === "ALL" ||
+      (row.scope_type === "CLASS" && row.resource_id === enquiry.class_id) ||
+      (row.scope_type === "OWN_ASSIGNED" && enquiry.assigned_staff_id === userId));
+    result[key] = permissions.has(`admission_enquiry.${key}`) && inScope;
+  }
+  return result;
+}
+
 export async function getEnquiryStats(
   supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
-  sessionId?: string
+  sessionId?: string,
+  knownSuperAdmin = false
 ): Promise<EnquiryStats> {
   const supabase = supabaseClient ?? (await createClient());
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  const { data: authUser } = await supabase.auth.getUser();
+  const { data: authUser } = knownSuperAdmin ? { data: { user: null } } : await supabase.auth.getUser();
   const userId = authUser?.user?.id;
   let viewScope: UserActionScope | null = null;
-  if (userId) {
+  if (userId && !knownSuperAdmin) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
     if (profile?.role !== "super_admin") {
       if (!(await userHasPermission(supabase, userId, "admission_enquiry.view"))) {
@@ -240,7 +314,7 @@ export async function getEnquiryStats(
     }
   }
 
-  let baseQ = supabase.from("enquiries").select("id, status, next_followup_date");
+  let baseQ = supabase.from("enquiries").select("id, status, next_followup_date, class_id, assigned_staff_id");
   if (sessionId) baseQ = baseQ.eq("session_id", sessionId);
 
   const { data: rows } = await baseQ;
@@ -302,7 +376,9 @@ export async function getEnquiryStats(
 
 export async function getEnquiries(
   supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
-  filters: EnquiryFilters = {}
+  filters: EnquiryFilters = {},
+  knownSuperAdmin = false,
+  actionKey: AdmissionActionKey = "view"
 ) {
   const supabase = supabaseClient ?? (await createClient());
   const page = filters.page && filters.page > 0 ? filters.page : 1;
@@ -312,29 +388,33 @@ export async function getEnquiries(
   const todayStr = new Date().toISOString().slice(0, 10);
 
   // Enforce module-level view permission + scope
-  const { data: authUser } = await supabase.auth.getUser();
+  const { data: authUser } = knownSuperAdmin ? { data: { user: null } } : await supabase.auth.getUser();
   const user = authUser?.user ?? null;
-  if (!user) {
+  if (!user && !knownSuperAdmin) {
     return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "Not signed in" };
   }
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-  const isSuper = profile?.role === "super_admin";
+  const { data: profile } = knownSuperAdmin
+    ? { data: { role: "super_admin" } }
+    : await supabase.from("profiles").select("role").eq("id", user!.id).maybeSingle();
+  const isSuper = knownSuperAdmin || profile?.role === "super_admin";
 
   if (!isSuper) {
-    const hasView = await userHasPermission(supabase, user.id, "admission_enquiry.view");
-    if (!hasView) {
+    const permissionKey = `admission_enquiry.${actionKey === "report" ? "view_reports" : actionKey}`;
+    const hasPermission = await userHasPermission(supabase, user!.id, permissionKey);
+    if (!hasPermission) {
       return { rows: [], total: 0, page, pageSize, totalPages: 1, error: "Access denied" };
     }
   }
 
-  let query = supabase
-    .from("enquiries")
-    .select("*, classes(name), academic_sessions(name), assigned_staff:profiles!enquiries_assigned_staff_id_fkey(full_name, email)", { count: "exact" });
+  // Fetch the enquiry rows independently from display-name lookups. This keeps
+  // the directory usable even if PostgREST has not refreshed a relationship
+  // definition after a migration.
+  let query = supabase.from("enquiries").select("*", { count: "exact" });
 
   // Apply user action scopes for view when not super admin
   if (!isSuper) {
-    const scopes = await getUserActionScope(supabase, user.id, 'view');
+    const scopes = await getUserActionScope(supabase, user!.id, actionKey);
     const classFilter = scopes.classes ?? [];
     const ownAssigned = scopes.ownAssigned ?? false;
     const allowAll = scopes.all ?? false;
@@ -355,9 +435,9 @@ export async function getEnquiries(
       }
 
       if (ownAssigned && classFilter && classFilter.length > 0) {
-        query = query.or(`class_id.in.(${classFilter.map((c: string) => c).join(',')}) , assigned_staff_id.eq.${user.id}`);
+        query = query.or(`class_id.in.(${classFilter.map((c: string) => c).join(',')}) , assigned_staff_id.eq.${user!.id}`);
       } else if (ownAssigned) {
-        query = query.eq("assigned_staff_id", user.id);
+        query = query.eq("assigned_staff_id", user!.id);
       } else if (classFilter && classFilter.length > 0) {
         query = query.in("class_id", classFilter);
       }
@@ -398,14 +478,127 @@ export async function getEnquiries(
 
   const { data, count, error } = await query.range(from, to);
 
+  if (error) {
+    return { rows: [], total: 0, page, pageSize, totalPages: 1, error: error.message };
+  }
+
+  const rawRows = (data ?? []) as any[];
+  const classIds = [...new Set(rawRows.map((row) => row.class_id).filter(Boolean))];
+  const sessionIds = [...new Set(rawRows.map((row) => row.session_id).filter(Boolean))];
+  const staffIds = [...new Set(rawRows.map((row) => row.assigned_staff_id).filter(Boolean))];
+  const [{ data: classes }, { data: sessions }, { data: staff }] = await Promise.all([
+    classIds.length ? supabase.from("classes").select("id, name").in("id", classIds) : Promise.resolve({ data: [] }),
+    sessionIds.length ? supabase.from("academic_sessions").select("id, name").in("id", sessionIds) : Promise.resolve({ data: [] }),
+    staffIds.length ? supabase.from("profiles").select("id, full_name, email").in("id", staffIds) : Promise.resolve({ data: [] }),
+  ]);
+  const classMap = new Map((classes ?? []).map((item: any) => [item.id, { name: item.name }]));
+  const sessionMap = new Map((sessions ?? []).map((item: any) => [item.id, { name: item.name }]));
+  const staffMap = new Map((staff ?? []).map((item: any) => [item.id, { full_name: item.full_name, email: item.email }]));
+  const rows = rawRows.map((row) => ({
+    ...row,
+    classes: classMap.get(row.class_id) ?? null,
+    academic_sessions: sessionMap.get(row.session_id) ?? null,
+    assigned_staff: staffMap.get(row.assigned_staff_id) ?? null,
+  }));
+
   return {
-    rows: (data ?? []) as EnquiryRow[],
+    rows: rows as EnquiryRow[],
     total: count ?? 0,
     page,
     pageSize,
     totalPages: Math.max(1, Math.ceil((count ?? 0) / pageSize)),
-    error: error?.message ?? null,
+    error: null,
   };
+}
+
+export type EnquiryDashboardData = {
+  byStatus: { name: string; value: number }[];
+  onlineOffline: { name: string; value: number }[];
+  byClass: { name: string; value: number }[];
+  bySource: { name: string; value: number }[];
+  monthlyTrend: { month: string; enquiries: number }[];
+  conversion: { name: string; value: number }[];
+};
+
+export async function getEnquiryDashboardData(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  knownSuperAdmin = false
+): Promise<EnquiryDashboardData> {
+  const empty: EnquiryDashboardData = { byStatus: [], onlineOffline: [], byClass: [], bySource: [], monthlyTrend: [], conversion: [] };
+  const result = await getEnquiries(supabaseClient, { page: 1, pageSize: 10000 }, knownSuperAdmin, "view");
+  if (result.error) return empty;
+  const rows = result.rows as EnquiryRow[];
+  const countBy = (values: string[]) => [...new Map(values.map((value) => [value, values.filter((item) => item === value).length])).entries()]
+    .map(([name, value]) => ({ name, value }));
+  const byStatus = countBy(rows.map((row) => row.status));
+  const onlineOffline = countBy(rows.map((row) => row.enquiry_type));
+  const byClass = countBy(rows.map((row) => row.classes?.name ?? "Unassigned"));
+  const bySource = countBy(rows.map((row) => row.source ?? "Other"));
+  const conversion = [
+    { name: "Won", value: rows.filter((row) => row.status === "Won").length },
+    { name: "Lost", value: rows.filter((row) => row.status === "Lost").length },
+    { name: "In progress", value: rows.filter((row) => !["Won", "Lost", "Closed"].includes(row.status)).length },
+  ];
+  const monthlyMap = new Map<string, number>();
+  for (const row of rows) monthlyMap.set(row.created_at.slice(0, 7), (monthlyMap.get(row.created_at.slice(0, 7)) ?? 0) + 1);
+  const start = new Date();
+  start.setDate(1);
+  start.setMonth(start.getMonth() - 11);
+  const monthlyTrend = Array.from({ length: 12 }, (_, index) => {
+    const date = new Date(start);
+    date.setMonth(start.getMonth() + index);
+    const key = date.toISOString().slice(0, 7);
+    return { month: date.toLocaleString("default", { month: "short" }), enquiries: monthlyMap.get(key) ?? 0 };
+  });
+  return { byStatus, onlineOffline, byClass, bySource, monthlyTrend, conversion };
+}
+
+export type StaffPerformanceRow = {
+  staffId: string;
+  staffName: string;
+  scope: string;
+  totalAssigned: number;
+  pendingFollowups: number;
+  overdueFollowups: number;
+  interested: number;
+  won: number;
+  lost: number;
+  conversion: number;
+};
+
+export async function getStaffPerformanceData(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  knownSuperAdmin = false
+): Promise<StaffPerformanceRow[]> {
+  const supabase = supabaseClient ?? (await createClient());
+  const result = await getEnquiries(supabase, { page: 1, pageSize: 10000 }, knownSuperAdmin, "view");
+  if (result.error) return [];
+  const { data: staff } = await supabase.from("profiles").select("id, full_name, role").in("role", ["staff", "super_admin"]).order("full_name");
+  const { data: scopes } = await supabase.from("staff_module_scopes").select("staff_id, action_key, scope_type, resource_id").eq("module_key", "admission_enquiry");
+  const { data: classes } = await supabase.from("classes").select("id, name");
+  const classNames = new Map((classes ?? []).map((item: any) => [item.id, item.name]));
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = result.rows as EnquiryRow[];
+  return (staff ?? []).map((member: any) => {
+    const assigned = rows.filter((row) => row.assigned_staff_id === member.id);
+    const memberScopes = (scopes ?? []).filter((scope: any) => scope.staff_id === member.id && (!scope.action_key || scope.action_key === "ALL" || scope.action_key === "view" || scope.action_key === "report"));
+    const allClasses = memberScopes.some((scope: any) => scope.scope_type === "ALL");
+    const classNamesForMember = [...new Set(memberScopes.filter((scope: any) => scope.scope_type === "CLASS" && scope.resource_id).map((scope: any) => classNames.get(scope.resource_id) ?? "Unknown class"))];
+    const totalAssigned = assigned.length;
+    const won = assigned.filter((row) => row.status === "Won").length;
+    return {
+      staffId: member.id,
+      staffName: member.full_name ?? "Unnamed staff",
+      scope: allClasses ? "All classes" : classNamesForMember.length ? classNamesForMember.join(", ") : "Own assigned enquiries",
+      totalAssigned,
+      pendingFollowups: assigned.filter((row) => row.next_followup_date && row.next_followup_date >= today && !["Won", "Lost", "Closed"].includes(row.status)).length,
+      overdueFollowups: assigned.filter((row) => row.next_followup_date && row.next_followup_date < today && !["Won", "Lost", "Closed"].includes(row.status)).length,
+      interested: assigned.filter((row) => row.status === "Interested").length,
+      won,
+      lost: assigned.filter((row) => row.status === "Lost").length,
+      conversion: totalAssigned ? Number(((won / totalAssigned) * 100).toFixed(1)) : 0,
+    };
+  });
 }
 
 export async function getEnquiryById(
@@ -413,6 +606,8 @@ export async function getEnquiryById(
   id: string
 ): Promise<EnquiryRow | null> {
   const supabase = supabaseClient ?? (await createClient());
+  const access = await authorizeEnquiryAccess(supabase, id, "view");
+  if (!access.allowed) return null;
   const { data } = await supabase
     .from("enquiries")
     .select("*, classes(name), academic_sessions(name), assigned_staff:profiles!enquiries_assigned_staff_id_fkey(full_name, email)")
@@ -427,6 +622,8 @@ export async function getEnquiryFollowups(
   enquiryId: string
 ): Promise<FollowupRow[]> {
   const supabase = supabaseClient ?? (await createClient());
+  const access = await authorizeEnquiryAccess(supabase, enquiryId, "view");
+  if (!access.allowed) return [];
   const { data } = await supabase
     .from("enquiry_followups")
     .select("*, staff:profiles!enquiry_followups_staff_id_fkey(full_name)")
@@ -441,6 +638,8 @@ export async function getEnquiryAssignments(
   enquiryId: string
 ): Promise<AssignmentHistoryRow[]> {
   const supabase = supabaseClient ?? (await createClient());
+  const access = await authorizeEnquiryAccess(supabase, enquiryId, "view");
+  if (!access.allowed) return [];
   const { data } = await supabase
     .from("enquiry_assignment_history")
     .select("*, assigned_to_profile:profiles!enquiry_assignment_history_assigned_to_fkey(full_name), assigned_by_profile:profiles!enquiry_assignment_history_assigned_by_fkey(full_name)")
@@ -455,6 +654,8 @@ export async function getEnquiryAuditLogs(
   enquiryId: string
 ): Promise<AuditLogRow[]> {
   const supabase = supabaseClient ?? (await createClient());
+  const access = await authorizeEnquiryAccess(supabase, enquiryId, "view");
+  if (!access.allowed) return [];
   const { data } = await supabase
     .from("enquiry_audit_logs")
     .select("*, user:profiles!enquiry_audit_logs_user_id_fkey(full_name)")
@@ -485,7 +686,8 @@ export async function userHasPermission(
 
 export async function getStaffOptions(
   supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
-  classId?: string
+  classId?: string,
+  knownSuperAdmin = false
 ): Promise<{ id: string; full_name: string; designated_classes?: string[] }[]> {
   const supabase = supabaseClient ?? (await createClient());
   const { data } = await supabase
@@ -495,6 +697,32 @@ export async function getStaffOptions(
     .order("full_name");
 
   const base = (data ?? []) as { id: string; full_name: string; role: string }[];
+
+  // Super-admins can see and assign every staff member. Avoid the per-member
+  // permission/scope queries in this unrestricted case so directory loads stay fast.
+  if (!knownSuperAdmin) {
+    const { data: authUser } = await supabase.auth.getUser();
+    if (authUser?.user) {
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", authUser.user.id)
+      .maybeSingle();
+    if (currentProfile?.role === "super_admin") {
+      return base.map((member) => ({
+        id: member.id,
+        full_name: member.full_name,
+        designated_classes: [],
+      }));
+    }
+    }
+  } else {
+    return base.map((member) => ({
+      id: member.id,
+      full_name: member.full_name,
+      designated_classes: [],
+    }));
+  }
 
   // Target staff assignment rule (Rule #23):
   // Filter eligible target staff based on staff's Admission Enquiry Follow-up Permission + Follow-up Scope containing enquiry class.
@@ -536,7 +764,7 @@ export async function getEnquiryReportData(
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", authUser.user.id).maybeSingle();
   if (profile?.role !== "super_admin" && !hasReportPerm) return [];
 
-  const { rows } = await getEnquiries(supabase, { ...filters, pageSize: 1000, page: 1 });
+  const { rows } = await getEnquiries(supabase, { ...filters, pageSize: 1000, page: 1 }, false, "report");
 
   if (reportType === 'enquiry') {
     return rows.map((r) => ({

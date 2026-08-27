@@ -5,7 +5,8 @@ import { getStudentFeeLines } from "@/lib/fees";
 import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import type { UserRole } from "@/lib/types";
-import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, StaffSessionChart, StudentSessionChart } from "./dashboard-charts";
+import { getEnquiryDashboardData } from "@/lib/enquiries";
+import { AdmissionComparisonChart, ClassStrengthChart, CollectionTrendChart, LiveEnquiryDashboardCharts, StaffSessionChart, StudentSessionChart } from "./dashboard-charts";
 
 const widgetsByRole: Record<UserRole, string[]> = {
   super_admin: [
@@ -57,6 +58,9 @@ export default async function DashboardPage() {
 
   const role = (profile?.role ?? "student") as UserRole;
   const widgets = widgetsByRole[role];
+  const enquiryDashboardPromise = role === "super_admin" || role === "staff"
+    ? getEnquiryDashboardData(supabase, role === "super_admin" )
+    : Promise.resolve(null);
   const today = new Date().toISOString().slice(0, 10);
   const monthStart = today.slice(0, 8) + "01";
 
@@ -278,6 +282,7 @@ export default async function DashboardPage() {
     "New Admissions": newAdmissions ?? "—",
     Notices: noticesCount ?? "—",
   };
+  const enquiryDashboardData = await enquiryDashboardPromise;
 
   return (
     <div>
@@ -321,6 +326,8 @@ export default async function DashboardPage() {
           return href ? <Link key={w} href={href}>{card}</Link> : card;
         })}
       </div>
+
+      {enquiryDashboardData && <LiveEnquiryDashboardCharts initialData={enquiryDashboardData} />}
 
       {(role === "staff" || role === "student") && (
         <Card className="mt-6">

@@ -9,6 +9,7 @@ import {
   getEnquiryAuditLogs,
   getStaffOptions,
   STATUS_COLORS,
+  getEnquiryActionPermissions,
 } from "@/lib/enquiries";
 import { DetailViewClient } from "./detail-view-client";
 
@@ -22,17 +23,19 @@ export default async function EnquiryDetailPage({ params }: { params: { id: stri
   }
 
   const supabase = await createClient();
-  const [enquiry, followups, assignments, auditLogs, staffList] = await Promise.all([
+  const [enquiry, followups, assignments, auditLogs] = await Promise.all([
     getEnquiryById(supabase, params.id),
     getEnquiryFollowups(supabase, params.id),
     getEnquiryAssignments(supabase, params.id),
     getEnquiryAuditLogs(supabase, params.id),
-    getStaffOptions(supabase),
   ]);
 
   if (!enquiry) {
     notFound();
   }
+
+  const permissions = await getEnquiryActionPermissions(supabase, enquiry);
+  const staffList = permissions.assign ? await getStaffOptions(supabase) : [];
 
   return (
     <div className="space-y-6">
@@ -61,11 +64,13 @@ export default async function EnquiryDetailPage({ params }: { params: { id: stri
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href={`/enquiries/${enquiry.id}/edit`}>
-            <button className="rounded-lg border border-ink-100 bg-white px-3.5 py-2 text-xs font-semibold text-ink-700 shadow-xs hover:bg-ink-50">
-              ✏ Edit Details
-            </button>
-          </Link>
+          {permissions.edit && (
+            <Link href={`/enquiries/${enquiry.id}/edit`}>
+              <button className="rounded-lg border border-ink-100 bg-white px-3.5 py-2 text-xs font-semibold text-ink-700 shadow-xs hover:bg-ink-50">
+                ✏ Edit Details
+              </button>
+            </Link>
+          )}
           <Link href="/enquiries">
             <button className="rounded-lg border border-ink-100 bg-white px-3.5 py-2 text-xs font-semibold text-ink-700 shadow-xs hover:bg-ink-50">
               ← Back to List
@@ -80,6 +85,7 @@ export default async function EnquiryDetailPage({ params }: { params: { id: stri
         assignments={assignments}
         auditLogs={auditLogs}
         staffList={staffList}
+        permissions={permissions}
       />
     </div>
   );
