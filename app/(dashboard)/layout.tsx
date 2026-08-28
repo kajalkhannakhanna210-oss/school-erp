@@ -9,6 +9,7 @@ import { DashboardSidebar } from "./dashboard-sidebar";
 import { SessionSelector } from "./students/session-selector";
 import { getSelectedSessionCookie } from "./session-actions";
 import type { Metadata } from "next";
+import { EnquiryLiveAlerts } from "@/components/enquiry-live-alerts";
 
 export const metadata: Metadata = {
   title: "School administration dashboard",
@@ -72,6 +73,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[auto_minmax(0,1fr)]">
+      <EnquiryLiveAlerts />
       <DashboardSidebar sections={sections} profile={profile} />
       <div className="min-w-0">
         <div className="sticky top-0 z-40 min-h-16 lg:hidden" style={{ backgroundColor: "#222F57" }}>

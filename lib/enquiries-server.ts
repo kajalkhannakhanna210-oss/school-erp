@@ -100,6 +100,7 @@ export type AuditLogRow = {
 };
 
 export type EnquiryFilters = {
+  id?: string;
   q?: string;
   session_id?: string;
   class_id?: string;
@@ -171,14 +172,22 @@ export async function getUserActionScope(
     .eq("module_key", "admission_enquiry");
 
   const rows = data ?? [];
+  const wantedAction = actionKey.trim().toLowerCase();
   // Filter for matching action_key or 'ALL' (fallback for backward compatibility)
-  const actionRows = rows.filter((r: any) => !r.action_key || r.action_key === "ALL" || r.action_key === actionKey);
+  const actionRows = rows.filter((r: any) => {
+    const rowAction = r.action_key == null ? "all" : String(r.action_key).trim().toLowerCase();
+    return rowAction === "all" || rowAction === wantedAction;
+  });
 
   return {
-    all: actionRows.some((r: any) => r.scope_type === "ALL"),
-    ownAssigned: actionRows.some((r: any) => r.scope_type === "OWN_ASSIGNED"),
-    classes: actionRows.filter((r: any) => r.scope_type === "CLASS" && r.resource_id).map((r: any) => String(r.resource_id)),
-    sections: actionRows.filter((r: any) => r.scope_type === "SECTION" && r.resource_id).map((r: any) => String(r.resource_id)),
+    all: actionRows.some((r: any) => String(r.scope_type).trim().toUpperCase() === "ALL"),
+    ownAssigned: actionRows.some((r: any) => String(r.scope_type).trim().toUpperCase() === "OWN_ASSIGNED"),
+    classes: actionRows
+      .filter((r: any) => String(r.scope_type).trim().toUpperCase() === "CLASS" && r.resource_id != null)
+      .map((r: any) => String(r.resource_id).trim().toLowerCase()),
+    sections: actionRows
+      .filter((r: any) => String(r.scope_type).trim().toUpperCase() === "SECTION" && r.resource_id != null)
+      .map((r: any) => String(r.resource_id).trim().toLowerCase()),
   };
 }
 
@@ -187,6 +196,28 @@ export async function getUserAdmissionScopes(
   userId: string | null | undefined
 ) {
   return getUserActionScope(supabaseClient, userId, 'view');
+}
+
+/** Match a recipient staff member against their stored action scope. */
+export async function hasEnquiryStaffScope(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  staffId: string,
+  enquiryClassId: string | null | undefined,
+  actionKey: "assign" | "followup"
+): Promise<boolean> {
+  const supabase = supabaseClient ?? (await createClient());
+  const { data } = await supabase
+    .from("staff_module_scopes")
+    .select("action_key, scope_type, resource_id")
+    .eq("staff_id", staffId)
+    .eq("module_key", "admission_enquiry");
+  const classId = enquiryClassId == null ? "" : String(enquiryClassId).trim().toLowerCase();
+  return (data ?? []).some((row: any) => {
+    const action = row.action_key == null ? "all" : String(row.action_key).trim().toLowerCase();
+    if (action !== "all" && action !== actionKey) return false;
+    const type = String(row.scope_type ?? "").trim().toUpperCase();
+    return type === "ALL" || (type === "CLASS" && row.resource_id != null && (!classId || String(row.resource_id).trim().toLowerCase() === classId));
+  });
 }
 
 export async function canPerformEnquiryAction(
@@ -220,6 +251,23 @@ export async function canPerformEnquiryAction(
   }
 
   return { allowed: false, reason: `Action '${actionKey}' is not authorized for the specified class or enquiry` };
+}
+
+/** Resolve whether the current user may enter an enquiry action surface. */
+export async function canAccessEnquiryAction(
+  supabaseClient: Awaited<ReturnType<typeof createClient>> | null,
+  userId: string | null | undefined,
+  actionKey: AdmissionActionKey
+): Promise<boolean> {
+  if (!userId) return false;
+  const supabase = supabaseClient ?? (await createClient());
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile?.role === "super_admin") return true;
+
+  const permissionKey = `admission_enquiry.${actionKey === "report" ? "view_reports" : actionKey}`;
+  if (!(await userHasPermission(supabase, userId, permissionKey))) return false;
+  const scope = await getUserActionScope(supabase, userId, actionKey);
+  return scope.all || scope.ownAssigned || scope.classes.length > 0 || scope.sections.length > 0;
 }
 
 /**
@@ -444,6 +492,7 @@ export async function getEnquiries(
     }
   }
 
+  if (filters.id) query = query.eq("id", filters.id);
   if (filters.session_id) query = query.eq("session_id", filters.session_id);
   if (filters.class_id) query = query.eq("class_id", filters.class_id);
   if (filters.enquiry_type) query = query.eq("enquiry_type", filters.enquiry_type);
@@ -606,15 +655,30 @@ export async function getEnquiryById(
   id: string
 ): Promise<EnquiryRow | null> {
   const supabase = supabaseClient ?? (await createClient());
-  const access = await authorizeEnquiryAccess(supabase, id, "view");
-  if (!access.allowed) return null;
-  const { data } = await supabase
-    .from("enquiries")
-    .select("*, classes(name), academic_sessions(name), assigned_staff:profiles!enquiries_assigned_staff_id_fkey(full_name, email)")
-    .eq("id", id)
-    .maybeSingle();
+  // Accept both the database UUID used by links and the human-readable
+  // enquiry_id used in copied/direct URLs.
+  let lookup = await supabase.from("enquiries").select("*").eq("id", id).maybeSingle();
+  if (!lookup.data) {
+    lookup = await supabase.from("enquiries").select("*").eq("enquiry_id", id).maybeSingle();
+  }
+  const raw = lookup.data as any;
+  if (!raw) return null;
 
-  return (data as EnquiryRow) ?? null;
+  const access = await authorizeEnquiryAccess(supabase, raw.id, "view");
+  if (!access.allowed) return null;
+
+  const [{ data: classes }, { data: sessions }, { data: staff }] = await Promise.all([
+    raw.class_id ? supabase.from("classes").select("id, name").eq("id", raw.class_id).maybeSingle() : Promise.resolve({ data: null }),
+    raw.session_id ? supabase.from("academic_sessions").select("id, name").eq("id", raw.session_id).maybeSingle() : Promise.resolve({ data: null }),
+    raw.assigned_staff_id ? supabase.from("profiles").select("id, full_name, email").eq("id", raw.assigned_staff_id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+
+  return {
+    ...raw,
+    classes: classes ? { name: classes.name } : null,
+    academic_sessions: sessions ? { name: sessions.name } : null,
+    assigned_staff: staff ? { full_name: staff.full_name, email: staff.email } : null,
+  } as EnquiryRow;
 }
 
 export async function getEnquiryFollowups(
@@ -691,59 +755,25 @@ export async function getStaffOptions(
 ): Promise<{ id: string; full_name: string; designated_classes?: string[] }[]> {
   const supabase = supabaseClient ?? (await createClient());
   const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, role")
-    .in("role", ["super_admin", "staff"])
-    .order("full_name");
+    .from("staff")
+    .select("id, is_active, profiles!staff_id_fkey(full_name, role)")
+    .eq("is_active", true)
+    .order("id");
 
-  const base = (data ?? []) as { id: string; full_name: string; role: string }[];
+  const base = (data ?? []).map((member: any) => ({
+    id: member.id,
+    full_name: member.profiles?.full_name ?? "Unnamed Staff",
+    role: member.profiles?.role ?? "staff",
+  })) as { id: string; full_name: string; role: string }[];
 
-  // Super-admins can see and assign every staff member. Avoid the per-member
-  // permission/scope queries in this unrestricted case so directory loads stay fast.
-  if (!knownSuperAdmin) {
-    const { data: authUser } = await supabase.auth.getUser();
-    if (authUser?.user) {
-    const { data: currentProfile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", authUser.user.id)
-      .maybeSingle();
-    if (currentProfile?.role === "super_admin") {
-      return base.map((member) => ({
-        id: member.id,
-        full_name: member.full_name,
-        designated_classes: [],
-      }));
-    }
-    }
-  } else {
-    return base.map((member) => ({
-      id: member.id,
-      full_name: member.full_name,
-      designated_classes: [],
-    }));
-  }
-
-  // Target staff assignment rule (Rule #23):
-  // Filter eligible target staff based on staff's Admission Enquiry Follow-up Permission + Follow-up Scope containing enquiry class.
+  // Recipient rule: only expose active staff whose existing Admission Enquiry
+  // Follow-up Scope covers this enquiry's class.
   const eligibleStaff: { id: string; full_name: string; designated_classes?: string[] }[] = [];
 
   for (const member of base) {
-    if (member.role === "super_admin") {
-      eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: [] });
-      continue;
-    }
-
-    const hasFollowupPerm = await userHasPermission(supabase, member.id, "admission_enquiry.followup");
-    if (!hasFollowupPerm) continue;
-
-    const followupScope = await getUserActionScope(supabase, member.id, "followup");
-    if (classId) {
-      if (followupScope.all || followupScope.classes.includes(classId)) {
-        eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: followupScope.classes });
-      }
-    } else {
-      eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: followupScope.classes });
+    const enquiryClassId = classId == null ? null : String(classId).trim().toLowerCase();
+      if (await hasEnquiryStaffScope(supabase, member.id, enquiryClassId, "followup")) {
+      eligibleStaff.push({ id: member.id, full_name: member.full_name, designated_classes: enquiryClassId ? [enquiryClassId] : [] });
     }
   }
 

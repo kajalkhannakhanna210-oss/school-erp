@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
-import { getEnquiryReportData, getStaffOptions } from "@/lib/enquiries";
+import { canAccessEnquiryAction, getEnquiryReportData, getStaffOptions } from "@/lib/enquiries";
 import { EnquiryReportsClient } from "./reports-client";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,10 @@ export default async function EnquiryReportsPage({
   }
 
   const supabase = await createClient();
+  const { data: authUser } = await supabase.auth.getUser();
+  if (!(await canAccessEnquiryAction(supabase, authUser.user?.id, "report"))) {
+    redirect("/enquiries");
+  }
   const reportType = searchParams.reportType ?? "enquiry";
 
   const [{ data: classes }, { data: sessions }, staffList, reportData] = await Promise.all([

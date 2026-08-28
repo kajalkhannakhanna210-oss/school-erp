@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui";
-import { EnquiryRow, STATUS_COLORS } from "@/lib/enquiries";
+import { EnquiryActionPermissions, EnquiryRow, STATUS_COLORS } from "@/lib/enquiries";
 import { EnquiryActionsModal } from "./enquiry-actions-modal";
 import { ExportEnquiryButton } from "./export-enquiry-button";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
@@ -20,46 +21,50 @@ function ActionIcon({ name }: { name: "view" | "edit" | "followup" | "assign" | 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">{paths[name]}</svg>;
 }
 
-function playNewEnquirySound() {
-  if (typeof window === "undefined") return;
-  try {
-    const audio = new Audio("/sounds/two_tone_new_enquiry_alert.wav");
-    audio.volume = 0.8;
-    void audio.play().catch(() => {
-      // Browser autoplay restrictions must not interrupt live data updates.
-    });
-  } catch {
-    // Browser autoplay restrictions must not interrupt live data updates.
-  }
-}
-
 export function EnquiriesListClient({
   rows,
   total,
   canManage,
+  canExport,
   staffList,
+  assignStaffByEnquiry,
   activeTab = "all",
+  actionPermissions,
 }: {
   rows: EnquiryRow[];
   total: number;
   canManage: boolean;
+  canExport: boolean;
   staffList: { id: string; full_name: string }[];
+  assignStaffByEnquiry: Record<string, { id: string; full_name: string }[]>;
   activeTab?: string;
+  actionPermissions: Record<string, EnquiryActionPermissions>;
 }) {
+  const router = useRouter();
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryRow | null>(null);
   const [activeModal, setActiveModal] = useState<"assign" | "followup" | "status" | "won" | "lost" | null>(null);
   const [displayedRows, setDisplayedRows] = useState(rows);
   const [displayedTotal, setDisplayedTotal] = useState(total);
+  const [displayedActionPermissions, setDisplayedActionPermissions] = useState(actionPermissions);
   const [loadingRows, setLoadingRows] = useState(false);
-  const [newLeadNotice, setNewLeadNotice] = useState<string | null>(null);
   const [liveStatus, setLiveStatus] = useState<"connecting" | "connected" | "error">("connecting");
   const activeFilterRef = useRef(activeTab);
   const activeSearchRef = useRef("");
+  const deniedPermissions: EnquiryActionPermissions = {
+    view: false,
+    edit: false,
+    assign: false,
+    followup: false,
+    change_status: false,
+    convert_won: false,
+    mark_lost: false,
+  };
 
   useEffect(() => {
     setDisplayedRows(rows);
     setDisplayedTotal(total);
-  }, [rows, total]);
+    setDisplayedActionPermissions(actionPermissions);
+  }, [rows, total, actionPermissions]);
 
   useEffect(() => {
     const handleTabChange = async (event: Event) => {
@@ -86,6 +91,7 @@ export function EnquiriesListClient({
         const result = await response.json();
         setDisplayedRows(result.rows ?? []);
         setDisplayedTotal(result.total ?? 0);
+        setDisplayedActionPermissions(result.actionPermissions ?? {});
       } finally {
         setLoadingRows(false);
         window.dispatchEvent(new CustomEvent("enquiry-tab-loaded", { detail: { filter } }));
@@ -113,71 +119,26 @@ export function EnquiriesListClient({
         const result = await response.json();
         setDisplayedRows(result.rows ?? []);
         setDisplayedTotal(result.total ?? 0);
+        setDisplayedActionPermissions(result.actionPermissions ?? {});
       } catch {
         // Keep the currently displayed data when a background refresh fails.
       }
     };
 
+    const refreshLiveData = async () => {
+      await refreshCurrentDirectory();
+      // The tab counters and summary cards are server-rendered from the same
+      // database row, so refresh the route after the websocket notification.
+      router.refresh();
+    };
+
+    window.addEventListener("enquiry-live-refresh", refreshLiveData);
     window.addEventListener("focus", refreshCurrentDirectory);
     return () => {
       window.removeEventListener("enquiry-tab-change", handleTabChange);
+      window.removeEventListener("enquiry-live-refresh", refreshLiveData);
       window.removeEventListener("focus", refreshCurrentDirectory);
     };
-  }, []);
-
-  useEffect(() => {
-    const unlockBrowserAlerts = () => {
-      if ("Notification" in window && window.Notification.permission === "default") {
-        void window.Notification.requestPermission();
-      }
-      try {
-        const audio = new Audio("/sounds/two_tone_new_enquiry_alert.wav");
-        audio.muted = true;
-        void audio.play().then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-        }).catch(() => undefined);
-      } catch {
-        // Browser may block autoplay until a later interaction.
-      }
-    };
-    window.addEventListener("pointerdown", unlockBrowserAlerts, { once: true });
-    return () => window.removeEventListener("pointerdown", unlockBrowserAlerts);
-  }, []);
-
-  useEffect(() => {
-    const supabase = createSupabaseClient();
-    const channel = supabase
-      .channel("enquiries-live-broadcast")
-      .on("broadcast", { event: "NEW_ENQUIRY" }, async ({ payload }) => {
-        const id = (payload as { id?: string } | null)?.id;
-        if (!id) return;
-        window.dispatchEvent(new CustomEvent("enquiry-tab-change", {
-          detail: { filter: activeFilterRef.current, search: activeSearchRef.current },
-        }));
-        try {
-          const response = await fetch("/api/enquiries/list", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ filters: { q: id, page: "1", pageSize: "1" } }),
-          });
-          if (!response.ok) return;
-          const result = await response.json();
-          const enquiry = result.rows?.[0];
-          if (!enquiry) return;
-          const message = `New enquiry received: ${enquiry.student_name}`;
-          setNewLeadNotice(message);
-          playNewEnquirySound();
-          if ("Notification" in window && window.Notification.permission === "granted") {
-            new window.Notification("New Enquiry", { body: message, tag: `enquiry-${id}` });
-          }
-          window.setTimeout(() => setNewLeadNotice(null), 6000);
-        } catch {
-          // The normal Realtime table event or focus refresh can reconcile later.
-        }
-      })
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
   }, []);
 
   useEffect(() => {
@@ -206,28 +167,8 @@ export function EnquiriesListClient({
             const result = await response.json();
             setDisplayedRows(result.rows ?? []);
             setDisplayedTotal(result.total ?? 0);
-
-            const insertedId = (payload.new as { id?: string } | null)?.id;
-            const insertedRow = (result.rows ?? []).find((row: EnquiryRow) => row.id === insertedId);
-            if (insertedRow) {
-              const message = `New enquiry received: ${insertedRow.student_name}`;
-              setNewLeadNotice(message);
-              playNewEnquirySound();
-              if (typeof window !== "undefined" && "Notification" in window) {
-                const showNotification = () => new window.Notification("New Enquiry", {
-                  body: message,
-                  tag: `enquiry-${insertedRow.id}`,
-                });
-                if (window.Notification.permission === "granted") {
-                  showNotification();
-                } else if (window.Notification.permission === "default") {
-                  void window.Notification.requestPermission().then((permission) => {
-                    if (permission === "granted") showNotification();
-                  });
-                }
-              }
-              window.setTimeout(() => setNewLeadNotice(null), 6000);
-            }
+            setDisplayedActionPermissions(result.actionPermissions ?? {});
+            router.refresh();
           } catch {
             // The next focus refresh will reconcile the grid if this request fails.
           }
@@ -294,12 +235,6 @@ export function EnquiriesListClient({
           Live updates are unavailable. Apply the enquiry Realtime migration in Supabase.
         </div>
       )}
-      {newLeadNotice && (
-        <div className="flex items-center justify-between gap-3 border-b border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800" role="status">
-          <span>{newLeadNotice}</span>
-          <button type="button" onClick={() => setNewLeadNotice(null)} aria-label="Dismiss notification" className="text-lg leading-none text-emerald-700 hover:text-emerald-950">×</button>
-        </div>
-      )}
       <div className="flex flex-col justify-between gap-3 border-b border-ink-100 bg-ink-50/60 px-4 py-3 sm:flex-row sm:items-center">
         <h2 className="font-display text-base font-bold text-ink-700">
           Enquiry Directory
@@ -309,7 +244,7 @@ export function EnquiriesListClient({
           </span>
         </h2>
 
-        <ExportEnquiryButton rows={exportRows} />
+        {canExport && <ExportEnquiryButton rows={exportRows} />}
       </div>
 
       <div className="hidden overflow-x-auto md:block">
@@ -331,19 +266,16 @@ export function EnquiriesListClient({
           </thead>
           <tbody>
             {displayedRows.map((r, index) => {
+              const permissions = displayedActionPermissions[r.id] ?? deniedPermissions;
               const isOverdue = r.next_followup_date && r.next_followup_date < new Date().toISOString().slice(0, 10) && r.status !== 'Won' && r.status !== 'Lost' && r.status !== 'Closed';
               return (
                 <tr key={r.id} className="border-b border-ink-100 transition hover:bg-gold-50/20 last:border-0">
                   <td className="px-4 py-3 text-sm font-semibold text-slate/70">{index + 1}</td>
                   <td className="px-4 py-3 font-mono font-bold text-ink-700">
-                    <Link href={`/enquiries/${r.id}`} className="hover:text-gold-600 hover:underline">
-                      {r.enquiry_id}
-                    </Link>
+                    {permissions.view ? <Link href={`/enquiries/${r.id}`} className="hover:text-gold-600 hover:underline">{r.enquiry_id}</Link> : r.enquiry_id}
                   </td>
                   <td className="px-4 py-3 font-semibold text-ink-700">
-                    <Link href={`/enquiries/${r.id}`} className="hover:text-gold-600">
-                      {r.student_name}
-                    </Link>
+                    {permissions.view ? <Link href={`/enquiries/${r.id}`} className="hover:text-gold-600">{r.student_name}</Link> : r.student_name}
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-slate/70">{r.mobile}</td>
                   <td className="px-4 py-3">{r.classes?.name ?? "—"}</td>
@@ -374,40 +306,40 @@ export function EnquiriesListClient({
                   <td className="px-4 py-3 whitespace-nowrap text-xs text-slate/70">{formatDateTime(r.created_at)}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Link href={`/enquiries/${r.id}`} aria-label="View enquiry" title="View enquiry" className="grid h-8 w-8 place-items-center rounded-lg text-ink-700 transition hover:bg-ink-100">
+                      {permissions.view && <Link href={`/enquiries/${r.id}`} aria-label="View enquiry" title="View enquiry" className="grid h-8 w-8 place-items-center rounded-lg text-ink-700 transition hover:bg-ink-100">
                           <ActionIcon name="view" />
-                      </Link>
-                      <Link href={`/enquiries/${r.id}/edit`} aria-label="Edit enquiry" title="Edit enquiry" className="grid h-8 w-8 place-items-center rounded-lg text-ink-700 transition hover:bg-ink-100">
+                      </Link>}
+                      {permissions.edit && <Link href={`/enquiries/${r.id}/edit`} aria-label="Edit enquiry" title="Edit enquiry" className="grid h-8 w-8 place-items-center rounded-lg text-ink-700 transition hover:bg-ink-100">
                           <ActionIcon name="edit" />
-                      </Link>
+                      </Link>}
 
                       {/* Dropdown / Quick Action Menu */}
-                        <button
+                      {permissions.followup && <button
                         onClick={() => openAction(r, "followup")}
                         title="Add Follow-up"
                         aria-label="Add follow-up"
                         className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-ink-700 hover:bg-ink-100"
                       >
                         <ActionIcon name="followup" />
-                      </button>
+                      </button>}
 
-                      <button
+                      {permissions.assign && <button
                         onClick={() => openAction(r, "assign")}
                         title="Assign Staff"
                         aria-label="Assign staff"
                         className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-slate/70 hover:bg-ink-100"
                       >
                         <ActionIcon name="assign" />
-                      </button>
+                      </button>}
 
-                      <button
+                      {(permissions.change_status || permissions.convert_won || permissions.mark_lost) && <button
                         onClick={() => openAction(r, "status")}
                         title="Change Status"
                         aria-label="Change status"
                         className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-slate/70 hover:bg-ink-100"
                       >
                         <ActionIcon name="status" />
-                      </button>
+                      </button>}
                     </div>
                   </td>
                 </tr>
@@ -426,7 +358,9 @@ export function EnquiriesListClient({
 
       {/* Mobile Card List */}
       <div className="divide-y divide-ink-100 md:hidden">
-        {displayedRows.map((r) => (
+        {displayedRows.map((r) => {
+          const permissions = displayedActionPermissions[r.id] ?? deniedPermissions;
+          return (
           <div key={r.id} className="p-4 space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs font-bold text-ink-700">{r.enquiry_id}</span>
@@ -447,23 +381,27 @@ export function EnquiriesListClient({
             <div className="flex items-center justify-between text-xs border-t border-ink-100/60 pt-2">
               <span className="text-slate/60">Staff: {r.assigned_staff?.full_name ?? "Unassigned"}</span>
               <div className="flex gap-2">
-                <Link href={`/enquiries/${r.id}`} aria-label="View enquiry" title="View enquiry" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-ink-700 hover:bg-ink-100">
+                {permissions.view && <Link href={`/enquiries/${r.id}`} aria-label="View enquiry" title="View enquiry" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-ink-700 hover:bg-ink-100">
                   <ActionIcon name="view" />
-                </Link>
-                <button onClick={() => openAction(r, "followup")} aria-label="Add follow-up" title="Add follow-up" className="grid h-8 w-8 place-items-center rounded bg-gold-50 text-gold-700 hover:bg-gold-100">
+                </Link>}
+                {permissions.edit && <Link href={`/enquiries/${r.id}/edit`} aria-label="Edit enquiry" title="Edit enquiry" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-ink-700 hover:bg-ink-100">
+                  <ActionIcon name="edit" />
+                </Link>}
+                {permissions.followup && <button onClick={() => openAction(r, "followup")} aria-label="Add follow-up" title="Add follow-up" className="grid h-8 w-8 place-items-center rounded bg-gold-50 text-gold-700 hover:bg-gold-100">
                   <ActionIcon name="followup" />
-                </button>
+                </button>}
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Modal Trigger */}
       {selectedEnquiry && activeModal && (
         <EnquiryActionsModal
           enquiry={selectedEnquiry}
-          staffList={staffList}
+          staffList={assignStaffByEnquiry[selectedEnquiry.id] ?? []}
           actionType={activeModal}
           onClose={() => {
             setSelectedEnquiry(null);

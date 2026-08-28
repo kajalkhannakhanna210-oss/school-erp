@@ -1,9 +1,9 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
-import { getEnquiries, getEnquiryStats, getStaffOptions, getUserAdmissionScopes } from "@/lib/enquiries";
+import { canAccessEnquiryAction, getEnquiries, getEnquiryActionPermissions, getEnquiryStats, getStaffOptions, getUserAdmissionScopes } from "@/lib/enquiries";
 import { EnquiriesDirectoryControls } from "./enquiries-directory-controls";
 import { EnquiriesNavigationLoader } from "./enquiries-navigation-loader";
 import { EnquiriesListClient } from "./enquiries-list-client";
@@ -40,6 +40,11 @@ export default async function EnquiriesPage({
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user!.id).single();
   const canManage = profile?.role === "super_admin" || profile?.role === "staff";
+  const [canCreate, canReport, canExport] = await Promise.all([
+    canAccessEnquiryAction(supabase, user!.id, "create"),
+    canAccessEnquiryAction(supabase, user!.id, "report"),
+    canAccessEnquiryAction(supabase, user!.id, "export"),
+  ]);
   const viewScope = profile?.role === "super_admin"
     ? { all: true, classes: [] as string[] }
     : await getUserAdmissionScopes(supabase, user!.id);
@@ -56,8 +61,18 @@ export default async function EnquiriesPage({
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
     getStaffOptions(supabase, undefined, profile?.role === "super_admin"),
     getEnquiryStats(supabase, effectiveParams.session_id, profile?.role === "super_admin"),
-    getEnquiries(supabase, { ...effectiveParams, page, pageSize: 25 }, profile?.role === "super_admin"),
+    getEnquiries(supabase, { ...effectiveParams, page, pageSize: 15 }, profile?.role === "super_admin"),
   ]);
+  const actionPermissions = Object.fromEntries(
+    await Promise.all((rows ?? []).map(async (row) => [row.id, await getEnquiryActionPermissions(supabase, row)] as const)),
+  );
+  const assignStaffByEnquiry = Object.fromEntries(
+    await Promise.all(
+      (rows ?? [])
+        .filter((row) => actionPermissions[row.id]?.assign)
+        .map(async (row) => [row.id, await getStaffOptions(supabase, row.class_id ?? undefined)] as const),
+    ),
+  );
 
   const activeTab = effectiveParams.followup_due ?? (effectiveParams.status === "Won" ? "won" : "all");
   const visibleClasses = viewScope.all
@@ -90,16 +105,16 @@ export default async function EnquiriesPage({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link href="/enquiries/reports">
+          {canReport && <Link href="/enquiries/reports">
             <button className="rounded-lg border border-ink-100 bg-white px-3 py-2 text-xs font-semibold text-ink-700 shadow-xs hover:bg-ink-50">
               Reports & Analytics
             </button>
-          </Link>
-          <Link href="/enquiries/new">
+          </Link>}
+          {canCreate && <Link href="/enquiries/new">
             <button className="rounded-lg bg-ink-900 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-ink-700">
               + New enquiry
             </button>
-          </Link>
+          </Link>}
         </div>
       </div>
 
@@ -222,7 +237,7 @@ export default async function EnquiriesPage({
 
       {/* Main List Table */}
       <div className="rounded-xl border border-ink-100 bg-white shadow-sm">
-        <EnquiriesListClient rows={rows} total={total} canManage={canManage} staffList={staffList} activeTab={activeTab} />
+          <EnquiriesListClient rows={rows} total={total} canManage={canManage} canExport={canExport} staffList={staffList} assignStaffByEnquiry={assignStaffByEnquiry} activeTab={activeTab} actionPermissions={actionPermissions} />
       </div>
 
       {/* Pagination */}

@@ -40,22 +40,8 @@ export function EnquiryDashboardCharts({ data }: { data: EnquiryDashboardData })
 export function LiveEnquiryDashboardCharts({ initialData }: { initialData: EnquiryDashboardData }) {
   const [data, setData] = useState(initialData);
   const [updated, setUpdated] = useState(false);
-  const [newLeadNotice, setNewLeadNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    const unlockAlerts = () => {
-      if ("Notification" in window && window.Notification.permission === "default") {
-        void window.Notification.requestPermission();
-      }
-      try {
-        const audio = new Audio("/sounds/two_tone_new_enquiry_alert.wav");
-        audio.muted = true;
-        void audio.play().then(() => { audio.pause(); audio.currentTime = 0; }).catch(() => undefined);
-      } catch {
-        // Browser may block audio until a user gesture.
-      }
-    };
-    window.addEventListener("pointerdown", unlockAlerts, { once: true });
     const supabase = createSupabaseClient();
     const refresh = async () => {
       try {
@@ -67,76 +53,17 @@ export function LiveEnquiryDashboardCharts({ initialData }: { initialData: Enqui
         // Keep the last authorized dashboard data if the refresh fails.
       }
     };
+    window.addEventListener("enquiry-live-refresh", refresh);
     const channel = supabase
+      // Keep database listeners on their own topic. The alert component owns
+      // the broadcast topic, and Supabase reuses channels by topic; trying to
+      // add postgres listeners after that channel has subscribed throws.
       .channel("dashboard-enquiries-realtime")
-      .on("broadcast", { event: "NEW_ENQUIRY" }, async ({ payload }) => {
-        await refresh();
-        const id = (payload as { id?: string } | null)?.id;
-        if (!id) return;
-        try {
-          const response = await fetch("/api/enquiries/list", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ filters: { q: id, page: "1", pageSize: "1" } }),
-          });
-          if (!response.ok) return;
-          const result = await response.json();
-          const enquiry = result.rows?.[0];
-          if (!enquiry) return;
-          const message = `New enquiry received: ${enquiry.student_name}`;
-          setNewLeadNotice(message);
-          try {
-            const audio = new Audio("/sounds/two_tone_new_enquiry_alert.wav");
-            audio.volume = 0.8;
-            void audio.play().catch(() => undefined);
-          } catch {
-            // Browser audio policy must not block dashboard updates.
-          }
-          if ("Notification" in window && window.Notification.permission === "granted") {
-            new window.Notification("New Enquiry", { body: message, tag: `dashboard-enquiry-${id}` });
-          }
-          window.setTimeout(() => setNewLeadNotice(null), 6000);
-        } catch {
-          // Keep the current dashboard state if the authorization check fails.
-        }
-      })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "enquiries" }, async (payload) => {
-        await refresh();
-        const insertedId = (payload.new as { id?: string } | null)?.id;
-        if (!insertedId) return;
-        try {
-          const response = await fetch("/api/enquiries/list", {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ filters: { q: insertedId, page: "1", pageSize: "1" } }),
-          });
-          if (!response.ok) return;
-          const result = await response.json();
-          const enquiry = result.rows?.[0];
-          if (!enquiry) return;
-          const message = `New enquiry received: ${enquiry.student_name}`;
-          setNewLeadNotice(message);
-          try {
-            const audio = new Audio("/sounds/two_tone_new_enquiry_alert.wav");
-            audio.volume = 0.8;
-            void audio.play().catch(() => undefined);
-          } catch {
-            // Browser audio policy must not block dashboard updates.
-          }
-          if ("Notification" in window) {
-            if (window.Notification.permission === "granted") {
-              new window.Notification("New Enquiry", { body: message, tag: `dashboard-enquiry-${insertedId}` });
-            }
-          }
-          window.setTimeout(() => setNewLeadNotice(null), 6000);
-        } catch {
-          // The next Realtime event will refresh the dashboard again.
-        }
-      })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "enquiries" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "enquiry_followups" }, refresh)
       .subscribe();
     return () => {
-      window.removeEventListener("pointerdown", unlockAlerts);
+      window.removeEventListener("enquiry-live-refresh", refresh);
       void supabase.removeChannel(channel);
     };
   }, []);
@@ -144,7 +71,6 @@ export function LiveEnquiryDashboardCharts({ initialData }: { initialData: Enqui
   return (
     <div className="relative">
       {updated && <span className="absolute right-0 top-0 z-10 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">Live updated</span>}
-      {newLeadNotice && <div className="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800" role="status">{newLeadNotice}</div>}
       <EnquiryDashboardCharts data={data} />
     </div>
   );

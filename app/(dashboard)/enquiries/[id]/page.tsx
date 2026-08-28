@@ -35,7 +35,7 @@ export default async function EnquiryDetailPage({ params }: { params: { id: stri
   }
 
   const permissions = await getEnquiryActionPermissions(supabase, enquiry);
-  const staffList = permissions.assign ? await getStaffOptions(supabase) : [];
+  const staffList = permissions.assign ? await getStaffOptions(supabase, enquiry.class_id ?? undefined) : [];
 
   return (
     <div className="space-y-6">

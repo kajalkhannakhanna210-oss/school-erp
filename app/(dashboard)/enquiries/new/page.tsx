@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
-import { getUserActionScope, userHasPermission } from "@/lib/enquiries-server";
+import { canAccessEnquiryAction, getUserActionScope, userHasPermission } from "@/lib/enquiries-server";
 import { EnquiryForm } from "./form";
 import { NewEnquiryViewport } from "./new-enquiry-viewport";
 
@@ -17,6 +17,10 @@ export default async function NewEnquiryPage() {
   }
 
   const supabase = await createClient();
+  const { data: authUser } = await supabase.auth.getUser();
+  if (!(await canAccessEnquiryAction(supabase, authUser.user?.id, "create"))) {
+    redirect("/enquiries");
+  }
   const [{ data: classes }, { data: sessions }, { data: activeStaff }, { data: staffScopes }] = await Promise.all([
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
@@ -26,7 +30,7 @@ export default async function NewEnquiryPage() {
 
   const scopeByStaff = new Map<string, { all: boolean; classes: string[] }>();
   for (const row of staffScopes ?? []) {
-    if (row.action_key && row.action_key !== "ALL" && row.action_key !== "view") continue;
+    if (row.action_key && row.action_key !== "ALL" && row.action_key !== "followup") continue;
     const current = scopeByStaff.get(row.staff_id) ?? { all: false, classes: [] };
     if (row.scope_type === "ALL") current.all = true;
     if (row.scope_type === "CLASS" && row.resource_id) current.classes.push(String(row.resource_id));
@@ -45,7 +49,6 @@ export default async function NewEnquiryPage() {
   // Only expose classes the current user can create enquiries for. The server
   // action performs the same check again because client-side filtering is not
   // an authorization boundary.
-  const { data: authUser } = await supabase.auth.getUser();
   let createClasses = classes ?? [];
   if (authUser.user) {
     const hasCreatePermission = await userHasPermission(supabase, authUser.user.id, "admission_enquiry.create");

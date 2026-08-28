@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getEnquiries } from "@/lib/enquiries-server";
+import { getEnquiries, getEnquiryActionPermissions } from "@/lib/enquiries-server";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -10,6 +10,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const raw = body?.filters && typeof body.filters === "object" ? body.filters : {};
   const filters = {
+    id: typeof raw.id === "string" ? raw.id : undefined,
     q: typeof raw.q === "string" ? raw.q : undefined,
     session_id: typeof raw.session_id === "string" ? raw.session_id : undefined,
     class_id: typeof raw.class_id === "string" ? raw.class_id : undefined,
@@ -19,9 +20,14 @@ export async function POST(request: Request) {
     status: typeof raw.status === "string" ? raw.status : undefined,
     followup_due: ["today", "overdue", "upcoming", "none"].includes(raw.followup_due) ? raw.followup_due : undefined,
     page: 1,
-    pageSize: 25,
+    pageSize: 15,
   } as const;
   const result = await getEnquiries(supabase, filters, profile?.role === "super_admin");
   if (result.error) return NextResponse.json({ error: result.error }, { status: 403 });
-  return NextResponse.json({ rows: result.rows, total: result.total });
+  const actionPermissions = Object.fromEntries(
+    await Promise.all(
+      result.rows.map(async (row) => [row.id, await getEnquiryActionPermissions(supabase, row)] as const),
+    ),
+  );
+  return NextResponse.json({ rows: result.rows, total: result.total, actionPermissions });
 }

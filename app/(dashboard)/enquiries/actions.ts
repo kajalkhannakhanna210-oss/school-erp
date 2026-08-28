@@ -8,7 +8,7 @@ import type {
   FollowupType,
 } from "@/lib/enquiries";
 import { isValidEnquiryTransition } from "@/lib/enquiries";
-import { userHasPermission, getUserAdmissionScopes, getUserActionScope, canPerformEnquiryAction } from "@/lib/enquiries-server";
+import { userHasPermission, getUserAdmissionScopes, getUserActionScope, canPerformEnquiryAction, hasEnquiryStaffScope } from "@/lib/enquiries-server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function createEnquiryAction(formData: {
@@ -101,15 +101,20 @@ export async function createEnquiryAction(formData: {
 
   // If assigning to a staff on creation, validate that staff is eligible for the class
   if (assignedStaffId && assignedStaffId !== user.id) {
+    const { data: activeStaff } = await supabase
+      .from("staff")
+      .select("id")
+      .eq("id", assignedStaffId)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (!activeStaff) return { error: "Selected staff member is not active or registered" };
     const { data: anyProfile } = await supabase.from("profiles").select("role").eq("id", assignedStaffId).maybeSingle();
+    if (!anyProfile) return { error: "Selected staff member is not registered" };
     if (anyProfile?.role !== "super_admin") {
-      // Assignment eligibility is based on the target staff member's View
-      // Scope for the selected class.
-      const { data: stScopes } = await supabase.from("staff_module_scopes").select("scope_type, resource_id, action_key").eq("staff_id", assignedStaffId).eq("module_key", "admission_enquiry");
-      const stRows = (stScopes ?? []).filter((r: any) => !r.action_key || r.action_key === "ALL" || r.action_key === "view");
-      const stAll = stRows.some((r: any) => r.scope_type === "ALL");
-      const stHasClass = stRows.some((r: any) => r.scope_type === "CLASS" && r.resource_id === formData.class_id);
-      if (!stAll && !stHasClass) return { error: "Selected staff is not designated for the chosen class" };
+      const hasFollowupScope = await hasEnquiryStaffScope(supabase, assignedStaffId, formData.class_id, "followup");
+      if (!hasFollowupScope) {
+        return { error: "Selected staff does not have follow-up scope for this enquiry's class" };
+      }
     }
   }
 
@@ -170,17 +175,10 @@ export async function createEnquiryAction(formData: {
   try {
     const realtime = createAdminClient();
     const channel = realtime.channel("enquiries-live-broadcast");
-    await new Promise<void>((resolve) => {
-      const timeout = setTimeout(resolve, 2000);
-      channel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.send({ type: "broadcast", event: "NEW_ENQUIRY", payload: { id: enquiry.id } });
-          clearTimeout(timeout);
-          resolve();
-        }
-      });
-    });
-    await realtime.removeChannel(channel);
+    // Publish through Realtime's HTTP endpoint. This avoids opening a short-
+    // lived server websocket which may time out before the browser listeners
+    // receive the event.
+    await channel.httpSend("NEW_ENQUIRY", { id: enquiry.id });
   } catch {
     // The enquiry is already saved; live notification is best effort.
   }
@@ -328,16 +326,21 @@ export async function assignStaffAction(
   const canAssign = await canPerformEnquiryAction(supabase, user.id, "assign", current.class_id, current.assigned_staff_id);
   if (!canAssign.allowed) return { error: canAssign.reason || "You are not authorized to assign enquiries for this class" };
 
-  // Rule #9 & #23 Target staff eligibility check:
-  // Target staff must have Admission Enquiry Follow-up Permission + Follow-up Scope containing enquiry class.
-  const { data: assignedProfile } = await supabase.from("profiles").select("role").eq("id", staffId).maybeSingle();
-  if (assignedProfile?.role !== "super_admin") {
-    const hasFollowupPerm = await userHasPermission(supabase, staffId, "admission_enquiry.followup");
-    if (!hasFollowupPerm) return { error: "Selected staff does not have Admission Enquiry Follow-up permission" };
+  const { data: activeStaff } = await supabase
+    .from("staff")
+    .select("id")
+    .eq("id", staffId)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (!activeStaff) return { error: "Selected staff member is not active or registered" };
 
-    const targetFollowupScope = await getUserActionScope(supabase, staffId, "followup");
-    if (!targetFollowupScope.all && current.class_id && !targetFollowupScope.classes.includes(current.class_id)) {
-      return { error: "Selected staff does not have follow-up scope for this enquiry's class" };
+  // Rule #9 & #23 Target staff eligibility check:
+  // Target staff must have Admission Enquiry Assign Permission + Assign Scope containing enquiry class.
+  const { data: assignedProfile } = await supabase.from("profiles").select("role").eq("id", staffId).maybeSingle();
+  if (!assignedProfile) return { error: "Selected staff member is not registered" };
+  if (assignedProfile.role !== "super_admin") {
+    if (!(await hasEnquiryStaffScope(supabase, staffId, current.class_id, "followup"))) {
+      return { error: "Selected staff does not have assign scope for this enquiry's class" };
     }
   }
 
