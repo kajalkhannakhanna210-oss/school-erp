@@ -62,7 +62,7 @@ export function ExportEnquiryButton({ rows, filenamePrefix = "enquiries" }: { ro
   }
 
   return (
-    <div className="flex w-full items-center gap-1.5 sm:w-auto">
+    <div className="flex w-max shrink-0 items-center gap-1.5 sm:w-auto">
       <span className="hidden text-xs font-semibold uppercase tracking-wider text-slate/60 sm:inline">Export:</span>
       <Button className="h-9 px-3 text-xs" variant="primary" onClick={() => handleExport("csv")} disabled={rows.length === 0}>
         CSV

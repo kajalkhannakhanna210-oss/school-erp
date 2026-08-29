@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card } from "@/components/ui";
+import { Card } from "@/components/ui";
 import { EnquiryRow, FollowupRow, AssignmentHistoryRow, AuditLogRow, EnquiryActionPermissions } from "@/lib/enquiries";
-import { EnquiryActionsModal } from "../enquiry-actions-modal";
 
 export function DetailViewClient({
   enquiry,
@@ -21,7 +20,6 @@ export function DetailViewClient({
   permissions: EnquiryActionPermissions;
 }) {
   const [activeTab, setActiveTab] = useState<"followups" | "assignments" | "audit">("followups");
-  const [activeModal, setActiveModal] = useState<"assign" | "followup" | "status" | "won" | "lost" | null>(null);
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "—";
@@ -33,67 +31,18 @@ export function DetailViewClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
         {/* Enquiry Information */}
-      <Card className="border-ink-100 p-5 shadow-sm sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 pb-4">
-          <div>
-            <h2 className="mb-1 font-display text-lg font-bold text-ink-700">Enquiry Information</h2>
-            <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate/50">Enquiry ID</span>
-            <p className="font-mono text-lg font-bold text-ink-700">{enquiry.enquiry_id}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-bold uppercase tracking-wider text-slate/50">Quick Actions</span>
-            {permissions.followup && <Button
-              className="bg-ink-700 text-white text-xs hover:bg-ink-600"
-              onClick={() => setActiveModal("followup")}
-            >
-              + Add Follow-up
-            </Button>}
-            {permissions.assign && <Button
-              variant="outline"
-              className="text-xs border-ink-100"
-              onClick={() => setActiveModal("assign")}
-            >
-              👤 Assign Staff
-            </Button>}
-            {permissions.change_status && <Button
-              variant="outline"
-              className="text-xs border-ink-100"
-              onClick={() => setActiveModal("status")}
-            >
-              🔄 Change Status
-            </Button>}
-
-            {permissions.convert_won && enquiry.status !== "Won" && (
-              <Button
-                className="bg-emerald-600 text-white text-xs hover:bg-emerald-700"
-                onClick={() => setActiveModal("won")}
-              >
-                ✓ Convert to Won
-              </Button>
-            )}
-            {permissions.mark_lost && enquiry.status !== "Lost" && enquiry.status !== "Closed" && (
-              <Button
-                variant="ghost"
-                className="text-rose-600 text-xs hover:bg-rose-50"
-                onClick={() => setActiveModal("lost")}
-              >
-                ✕ Mark Lost
-              </Button>
-            )}
-          </div>
-        </div>
-
+      <Card className="overflow-hidden border-ink-100 !p-0 shadow-sm">
         {/* Info Grid */}
-        <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 text-sm">
+        <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 text-sm">
           {/* Student Info */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate/60">Student Info</h4>
+          <div className="overflow-hidden rounded-xl border border-blue-100 bg-white shadow-sm">
+            <h4 className="border-b border-blue-100 bg-blue-50 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider text-blue-700">Student Info</h4>
+            <div className="space-y-2.5 p-3.5">
             <div>
               <span className="text-xs text-slate/50">Full Name:</span>
-              <p className="font-semibold text-ink-700">{enquiry.student_name}</p>
+              <p className="break-words font-semibold text-ink-700">{enquiry.student_name}</p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Date of Birth:</span>
@@ -105,16 +54,18 @@ export function DetailViewClient({
             </div>
             <div>
               <span className="text-xs text-slate/50">Class Interested:</span>
-              <p className="font-medium text-ink-700">{enquiry.classes?.name || "—"}</p>
+              <p className="break-words font-bold text-ink-700">{enquiry.classes?.name || "—"}</p>
+            </div>
             </div>
           </div>
 
           {/* Parent & Contact Info */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate/60">Parent & Contact Info</h4>
+          <div className="overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm">
+            <h4 className="border-b border-emerald-100 bg-emerald-50 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider text-emerald-700">Parent & Contact</h4>
+            <div className="space-y-2.5 p-3.5">
             <div>
               <span className="text-xs text-slate/50">Parent/Guardian Name:</span>
-              <p className="font-semibold text-ink-700">{enquiry.parent_name}</p>
+              <p className="break-words font-semibold text-ink-700">{enquiry.parent_name}</p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Mobile Number:</span>
@@ -126,27 +77,29 @@ export function DetailViewClient({
             </div>
             <div>
               <span className="text-xs text-slate/50">Email / Address:</span>
-              <p className="text-ink-700">{enquiry.email || "—"}</p>
-              {enquiry.address && <p className="text-xs text-slate/70 mt-0.5">{enquiry.address}</p>}
+              <p className="break-words text-ink-700">{enquiry.email || "—"}</p>
+              {enquiry.address && <p className="mt-0.5 break-words text-xs text-slate/70">{enquiry.address}</p>}
+            </div>
             </div>
           </div>
 
           {/* Assignment and status */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate/60">Assignment</h4>
+          <div className="overflow-hidden rounded-xl border border-amber-100 bg-white shadow-sm">
+            <h4 className="border-b border-amber-100 bg-amber-50 px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider text-amber-700">Assignment & Follow-up</h4>
+            <div className="space-y-2.5 p-3.5">
             <div>
               <span className="text-xs text-slate/50">Enquiry Mode / Source:</span>
-              <p className="text-ink-700">
+              <p className="break-words text-ink-700">
                 <span className="font-semibold">{enquiry.enquiry_type}</span> ({enquiry.source})
               </p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Assigned Staff:</span>
-              <p className="font-medium text-ink-700">{enquiry.assigned_staff?.full_name || "Unassigned"}</p>
+              <p className="break-words font-medium text-ink-700">{enquiry.assigned_staff?.full_name || "Unassigned"}</p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Assignment Scope:</span>
-              <p className="text-ink-700">{enquiry.classes?.name ? `Class ${enquiry.classes.name}` : "Unassigned class"}</p>
+              <p className="break-words text-ink-700">{enquiry.classes?.name ? `Class ${enquiry.classes.name}` : "Unassigned class"}</p>
             </div>
             <div>
               <span className="text-xs text-slate/50">Current Status:</span>
@@ -162,52 +115,61 @@ export function DetailViewClient({
               <span className="text-xs text-slate/50">Last Follow-up Date:</span>
               <p className="text-ink-700">{formatDate(enquiry.last_followup_date)}</p>
             </div>
+            </div>
           </div>
         </div>
 
         {enquiry.remarks && (
-          <div className="mt-4 rounded-xl border border-ink-100 bg-ink-50/50 p-3 text-xs text-ink-700">
+          <div className="mx-4 mb-4 rounded-xl border border-ink-100 bg-ink-50/70 p-3 text-xs text-ink-700 sm:mx-5 sm:mb-5">
             <span className="font-bold text-slate/60">Initial Remarks:</span> {enquiry.remarks}
           </div>
         )}
       </Card>
 
       {/* Status, follow-up timeline, assignment history, and activity history */}
-      <Card className="border-ink-100 p-5 shadow-sm sm:p-6">
-        <div className="flex border-b border-ink-100">
+      <Card className="overflow-hidden border-ink-100 !p-0 shadow-sm">
+        <div role="tablist" aria-label="Enquiry history" className="overflow-x-auto border-b border-ink-100 bg-ink-50/60 p-1.5 [-webkit-overflow-scrolling:touch]">
+          <div className="flex min-w-max gap-1">
           <button
+            role="tab"
+            aria-selected={activeTab === "followups"}
             onClick={() => setActiveTab("followups")}
-            className={`border-b-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-              activeTab === "followups" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
+            className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors sm:px-4 ${
+              activeTab === "followups" ? "bg-gold-500 text-ink-900 shadow-sm ring-1 ring-gold-600/30" : "text-slate/60 hover:bg-white/70 hover:text-ink-700"
             }`}
           >
             Follow-up Timeline ({followups.length})
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === "assignments"}
             onClick={() => setActiveTab("assignments")}
-            className={`border-b-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-              activeTab === "assignments" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
+            className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors sm:px-4 ${
+              activeTab === "assignments" ? "bg-gold-500 text-ink-900 shadow-sm ring-1 ring-gold-600/30" : "text-slate/60 hover:bg-white/70 hover:text-ink-700"
             }`}
           >
             Assignment History ({assignments.length})
           </button>
           <button
+            role="tab"
+            aria-selected={activeTab === "audit"}
             onClick={() => setActiveTab("audit")}
-            className={`border-b-2 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-              activeTab === "audit" ? "border-gold-500 text-gold-700" : "border-transparent text-slate/60 hover:text-ink-700"
+            className={`rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors sm:px-4 ${
+              activeTab === "audit" ? "bg-gold-500 text-ink-900 shadow-sm ring-1 ring-gold-600/30" : "text-slate/60 hover:bg-white/70 hover:text-ink-700"
             }`}
           >
             Activity History ({auditLogs.length})
           </button>
+          </div>
         </div>
 
         {/* Tab 1: Follow-up Timeline */}
         {activeTab === "followups" && (
-          <div className="mt-4 space-y-4">
+          <div className="space-y-4 bg-ink-50/35 p-4 sm:p-5">
             {followups.map((f) => (
-              <div key={f.id} className="relative pl-6 border-l-2 border-ink-100 py-1">
+              <div key={f.id} className="relative rounded-xl border border-ink-100 bg-white p-3 pl-6 shadow-sm sm:p-4 sm:pl-7">
                 <div className="absolute -left-1.5 top-2 h-3 w-3 rounded-full bg-gold-500 ring-4 ring-white" />
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                   <div className="flex items-center gap-2">
                     <span className="rounded-md bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">
                       {f.followup_type}
@@ -216,7 +178,7 @@ export function DetailViewClient({
                   </div>
                   <span className="text-xs text-slate/50">{formatDate(f.followup_date)}</span>
                 </div>
-                <p className="mt-2 text-sm text-ink-700 whitespace-pre-wrap">{f.notes}</p>
+                <p className="mt-2 break-words whitespace-pre-wrap text-sm text-ink-700">{f.notes}</p>
                 {f.next_followup_date && (
                   <p className="mt-1 text-xs text-slate/60">
                     Next follow-up scheduled for: <span className="font-semibold text-ink-700">{formatDate(f.next_followup_date)}</span>
@@ -232,16 +194,16 @@ export function DetailViewClient({
 
         {/* Tab 2: Assignment History */}
         {activeTab === "assignments" && (
-          <div className="mt-4 space-y-3">
+          <div className="space-y-3 bg-ink-50/35 p-4 sm:p-5">
             {assignments.map((a) => (
-              <div key={a.id} className="flex items-center justify-between border-b border-ink-100/60 py-2.5 last:border-0 text-xs">
-                <div>
-                  <p className="font-semibold text-ink-700">
+              <div key={a.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 bg-white p-3 text-xs shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="min-w-0">
+                  <p className="break-words font-semibold text-ink-700">
                     Assigned to: {a.assigned_to_profile?.full_name ?? "Staff"}
                   </p>
-                  {a.remarks && <p className="text-slate/60">{a.remarks}</p>}
+                  {a.remarks && <p className="break-words text-slate/60">{a.remarks}</p>}
                 </div>
-                <div className="text-right text-slate/50">
+                <div className="shrink-0 text-slate/50 sm:text-right">
                   <p>by {a.assigned_by_profile?.full_name ?? "System"}</p>
                   <p>{formatDate(a.created_at)}</p>
                 </div>
@@ -255,14 +217,14 @@ export function DetailViewClient({
 
         {/* Tab 3: Audit Trail */}
         {activeTab === "audit" && (
-          <div className="mt-4 space-y-3">
+          <div className="space-y-3 bg-ink-50/35 p-4 sm:p-5">
             {auditLogs.map((log) => (
-              <div key={log.id} className="flex items-center justify-between border-b border-ink-100/60 py-2.5 last:border-0 text-xs">
-                <div>
-                  <span className="font-bold text-ink-700">{log.action}</span>
-                  {log.details && <p className="text-slate/60">{log.details}</p>}
+              <div key={log.id} className="flex flex-col gap-2 rounded-xl border border-ink-100 bg-white p-3 text-xs shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="min-w-0">
+                  <span className="break-words font-bold text-ink-700">{log.action}</span>
+                  {log.details && <p className="break-words text-slate/60">{log.details}</p>}
                 </div>
-                <div className="text-right text-slate/50">
+                <div className="shrink-0 text-slate/50 sm:text-right">
                   <p>{log.user?.full_name ?? "System"}</p>
                   <p>{formatDate(log.created_at)}</p>
                 </div>
@@ -275,15 +237,6 @@ export function DetailViewClient({
         )}
       </Card>
 
-      {/* Action Modal */}
-      {activeModal && (
-        <EnquiryActionsModal
-          enquiry={enquiry}
-          staffList={staffList}
-          actionType={activeModal}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
     </div>
   );
 }

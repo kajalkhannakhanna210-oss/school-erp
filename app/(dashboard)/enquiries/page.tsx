@@ -91,7 +91,7 @@ export default async function EnquiriesPage({
   };
 
   return (
-    <div className="min-w-0 space-y-4 pb-4">
+    <div className="min-w-0 space-y-4 pb-4 lg:-mx-4 lg:-mt-4">
       <EnquiriesNavigationLoader />
       {/* Top Header */}
       <div className="flex flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5">
@@ -187,10 +187,10 @@ export default async function EnquiriesPage({
         sessions={sessions ?? []}
         staffList={staffList}
         activeTab={activeTab}
-        tabs={<div className="flex gap-1">
+        tabs={<div className="flex min-w-max gap-1 pr-1 sm:min-w-0">
         <Link
           href={buildTabHref()}
-          className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
             activeTab === "all" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
@@ -199,7 +199,7 @@ export default async function EnquiriesPage({
 
         <Link
           href={buildTabHref("today")}
-          className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
             activeTab === "today" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
@@ -208,7 +208,7 @@ export default async function EnquiriesPage({
 
         <Link
           href={buildTabHref("overdue")}
-          className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
             activeTab === "overdue" ? "bg-rose-600 text-white" : "bg-rose-50 text-rose-700 hover:bg-rose-100"
           }`}
         >
@@ -217,7 +217,7 @@ export default async function EnquiriesPage({
 
         <Link
           href={buildTabHref("upcoming")}
-          className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
             activeTab === "upcoming" ? "bg-ink-900 text-white" : "bg-ink-50 text-slate/70 hover:bg-ink-100 hover:text-ink-700"
           }`}
         >
@@ -226,7 +226,7 @@ export default async function EnquiriesPage({
 
         <Link
           href={buildTabHref(undefined, "Won")}
-          className={`whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 transition-colors ${
             activeTab === "won" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
           }`}
         >

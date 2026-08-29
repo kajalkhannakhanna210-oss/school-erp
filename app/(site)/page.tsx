@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { createPublicClient, withPublicDataTimeout } from "@/lib/supabase/public";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { HeroSlider, type HeroSlide } from "./hero-slider";
 import { SafeImage } from "./safe-image";
+import { StudentsSection } from "./students-section";
 import { getPageMetadata } from "@/lib/seo";
 import type { Metadata } from "next";
 
@@ -60,6 +62,19 @@ function formatDate(value: string) {
   );
 }
 
+// Format a date-of-birth string. Returns null for missing / invalid values
+// so callers can render a graceful fallback instead of throwing.
+function formatDob(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(
+      new Date(`${value}T00:00:00`)
+    );
+  } catch {
+    return null;
+  }
+}
+
 function previewText(content: string, maximumLength = 260) {
   const text = content.replace(/\s+/g, " ").trim();
   return text.length > maximumLength ? `${text.slice(0, maximumLength).trimEnd()}…` : text;
@@ -67,6 +82,9 @@ function previewText(content: string, maximumLength = 260) {
 
 export default async function HomePage() {
   const supabase = createPublicClient();
+  const adminSupabase = createAdminClient();
+
+  // Fetch public CMS content and active student directory in parallel.
   const contentRequest = Promise.all([
     supabase.from("site_pages").select("title, content, image_path").eq("slug", "home").single(),
     supabase.from("site_pages").select("title, content, image_path").eq("slug", "about").single(),
@@ -83,10 +101,63 @@ export default async function HomePage() {
       .order("event_date", { ascending: false })
       .limit(3),
   ]);
-  const [{ data: page }, { data: aboutPage }, { data: notices }, { data: galleryImages }, { data: events }] = await withPublicDataTimeout(
-    contentRequest,
-    [{ data: null }, { data: null }, { data: null }, { data: null }, { data: null }] as Awaited<typeof contentRequest>
-  );
+  const [contentResults, studentDirResult] = await Promise.all([
+    withPublicDataTimeout(
+      contentRequest,
+      [{ data: null }, { data: null }, { data: null }, { data: null }, { data: null }] as Awaited<typeof contentRequest>
+    ),
+    // Student directory: server-side only, admin client, 5 safe fields, active only.
+    // Signed photo URLs are generated here — never as a client-side fetch.
+    (async () => {
+      try {
+        const { data: rows, error } = await adminSupabase
+          .from("students")
+          .select(
+            `id, photo_path, date_of_birth,
+             profiles!students_id_fkey ( full_name ),
+             classes ( name ),
+             sections ( name )`
+          )
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(24);
+
+        if (error || !rows) return [];
+
+        // Batch all signed-URL requests into ONE network call instead of N calls.
+        const photoPaths = rows.map((s: any) => s.photo_path).filter(Boolean) as string[];
+        const signedUrlMap: Record<string, string> = {};
+
+        if (photoPaths.length > 0) {
+          try {
+            const { data: signedList } = await adminSupabase.storage
+              .from("student-photos")
+              .createSignedUrls(photoPaths, 600);
+            if (signedList) {
+              for (const item of signedList) {
+                if (item.signedUrl) signedUrlMap[item.path] = item.signedUrl;
+              }
+            }
+          } catch {
+            // Signed URL batch failure — degrade gracefully.
+          }
+        }
+
+        return rows.map((s: any) => ({
+          id: s.id as string,
+          name: (s.profiles?.full_name as string) ?? null,
+          photo_url: s.photo_path ? (signedUrlMap[s.photo_path] ?? null) : null,
+          date_of_birth: (s.date_of_birth as string) ?? null,
+          class: (s.classes?.name as string) ?? null,
+          section: (s.sections?.name as string) ?? null,
+        }));
+      } catch {
+        return [];
+      }
+    })(),
+  ]);
+
+  const [{ data: page }, { data: aboutPage }, { data: notices }, { data: galleryImages }, { data: events }] = contentResults;
 
   let imageUrl: string | null = null;
   if (page?.image_path) {
@@ -254,6 +325,10 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+
+      {/* ── Our Students (animated birthday section) ──────────────────────── */}
+      <StudentsSection students={studentDirResult} />
 
       <section className="relative overflow-hidden bg-gold py-16 sm:py-20">
         <div aria-hidden="true" className="absolute -right-24 -top-24 h-80 w-80 rounded-full border-[48px] border-ink-700/15" />

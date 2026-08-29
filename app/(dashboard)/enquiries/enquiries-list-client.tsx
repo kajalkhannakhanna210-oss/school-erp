@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui";
 import { EnquiryActionPermissions, EnquiryRow, STATUS_COLORS } from "@/lib/enquiries";
@@ -19,6 +19,18 @@ function ActionIcon({ name }: { name: "view" | "edit" | "followup" | "assign" | 
   };
 
   return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">{paths[name]}</svg>;
+}
+
+function mobileCardColors(status: string) {
+  return {
+    New: "border-blue-200 border-l-blue-500 bg-blue-50/70",
+    Assigned: "border-purple-200 border-l-purple-500 bg-purple-50/70",
+    "Follow-up": "border-amber-200 border-l-amber-500 bg-amber-50/70",
+    Interested: "border-emerald-200 border-l-emerald-500 bg-emerald-50/70",
+    Won: "border-green-300 border-l-green-600 bg-green-50/80",
+    Lost: "border-rose-200 border-l-rose-500 bg-rose-50/70",
+    Closed: "border-slate-200 border-l-slate-500 bg-slate-50",
+  }[status] ?? "border-slate-200 border-l-slate-400 bg-white";
 }
 
 export function EnquiriesListClient({
@@ -41,6 +53,8 @@ export function EnquiriesListClient({
   actionPermissions: Record<string, EnquiryActionPermissions>;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selectedEnquiry, setSelectedEnquiry] = useState<EnquiryRow | null>(null);
   const [activeModal, setActiveModal] = useState<"assign" | "followup" | "status" | "won" | "lost" | null>(null);
   const [displayedRows, setDisplayedRows] = useState(rows);
@@ -48,6 +62,7 @@ export function EnquiriesListClient({
   const [displayedActionPermissions, setDisplayedActionPermissions] = useState(actionPermissions);
   const [loadingRows, setLoadingRows] = useState(false);
   const [liveStatus, setLiveStatus] = useState<"connecting" | "connected" | "error">("connecting");
+  const [directorySearch, setDirectorySearch] = useState(searchParams.get("q") ?? "");
   const activeFilterRef = useRef(activeTab);
   const activeSearchRef = useRef("");
   const deniedPermissions: EnquiryActionPermissions = {
@@ -65,6 +80,10 @@ export function EnquiriesListClient({
     setDisplayedTotal(total);
     setDisplayedActionPermissions(actionPermissions);
   }, [rows, total, actionPermissions]);
+
+  useEffect(() => {
+    setDirectorySearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
 
   useEffect(() => {
     const handleTabChange = async (event: Event) => {
@@ -214,6 +233,15 @@ export function EnquiriesListClient({
     }
   };
 
+  const applyDirectorySearch = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    const query = directorySearch.trim();
+    if (query) params.set("q", query);
+    else params.delete("q");
+    params.delete("page");
+    router.push(`${pathname}${params.size ? `?${params.toString()}` : ""}`);
+  };
+
   const exportRows = displayedRows.map((r) => ({
     Enquiry_ID: r.enquiry_id,
     Student_Name: r.student_name,
@@ -235,7 +263,7 @@ export function EnquiriesListClient({
           Live updates are unavailable. Apply the enquiry Realtime migration in Supabase.
         </div>
       )}
-      <div className="flex flex-col justify-between gap-3 border-b border-ink-100 bg-ink-50/60 px-4 py-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-3 border-b border-ink-100 bg-ink-50/60 px-4 py-3 lg:flex-row lg:items-center">
         <h2 className="font-display text-base font-bold text-ink-700">
           Enquiry Directory
           <span className="ml-2 rounded-full bg-ink-100 px-2 py-0.5 text-[11px] font-semibold text-slate/70">
@@ -244,7 +272,30 @@ export function EnquiriesListClient({
           </span>
         </h2>
 
-        {canExport && <ExportEnquiryButton rows={exportRows} />}
+        <div className="flex w-full min-w-0 flex-nowrap items-center gap-2 overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] lg:w-auto lg:overflow-visible lg:pb-0">
+          <div className="hidden lg:block">
+            <label htmlFor="desktop-enquiry-search" className="sr-only">Search and narrow the directory</label>
+            <input
+              id="desktop-enquiry-search"
+              type="search"
+              placeholder="Search directory..."
+              value={directorySearch}
+              onChange={(event) => setDirectorySearch(event.target.value)}
+              onKeyDown={(event) => event.key === "Enter" && applyDirectorySearch()}
+              className="h-9 w-52 rounded-lg border border-ink-100 bg-white px-3 text-xs outline-none transition focus:border-ink-700 focus:ring-2 focus:ring-ink-700/10 xl:w-60"
+            />
+          </div>
+          <button
+            type="button"
+            aria-controls="enquiry-filter-panel"
+            onClick={() => window.dispatchEvent(new Event("enquiry-filter-toggle"))}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700 sm:hidden"
+          >
+            <span aria-hidden="true">☷</span>
+            Filter
+          </button>
+          {canExport && <ExportEnquiryButton rows={exportRows} />}
+        </div>
       </div>
 
       <div className="hidden overflow-x-auto md:block">
@@ -357,17 +408,17 @@ export function EnquiriesListClient({
       </div>
 
       {/* Mobile Card List */}
-      <div className="divide-y divide-ink-100 md:hidden">
+      <div className="space-y-3 bg-ink-50/40 p-3 md:hidden">
         {displayedRows.map((r) => {
           const permissions = displayedActionPermissions[r.id] ?? deniedPermissions;
           return (
-          <div key={r.id} className="p-4 space-y-2">
+          <div key={r.id} className={`space-y-2 rounded-xl border border-l-4 p-3 shadow-sm transition-colors ${mobileCardColors(r.status)}`}>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs font-bold text-ink-700">{r.enquiry_id}</span>
               <span
                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border ${
                   STATUS_COLORS[r.status]?.bg ?? "bg-slate-100"
-                } ${STATUS_COLORS[r.status]?.text ?? "text-slate-700"}`}
+                } ${STATUS_COLORS[r.status]?.text ?? "text-slate-700"} ${STATUS_COLORS[r.status]?.border ?? "border-slate-200"}`}
               >
                 {r.status}
               </span>
@@ -375,12 +426,12 @@ export function EnquiriesListClient({
             <div>
               <p className="font-bold text-ink-700">{r.student_name}</p>
               <p className="text-xs text-slate/60">{r.mobile}</p>
-              <p className="text-xs text-slate/60">Class: {r.classes?.name ?? "N/A"} · {r.enquiry_type} ({r.source})</p>
+              <p className="text-xs text-slate/60">Class: <span className="font-bold text-ink-700">{r.classes?.name ?? "N/A"}</span> · {r.enquiry_type} ({r.source})</p>
               <p className="text-xs text-slate/50">Created: {formatDateTime(r.created_at)}</p>
             </div>
-            <div className="flex items-center justify-between text-xs border-t border-ink-100/60 pt-2">
-              <span className="text-slate/60">Staff: {r.assigned_staff?.full_name ?? "Unassigned"}</span>
-              <div className="flex gap-2">
+            <div className="flex min-w-0 items-center justify-between gap-3 border-t border-current/10 pt-1.5 text-xs">
+              <span className="min-w-0 truncate text-slate/60">Staff: {r.assigned_staff?.full_name ?? "Unassigned"}</span>
+              <div className="flex shrink-0 gap-2">
                 {permissions.view && <Link href={`/enquiries/${r.id}`} aria-label="View enquiry" title="View enquiry" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-ink-700 hover:bg-ink-100">
                   <ActionIcon name="view" />
                 </Link>}
@@ -389,6 +440,12 @@ export function EnquiriesListClient({
                 </Link>}
                 {permissions.followup && <button onClick={() => openAction(r, "followup")} aria-label="Add follow-up" title="Add follow-up" className="grid h-8 w-8 place-items-center rounded bg-gold-50 text-gold-700 hover:bg-gold-100">
                   <ActionIcon name="followup" />
+                </button>}
+                {permissions.assign && <button onClick={() => openAction(r, "assign")} aria-label="Assign staff" title="Assign staff" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-slate/70 hover:bg-ink-100">
+                  <ActionIcon name="assign" />
+                </button>}
+                {(permissions.change_status || permissions.convert_won || permissions.mark_lost) && <button onClick={() => openAction(r, "status")} aria-label="Change status" title="Change status" className="grid h-8 w-8 place-items-center rounded bg-ink-50 text-slate/70 hover:bg-ink-100">
+                  <ActionIcon name="status" />
                 </button>}
               </div>
             </div>

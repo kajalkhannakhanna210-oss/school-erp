@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui";
 import { ENQUIRY_SOURCES, ENQUIRY_STATUSES, ENQUIRY_TYPES } from "@/lib/enquiries";
 
@@ -35,6 +35,7 @@ export function EnquiryFilters({
   const [startDate, setStartDate] = useState(searchParams.get("startDate") ?? "");
   const [endDate, setEndDate] = useState(searchParams.get("endDate") ?? "");
   const [uncontrolledShowFilters, setUncontrolledShowFilters] = useState(false);
+  const [isApplying, startTransition] = useTransition();
   const showFilters = controlledShowFilters ?? uncontrolledShowFilters;
   const setShowFilters = (show: boolean) => {
     onShowFiltersChange?.(show);
@@ -57,7 +58,9 @@ export function EnquiryFilters({
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
 
-    router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`);
+    startTransition(() => {
+      router.push(`${pathname}${params.toString() ? `?${params.toString()}` : ""}`, { scroll: false });
+    });
   };
 
   const clearFilters = () => {
@@ -71,7 +74,7 @@ export function EnquiryFilters({
     setDue("");
     setStartDate("");
     setEndDate("");
-    router.push(pathname);
+    router.push(pathname, { scroll: false });
   };
 
   return (
@@ -240,12 +243,13 @@ export function EnquiryFilters({
         <Button type="button" variant="ghost" onClick={clearFilters} className="h-8 px-3 text-xs">
           Clear Filters
         </Button>
-        <Button type="button" onClick={applyFilters} className="h-8 bg-ink-700 px-4 text-xs text-white hover:bg-ink-600">
-          Apply Filters
+        <Button type="button" onClick={applyFilters} disabled={isApplying} className="h-8 bg-ink-700 px-4 text-xs text-white hover:bg-ink-600">
+          {isApplying && <span className="mr-1.5 inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/70 border-t-transparent" aria-hidden="true" />}
+          {isApplying ? "Applying..." : "Apply Filters"}
         </Button>
       </div>
       </div>}
-      <div className="rounded-xl border border-ink-100 bg-white p-3 shadow-sm sm:p-4">
+      <div className="rounded-xl border border-ink-100 bg-white p-3 shadow-sm lg:hidden sm:p-4">
         <label htmlFor="enquiry-search" className="block text-[11px] font-bold uppercase tracking-wider text-slate/60">Search and narrow the directory</label>
         <input
           id="enquiry-search"

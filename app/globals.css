@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* The SEO keywords field is submitted with the main SEO form. */
-.grid.gap-6.lg\\:grid-cols-\\[220px_1fr\\] > .lg\\:col-span-2 { display: none; }
+.grid.gap-6.lg\:grid-cols-\[220px_1fr\] > .lg\:col-span-2 { display: none; }
 
 :root {
   --font-display: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -163,4 +163,201 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
 
 @media (prefers-reduced-motion: reduce) {
   .hero-image-in, .hero-content-in, .hero-float, .mobile-menu-backdrop, .mobile-menu-drawer { animation: none; }
+}
+
+/* ============================================================
+   Our Students section — keyframes & component styles
+   ============================================================ */
+
+/* Confetti falling particles */
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.8; }
+  100% { transform: translateY(120vh) rotate(540deg) scale(0.6); opacity: 0; }
+}
+
+/* Ambient background blob drift */
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(40px, -30px) scale(1.08); }
+  66%       { transform: translate(-25px, 20px) scale(0.95); }
+}
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%       { transform: translate(-50px, 30px) scale(1.1); }
+  80%       { transform: translate(30px, -20px) scale(0.92); }
+}
+@keyframes blob-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(20px, -40px) scale(1.06); }
+}
+
+/* Birthday ring — today (gold glow pulse) */
+@keyframes birthday-ring-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px #F7C200, 0 0 18px 6px rgba(247,194,0,0.55); }
+  50%       { box-shadow: 0 0 0 6px #F7C200, 0 0 34px 14px rgba(247,194,0,0.75); }
+}
+
+/* Birthday ring — soon (violet glow pulse) */
+@keyframes birthday-ring-pulse-soon {
+  0%, 100% { box-shadow: 0 0 0 3px #a78bfa, 0 0 14px 4px rgba(167,139,250,0.45); }
+  50%       { box-shadow: 0 0 0 5px #a78bfa, 0 0 26px 10px rgba(167,139,250,0.65); }
+}
+
+/* Birthday badge bounce */
+@keyframes badge-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40%       { transform: translateY(-5px) scale(1.18); }
+  60%       { transform: translateY(-2px) scale(1.08); }
+}
+
+/* Infinite horizontal marquee */
+@keyframes marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+@keyframes marquee-scroll-reverse {
+  0%   { transform: translateX(-33.333%); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Applied classes ──────────────────────────────────── */
+
+.confetti-fall {
+  position: absolute;
+  animation: confetti-fall linear infinite;
+  will-change: transform, opacity;
+}
+
+/* Deep-navy layered background */
+.students-section {
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 50%, rgba(34,47,87,0.85) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 70% at 85% 30%, rgba(23,33,63,0.9) 0%, transparent 65%),
+    linear-gradient(160deg, #17213F 0%, #1a2a52 50%, #17213F 100%);
+}
+
+/* Decorative blobs */
+.students-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  pointer-events: none;
+  will-change: transform;
+}
+.students-blob-1 {
+  width: 520px; height: 420px;
+  background: rgba(247,194,0,0.22);
+  top: -80px; left: -120px;
+  animation: blob-drift-1 14s ease-in-out infinite;
+}
+.students-blob-2 {
+  width: 400px; height: 400px;
+  background: rgba(167,139,250,0.18);
+  bottom: -60px; right: -80px;
+  animation: blob-drift-2 18s ease-in-out infinite;
+}
+.students-blob-3 {
+  width: 300px; height: 300px;
+  background: rgba(59,130,246,0.15);
+  top: 40%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: blob-drift-3 22s ease-in-out infinite;
+}
+
+/* Card base — glass morphism */
+.students-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.students-card:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(247,194,0,0.38);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 18px 42px -12px rgba(0,0,0,0.45);
+}
+
+/* Photo rings */
+.normal-ring {
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+  background: #222F57;
+}
+.birthday-ring-today {
+  animation: birthday-ring-pulse 2s ease-in-out infinite;
+  background: #222F57;
+}
+.birthday-ring-soon {
+  animation: birthday-ring-pulse-soon 2.5s ease-in-out infinite;
+  background: #222F57;
+}
+
+/* Card variants */
+.birthday-today-card {
+  background: rgba(247,194,0,0.09);
+  border: 1px solid rgba(247,194,0,0.35);
+}
+.birthday-today-card:hover {
+  background: rgba(247,194,0,0.16);
+  border-color: rgba(247,194,0,0.65);
+}
+.birthday-soon-card {
+  background: rgba(167,139,250,0.07);
+  border: 1px solid rgba(167,139,250,0.25);
+}
+.birthday-soon-card:hover {
+  background: rgba(167,139,250,0.14);
+  border-color: rgba(167,139,250,0.52);
+}
+
+/* Badges */
+.birthday-badge-today {
+  background: #F7C200;
+  color: #17213F;
+  animation: badge-bounce 1.6s ease-in-out infinite;
+}
+.birthday-badge-soon {
+  background: #a78bfa;
+  color: #17213F;
+  animation: badge-bounce 2.2s ease-in-out infinite;
+}
+
+/* Marquee */
+.students-marquee-wrapper {
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+  overflow: hidden;
+}
+.students-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 35s linear infinite;
+  will-change: transform;
+}
+.students-marquee-track.marquee-reverse {
+  animation-name: marquee-scroll-reverse;
+  animation-duration: 42s;
+}
+.students-marquee-wrapper:hover .students-marquee-track {
+  animation-play-state: paused;
+}
+
+/* Reduced-motion: disable all animations, wrap marquee */
+@media (prefers-reduced-motion: reduce) {
+  .confetti-fall,
+  .students-blob-1, .students-blob-2, .students-blob-3,
+  .birthday-ring-today, .birthday-ring-soon,
+  .birthday-badge-today, .birthday-badge-soon {
+    animation: none !important;
+  }
+  .students-marquee-track {
+    animation: none !important;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .birthday-ring-today { box-shadow: 0 0 0 3px #F7C200; }
+  .birthday-ring-soon  { box-shadow: 0 0 0 3px #a78bfa; }
 }

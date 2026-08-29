@@ -63,15 +63,14 @@ export default async function NewEnquiryPage() {
   }
 
   return (
-    <div className="min-w-0 space-y-3 overflow-hidden lg:h-[calc(100dvh-7rem)]">
+    <div className="h-full min-w-0 space-y-3 overflow-y-auto overscroll-contain lg:-mx-4 lg:-mt-4 lg:h-[calc(100dvh-7rem)] lg:overflow-hidden">
       <NewEnquiryViewport />
-      <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-ink-100 border-l-4 border-l-gold-500 bg-white px-4 pb-4 pt-2 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-4 sm:pt-3">
         <div>
           <h1 className="mt-0.5 font-display text-xl font-semibold text-ink-700 sm:text-2xl">Record New Admission Enquiry</h1>
-          <p className="mt-0.5 text-xs text-slate/70">Capture a new admission enquiry and route it to the right staff member.</p>
         </div>
         <Link href="/enquiries" className="shrink-0">
-          <Button variant="outline" className="h-10 px-4 text-sm font-semibold shadow-sm">← Admission Enquiries</Button>
+          <Button variant="outline" className="h-10 bg-gold-50 px-4 text-sm font-semibold shadow-sm hover:bg-gold-100">← Admission Enquiries</Button>
         </Link>
       </div>
 

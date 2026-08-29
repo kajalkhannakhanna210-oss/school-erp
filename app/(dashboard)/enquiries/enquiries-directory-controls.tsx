@@ -35,6 +35,12 @@ export function EnquiriesDirectoryControls({ tabs, activeTab, ...filterProps }: 
     return () => window.removeEventListener("enquiry-tab-loaded", handleTabLoaded);
   }, []);
 
+  useEffect(() => {
+    const toggleFilters = () => setShowFilters((visible) => !visible);
+    window.addEventListener("enquiry-filter-toggle", toggleFilters);
+    return () => window.removeEventListener("enquiry-filter-toggle", toggleFilters);
+  }, []);
+
   const enhanceTabs = (node: ReactNode): ReactNode => Children.map(node, (child) => {
     if (!isValidElement<{ href?: string; className?: string; children?: ReactNode; onClick?: (event: React.MouseEvent) => void }>(child)) return child;
     const href = child.props.href;
@@ -97,14 +103,19 @@ export function EnquiriesDirectoryControls({ tabs, activeTab, ...filterProps }: 
 
   return (
     <>
-      <div className="flex items-center gap-2 rounded-xl border border-ink-100 bg-white p-1 text-xs font-semibold shadow-sm">
-        <div className="min-w-0 flex-1 overflow-x-auto">{enhanceTabs(tabs)}</div>
+      <div className="flex flex-col gap-2 rounded-xl border border-ink-100 bg-white p-2 text-xs font-semibold shadow-sm sm:flex-row sm:items-center sm:p-1">
+        <div
+          className="w-full overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] sm:min-w-0 sm:flex-1 sm:pb-0"
+          aria-label="Enquiry views"
+        >
+          {enhanceTabs(tabs)}
+        </div>
         <button
           type="button"
           aria-expanded={showFilters}
           aria-controls="enquiry-filter-panel"
           onClick={() => setShowFilters((visible) => !visible)}
-          className="inline-flex h-8 shrink-0 items-center gap-2 rounded-lg bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700"
+          className="hidden h-8 shrink-0 items-center gap-2 rounded-lg bg-ink-900 px-3 text-xs font-semibold text-white transition hover:bg-ink-700 sm:inline-flex"
         >
           <span aria-hidden="true">☷</span>
           {showFilters ? "Hide Filters" : "Filter"}
