@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
   { href: "/events", label: "Events" },
   { href: "/notices", label: "Notices" },
+  { href: "/contact", label: "Contact Us" },
 ];
 
 const ORGANISATION_LINKS = [

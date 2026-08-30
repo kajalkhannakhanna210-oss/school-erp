@@ -53,8 +53,9 @@ const DEFAULT_ABOUT_TITLE = "A community where every child can thrive.";
 const DEFAULT_ABOUT_CONTENT =
   "We provide a balanced education that helps students grow academically, creatively, socially, and emotionally. Our teachers create a supportive space where children are encouraged to ask questions, build confidence, and discover their strengths.";
 
-// Keep public CMS content fast while allowing edits to appear shortly after saving.
-export const revalidate = 60;
+// Birthday cards must reflect current student admissions and dates of birth.
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(
@@ -106,7 +107,8 @@ export default async function HomePage() {
       contentRequest,
       [{ data: null }, { data: null }, { data: null }, { data: null }, { data: null }] as Awaited<typeof contentRequest>
     ),
-    // Student directory: server-side only, admin client, 5 safe fields, active only.
+    // Student directory: server-side only, admin client, 5 safe fields.
+    // The birthday section includes active students with an assigned admission number.
     // Signed photo URLs are generated here — never as a client-side fetch.
     (async () => {
       try {
@@ -119,8 +121,9 @@ export default async function HomePage() {
              sections ( name )`
           )
           .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(24);
+          .not("admission_number", "is", null)
+          .neq("admission_number", "")
+          .order("created_at", { ascending: false });
 
         if (error || !rows) return [];
 
@@ -135,7 +138,7 @@ export default async function HomePage() {
               .createSignedUrls(photoPaths, 600);
             if (signedList) {
               for (const item of signedList) {
-                if (item.signedUrl) signedUrlMap[item.path] = item.signedUrl;
+                if (item.signedUrl && item.path) signedUrlMap[item.path] = item.signedUrl;
               }
             }
           } catch {
@@ -178,7 +181,7 @@ export default async function HomePage() {
       eyebrow: "Learning, with intention",
       title,
       description: intro,
-      imageUrl,
+      imageUrl: imageUrl || "/students-hero.jpg",
     },
   ];
 
@@ -188,11 +191,13 @@ export default async function HomePage() {
         eyebrow: "Life at school",
         title: "Learning beyond the classroom.",
         description: "Discover the moments, friendships, and experiences that make school memorable.",
+        imageUrl: "/about-school.jpg",
       },
       {
         eyebrow: "A future in view",
         title: "Prepared for what comes next.",
         description: "We nurture the confidence, curiosity, and character students need to take their next steps.",
+        imageUrl: "/remote-images/photo-1503676260728-1c00da094a0b.jpg",
       }
     );
   }

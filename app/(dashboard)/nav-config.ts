@@ -48,6 +48,9 @@ export const navItems: NavItem[] = [
   { key: "admissions", label: "Admissions & Alumni", href: "/admissions-admin", roles: ["super_admin"], icon: "♜" },
   { key: "role_access", label: "Role Page Access", href: "/role-access", roles: ["super_admin"], icon: "⚙" },
   { key: "profile", label: "My Profile", href: "/profile", roles: ["super_admin", "staff", "student"], icon: "●" },
+
+  // Developer / API tools
+  { key: "api_explorer", label: "API Explorer", href: "/api-explorer", roles: ["super_admin"], icon: "🔌" },
 ];
 
 export const navSections = [
@@ -61,7 +64,7 @@ export const navSections = [
   { key: "documents", label: "Document Management", keys: ["documents"] },
   { key: "reports", label: "Reports", keys: ["reports"] },
   { key: "security", label: "Login & Security", keys: ["active_users", "login_activity", "access_logs"] },
-  { key: "misc", label: "Settings & More", keys: ["attendance", "cms", "admissions", "role_access", "profile"] },
+  { key: "misc", label: "Settings & More", keys: ["attendance", "cms", "admissions", "role_access", "profile", "api_explorer"] },
 ];
 
 export function isNavItemActive(item: NavItem, pathname?: string | null, currentTab?: string | null): boolean {
@@ -136,6 +139,9 @@ export function isNavItemActive(item: NavItem, pathname?: string | null, current
   }
   if (item.key === "access_logs") {
     return pathname === "/reports/access-logs" || pathname.startsWith("/reports/access-logs/");
+  }
+  if (item.key === "api_explorer") {
+    return pathname === "/api-explorer" || pathname.startsWith("/api-explorer/");
   }
 
   return pathname === itemPath || (itemPath !== "/dashboard" && pathname.startsWith(`${itemPath}/`));

@@ -7,7 +7,11 @@ export default async function EditStudentPage({ params }: { params: { id: string
   const supabase = await createClient();
 
   const [{ data: student }, { data: classes }, { data: sections }, { data: sessions }] = await Promise.all([
-    supabase.from("students").select("*, profiles(full_name)").eq("id", params.id).single(),
+    supabase
+      .from("students")
+      .select("*, profiles!students_id_fkey(full_name)")
+      .eq("id", params.id)
+      .maybeSingle(),
     supabase.from("classes").select("id, name").order("sort_order"),
     supabase.from("sections").select("id, name, class_id").order("name"),
     supabase.from("academic_sessions").select("id, name").order("start_date", { ascending: false }),

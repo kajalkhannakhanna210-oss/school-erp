@@ -9,27 +9,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// Festive floating items config
-const FESTIVE_ITEMS = [
-  { emoji: "🎁", left: "8%",  delay: "0s",    duration: "9s",  size: "1.6rem", opacity: 0.55 },
-  { emoji: "🎈", left: "18%", delay: "1.5s",  duration: "11s", size: "1.9rem", opacity: 0.60 },
-  { emoji: "🎂", left: "30%", delay: "3s",    duration: "10s", size: "1.5rem", opacity: 0.50 },
-  { emoji: "🎁", left: "42%", delay: "0.8s",  duration: "12s", size: "1.7rem", opacity: 0.55 },
-  { emoji: "🎈", left: "55%", delay: "2.2s",  duration: "8s",  size: "2.0rem", opacity: 0.60 },
-  { emoji: "🎂", left: "65%", delay: "4s",    duration: "13s", size: "1.4rem", opacity: 0.45 },
-  { emoji: "🎁", left: "75%", delay: "1.1s",  duration: "10s", size: "1.8rem", opacity: 0.55 },
-  { emoji: "🎈", left: "85%", delay: "3.5s",  duration: "9s",  size: "1.6rem", opacity: 0.60 },
-  { emoji: "🎂", left: "92%", delay: "0.4s",  duration: "11s", size: "1.5rem", opacity: 0.50 },
-  { emoji: "🎈", left: "50%", delay: "5s",    duration: "14s", size: "1.3rem", opacity: 0.45 },
-  { emoji: "🎁", left: "22%", delay: "6s",    duration: "10s", size: "1.5rem", opacity: 0.50 },
-  { emoji: "🎂", left: "70%", delay: "2.8s",  duration: "12s", size: "1.7rem", opacity: 0.55 },
-];
-
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-[100dvh] lg:grid-cols-12 bg-white font-sans selection:bg-amber-400/30 selection:text-amber-200">
+      {/* Left Column: Hero Image & Content */}
+      <div className="relative lg:col-span-7 hidden lg:flex flex-col justify-between overflow-hidden bg-slate-950 p-10 xl:p-14">
         {/* Crisp & Vibrant Student Background Photo Layer */}
         <div className="absolute inset-0 z-0">
+
           <Image
             src="/students-hero.jpg"
             alt="School Students Learning Together"
@@ -71,68 +58,20 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* Middle: Clean Headline Content */}
-        <div className="relative z-10 my-auto max-w-xl mx-auto w-full pr-6 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
-            <span>Student & Faculty System</span>
+        {/* School-life image collage */}
+        <div className="absolute right-10 top-24 z-10 hidden w-52 grid-cols-2 gap-3 xl:grid">
+          <div className="relative col-span-2 h-28 overflow-hidden rounded-2xl border-2 border-white/25 shadow-xl">
+            <Image src="/about-school.jpg" alt="School campus" fill className="object-cover" sizes="208px" />
           </div>
-          <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            The record of every student, kept in one ledger.
-          </h1>
-          <p className="text-base text-slate-300 leading-relaxed max-w-lg font-light">
-            Admissions, attendance, fees, and results — unified in one cloud-native system of record for the whole school.
-          </p>
-        </div>
-
-        {/* Bottom Tagline & Accreditation */}
-        <div className="relative z-10 max-w-xl mx-auto w-full pt-4 pr-6">
-          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-light">
-            &ldquo;Every student&apos;s academic journey, attendance, and achievements stored securely in one unified school ledger.&rdquo;
-          </p>
-          <div className="mt-2 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="h-px w-8 bg-amber-500" />
-        {/* Crisp & Vibrant Student Background Photo Layer */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/students-hero.jpg"
-            alt="School Students Learning Together"
-            fill
-            className="object-cover object-center opacity-65 scale-100 transition-transform duration-1000 hover:scale-105"
-            priority
-          />
-          {/* Subtle Top & Bottom Gradient Overlay for High Contrast */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-slate-950/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/40 via-transparent to-slate-950/80" />
-        </div>
-
-        {/* Soft Glowing Light Accents */}
-        <div className="absolute top-12 left-12 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none z-0" />
-        <div className="absolute bottom-12 right-12 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none z-0" />
-
-        {/* Curved Organic Wave Divider SVG on the Right Edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-24 h-full pointer-events-none z-20 hidden lg:block text-white translate-x-px">
-          <svg
-            className="h-full w-full"
-            viewBox="0 0 100 1000"
-            preserveAspectRatio="none"
-            fill="currentColor"
-          >
-            <path d="M 100,0 C 30,180 0,350 0,500 C 0,650 30,820 100,1000 L 100,1000 L 100,0 Z" />
-          </svg>
-        </div>
-
-        {/* Top Header Tag */}
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-2 rounded-full bg-slate-900/90 backdrop-blur-md px-4 py-1.5 border border-slate-700/80 shadow-xl">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-            </span>
-            <span className="text-xs font-bold tracking-wider text-slate-200 uppercase">
-              Registrar Student & Staff Portal
-            </span>
+          <div className="relative h-20 overflow-hidden rounded-xl border-2 border-white/25 shadow-lg">
+            <Image src="/remote-images/photo-1503676260728-1c00da094a0b.jpg" alt="Students learning together" fill className="object-cover" sizes="96px" />
           </div>
+          <div className="relative h-20 overflow-hidden rounded-xl border-2 border-amber-300/70 shadow-lg">
+            <Image src="/student-avatar.jpg" alt="Student" fill className="object-cover" sizes="96px" />
+          </div>
+          <p className="col-span-2 rounded-lg bg-slate-950/70 px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-amber-200 backdrop-blur">
+            Learning together
+          </p>
         </div>
 
         {/* Middle: Clean Headline Content */}
@@ -162,38 +101,9 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+
       {/* Right Column: Form Area & Mobile Top Image Header */}
       <div className="lg:col-span-5 flex h-[100dvh] min-h-[100dvh] flex-col justify-between overflow-hidden bg-[linear-gradient(180deg,#f3f6fb_0%,#ffffff_48%,#f6f8fb_100%)] p-4 sm:p-8 lg:h-auto lg:min-h-screen lg:max-h-[100dvh] lg:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.16),transparent_28rem),linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] lg:p-12 z-10 relative">
-
-        {/* Festive Floating Background Animation */}
-        <style>{`
-          @keyframes festiveFloat {
-            0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity: 0; }
-            8%   { opacity: 1; }
-            50%  { transform: translateY(-50vh) translateX(14px) rotate(12deg); }
-            92%  { opacity: 1; }
-            100% { transform: translateY(-105vh) translateX(-8px) rotate(-8deg); opacity: 0; }
-          }
-        `}</style>
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-          {FESTIVE_ITEMS.map((item, i) => (
-            <span
-              key={i}
-              style={{
-                position: "absolute",
-                bottom: "-10%",
-                left: item.left,
-                fontSize: item.size,
-                opacity: item.opacity,
-                animation: `festiveFloat ${item.duration} ${item.delay} infinite ease-in-out`,
-                willChange: "transform, opacity",
-                userSelect: "none",
-              }}
-            >
-              {item.emoji}
-            </span>
-          ))}
-        </div>
 
         {/* Mobile Top Hero Header with Organic Bottom Curve */}
         <div className="lg:hidden -mx-4 -mt-4 sm:-mx-8 sm:-mt-8 relative shrink-0 overflow-hidden rounded-b-[1.75rem] bg-slate-950 text-white shadow-[0_18px_36px_rgba(15,23,42,0.16)]">
@@ -289,8 +199,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-
 
 
 

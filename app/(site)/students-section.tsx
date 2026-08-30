@@ -11,6 +11,11 @@ export type StudentCard = {
   section: string | null;
 };
 
+function formatStudentName(name: string | null): string {
+  if (!name?.trim()) return "Student";
+  return name.trim().toLowerCase().replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+}
+
 // ---------------------------------------------------------------------------
 // Birthday helpers
 // ---------------------------------------------------------------------------
@@ -18,9 +23,15 @@ export type StudentCard = {
 function isBirthdayToday(dob: string | null): boolean {
   if (!dob) return false;
   try {
-    const today = new Date();
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date());
+    const month = Number(today.find((part) => part.type === "month")?.value);
+    const day = Number(today.find((part) => part.type === "day")?.value);
     const [, mm, dd] = dob.split("-").map(Number);
-    return today.getMonth() + 1 === mm && today.getDate() === dd;
+    return month === mm && day === dd;
   } catch {
     return false;
   }
@@ -131,14 +142,14 @@ function StudentCardItem({ student }: { student: StudentCard }) {
   return (
     <article
       className={[
-        "students-card group relative flex-shrink-0 w-56 flex flex-col items-center rounded-2xl p-6 text-center transition-all duration-300",
+        "students-card group relative flex-shrink-0 w-44 sm:w-56 flex flex-col items-center rounded-2xl p-5 sm:p-6 text-center transition-all duration-300",
         isToday ? "birthday-today-card" : isSoon ? "birthday-soon-card" : "normal-student-card",
       ].join(" ")}
     >
       {/* Birthday badge */}
       {(isToday || isSoon) && (
         <div
-          className={["absolute -top-3 -right-2 z-20 flex h-10 w-10 items-center justify-center rounded-full text-base shadow-lg select-none",
+          className={["absolute -top-2 -right-2 z-20 flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-base shadow-lg select-none",
             isToday ? "birthday-badge-today" : "birthday-badge-soon",
           ].join(" ")}
           title={isToday ? "Birthday today! 🎉" : "Birthday this week"}
@@ -150,7 +161,7 @@ function StudentCardItem({ student }: { student: StudentCard }) {
       {/* Photo / avatar */}
       <div
         className={[
-          "relative mb-5 h-32 w-32 flex-shrink-0 overflow-hidden rounded-full",
+          "relative mb-4 sm:mb-5 h-28 w-28 sm:h-32 sm:w-32 flex-shrink-0 overflow-hidden rounded-full",
           isToday ? "birthday-ring-today" : isSoon ? "birthday-ring-soon" : "normal-ring",
         ].join(" ")}
       >
@@ -165,7 +176,7 @@ function StudentCardItem({ student }: { student: StudentCard }) {
         ) : (
           <span
             aria-hidden="true"
-            className="flex h-full w-full items-center justify-center text-4xl font-bold"
+            className="flex h-full w-full items-center justify-center text-3xl sm:text-4xl font-bold"
             style={{ background: "rgba(247,194,0,0.40)", color: "#FFD700", textShadow: "0 0 12px rgba(255,215,0,0.8)" }}
           >
             {initial}
@@ -174,13 +185,13 @@ function StudentCardItem({ student }: { student: StudentCard }) {
       </div>
 
       {/* Name */}
-      <h3 className="text-base font-semibold leading-snug text-white line-clamp-2">
-        {student.name ?? "—"}
+      <h3 className="text-sm sm:text-base font-semibold leading-snug text-white line-clamp-2">
+        {formatStudentName(student.name)}
       </h3>
 
       {/* Class · Section */}
       {classSection && (
-        <p className="mt-2 rounded-full px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide"
+        <p className="mt-1.5 sm:mt-2 rounded-full px-2.5 sm:px-3 py-0.5 sm:py-1 font-mono text-[10px] sm:text-xs font-bold uppercase tracking-wide"
            style={{ background: "rgba(247,194,0,0.15)", color: "#F7C200" }}>
           {classSection}
         </p>
@@ -188,7 +199,7 @@ function StudentCardItem({ student }: { student: StudentCard }) {
 
       {/* DOB */}
       {dobShort && (
-        <p className="mt-2 flex items-center gap-1 text-xs"
+        <p className="mt-1.5 sm:mt-2 flex items-center gap-1 text-[10px] sm:text-xs"
            style={{ color: isToday ? "#F7C200" : "rgba(255,255,255,0.45)" }}>
           {isToday && <span aria-hidden="true">🎉</span>}
           {dobShort}
@@ -203,11 +214,19 @@ function StudentCardItem({ student }: { student: StudentCard }) {
 // ---------------------------------------------------------------------------
 
 function MarqueeRow({ students, reverse = false }: { students: StudentCard[]; reverse?: boolean }) {
+  if (students.length === 1) {
+    return (
+      <div className="flex justify-center py-3 pr-2 sm:pr-6">
+        <StudentCardItem student={students[0]} />
+      </div>
+    );
+  }
+
   const repeated = [...students, ...students, ...students];
   return (
     <div className="students-marquee-wrapper overflow-hidden">
       <div
-        className={["students-marquee-track flex gap-5 py-3", reverse ? "marquee-reverse" : ""].join(" ")}
+        className={["students-marquee-track flex gap-3 sm:gap-5 py-3", reverse ? "marquee-reverse" : ""].join(" ")}
       >
         {repeated.map((s, i) => (
           <StudentCardItem key={`${s.id}-${i}`} student={s} />
@@ -228,12 +247,7 @@ export function StudentsSection({ students }: { students: StudentCard[] }) {
   const soonBirthdays = students.filter(
     (s) => !isBirthdayToday(s.date_of_birth) && isBirthdaySoon(s.date_of_birth, 7)
   );
-  const rest = students.filter(
-    (s) => !isBirthdayToday(s.date_of_birth) && !isBirthdaySoon(s.date_of_birth, 7)
-  );
-
-  // Priority: today → soon → rest
-  const sorted = [...todayBirthdays, ...soonBirthdays, ...rest];
+  const birthdayStudents = [...todayBirthdays, ...soonBirthdays];
 
   return (
     <section className="students-section relative overflow-hidden pt-8 pb-8 sm:pt-10 sm:pb-10">
@@ -248,19 +262,19 @@ export function StudentsSection({ students }: { students: StudentCard[] }) {
       {/* Header */}
       <div className="relative z-10 mx-auto max-w-6xl px-6">
         {/* 🎉 Birthday Celebration Banner — always visible */}
-        <div className="mb-8 flex flex-col items-center justify-center gap-2 text-center">
+        <div className="mb-5 sm:mb-8 flex flex-col items-center justify-center gap-2 text-center px-2">
           <div
-            className="inline-flex items-center gap-3 rounded-full px-6 py-3"
+            className="inline-flex flex-wrap items-center justify-center gap-2 sm:gap-3 rounded-full px-4 sm:px-6 py-2 sm:py-3"
             style={{
               background: "linear-gradient(135deg, rgba(247,194,0,0.18) 0%, rgba(255,180,0,0.10) 100%)",
               border: "1.5px solid rgba(247,194,0,0.45)",
               boxShadow: "0 0 24px 4px rgba(247,194,0,0.18), 0 2px 12px rgba(0,0,0,0.25)",
             }}
           >
-            <span className="text-2xl animate-bounce" style={{ animationDuration: "1.4s" }}>🎉</span>
-            <span className="text-2xl">🎊</span>
+            <span className="text-xl sm:text-2xl animate-bounce" style={{ animationDuration: "1.4s" }}>🎉</span>
+            <span className="text-xl sm:text-2xl">🎊</span>
             <span
-              className="font-display text-xl font-bold tracking-wide sm:text-2xl"
+              className="font-display text-base sm:text-xl font-bold tracking-wide md:text-2xl"
               style={{
                 background: "linear-gradient(90deg, #F7C200 0%, #FFE066 50%, #F7C200 100%)",
                 WebkitBackgroundClip: "text",
@@ -269,44 +283,21 @@ export function StudentsSection({ students }: { students: StudentCard[] }) {
             >
               Birthday Celebration
             </span>
-            <span className="text-2xl">🎊</span>
-            <span className="text-2xl animate-bounce" style={{ animationDuration: "1.4s", animationDelay: "0.2s" }}>🎂</span>
+            <span className="text-xl sm:text-2xl">🎊</span>
+            <span className="text-xl sm:text-2xl animate-bounce" style={{ animationDuration: "1.4s", animationDelay: "0.2s" }}>🎂</span>
           </div>
-          <p className="text-sm sm:text-base font-medium tracking-wide" style={{ color: "rgba(255,224,102,0.90)" }}>
+          <p className="text-xs sm:text-sm md:text-base font-medium tracking-wide px-2" style={{ color: "rgba(255,224,102,0.90)" }}>
             🌟 Wishing our shining stars a day full of joy, laughter &amp; smiles! 🌟
-          </p>
-          <p className="text-xs sm:text-sm" style={{ color: "rgba(255,255,255,0.55)" }}>
-            May this special day bring you endless happiness &amp; wonderful memories 🎈
           </p>
         </div>
 
-          {/* Birthday callout chip */}
-          {(todayBirthdays.length > 0 || soonBirthdays.length > 0) && (
-            <div className="flex justify-center">
-              <div className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 backdrop-blur-sm">
-                {todayBirthdays.length > 0 && (
-                  <span className="flex items-center gap-2 text-sm font-semibold text-gold">
-                    <span>🎂</span>
-                    {todayBirthdays.length === 1
-                      ? `${todayBirthdays[0].name?.split(" ")[0]}'s birthday today!`
-                      : `${todayBirthdays.length} birthdays today! 🎉`}
-                  </span>
-                )}
-                {soonBirthdays.length > 0 && (
-                  <span className="flex items-center gap-2 text-sm text-white/65">
-                    <span>🎈</span>
-                    {soonBirthdays.length} birthday{soonBirthdays.length > 1 ? "s" : ""} this week
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
       </div>
 
 
+
       {/* Single marquee row */}
-      <div className="relative z-10 mt-12 pl-6">
-        <MarqueeRow students={sorted} />
+      <div className="relative z-10 mt-6 sm:mt-10 pl-2 sm:pl-6">
+        <MarqueeRow students={birthdayStudents} />
       </div>
 
       {/* Fade vignette at bottom */}
