@@ -80,6 +80,11 @@ export function Badge({
   variant = "default",
   ...props
 }: HTMLAttributes<HTMLSpanElement> & { variant?: "default" | "secondary" | "outline" | "destructive" }) {
+  const statusTone = props.children === "Active"
+    ? "!bg-emerald-100 !text-emerald-700"
+    : props.children === "Inactive"
+      ? "!bg-rose-100 !text-rose-700"
+      : "";
   return (
     <span
       className={cn(
@@ -88,6 +93,7 @@ export function Badge({
         variant === "secondary" && "bg-ink-100 text-ink-700",
         variant === "outline" && "border border-ink-200 text-ink-600 bg-white",
         variant === "destructive" && "bg-rose-100 text-rose-700",
+        statusTone,
         className
       )}
       {...props}

@@ -11,6 +11,7 @@ import {
 } from "@/lib/security/super-admin-session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { LOGIN_CONTEXT_COOKIE, loginContextCookieOptions, serializeLoginContext } from "@/lib/security/login-context";
 
 export const runtime = "nodejs";
 
@@ -102,16 +103,27 @@ export async function POST(req: NextRequest) {
       : { email: identifier.value, password };
   const { data, error: signInError } = await supabase.auth.signInWithPassword(credentials);
 
+
   if (signInError || !data.user) {
     await recordLoginActivity({ eventType: "failed_login", status: "failed", identifier: identifier.value, request: req, failureReason: "invalid_credentials" });
     await logSecurityEvent({ eventType: "sign_in_failed", identifier: identifier.value, request: req });
     return NextResponse.json({ error: genericAuthError }, { status: 401 });
   }
 
-  const [{ data: profile }, { data: userRoles }] = await Promise.all([
-    supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle(),
-    supabase.from("profile_roles").select("role").eq("profile_id", data.user.id),
-  ]);
+  let { data: profile } = await supabase.from("profiles").select("role").eq("id", data.user.id).maybeSingle();
+  const { data: userRoles } = await supabase.from("profile_roles").select("role").eq("profile_id", data.user.id);
+
+  // Auth has already verified the credentials. If profile RLS prevents the
+  // signed-in user from reading their own role, use the trusted server client
+  // for this role lookup so Super Admin login is not incorrectly rejected.
+  if (!profile?.role) {
+    const { data: adminProfile } = await createAdminClient()
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .maybeSingle();
+    profile = adminProfile;
+  }
 
   if (!profile?.role) {
     await supabase.auth.signOut();
@@ -160,7 +172,14 @@ export async function POST(req: NextRequest) {
 
   await clearRateLimit("sign_in", identifier.value, req);
 
-  const response = NextResponse.json({ ok: true });
+  const admin = createAdminClient();
+  const [{ data: staffRecord }, { data: memberships }] = await Promise.all([
+    admin.from("staff").select("organization_id, primary_school_id").eq("id", data.user.id).maybeSingle(),
+    admin.from("organization_memberships").select("organization_id, school_id, membership_role").eq("profile_id", data.user.id).eq("is_active", true),
+  ]);
+  const organizationId = profile.role === "super_admin" ? null : staffRecord?.organization_id ?? memberships?.[0]?.organization_id ?? null;
+  const needsContextSelection = profile.role === "super_admin" || Boolean(organizationId && !staffRecord?.primary_school_id);
+  const response = NextResponse.json({ ok: true, contextRequired: needsContextSelection });
   if (isSuperAdminSession && superAdminSessionSecret) {
     response.cookies.set(
       SUPER_ADMIN_SESSION_COOKIE_NAME,
@@ -169,6 +188,9 @@ export async function POST(req: NextRequest) {
     );
   } else {
     response.cookies.set(SUPER_ADMIN_SESSION_COOKIE_NAME, "", superAdminSessionCookieOptions(0));
+  }
+  if (!needsContextSelection && organizationId && staffRecord?.primary_school_id) {
+    response.cookies.set(LOGIN_CONTEXT_COOKIE, serializeLoginContext({ userId: data.user.id, organizationId, schoolId: staffRecord.primary_school_id, loginScope: "school" }), loginContextCookieOptions());
   }
   const secret = tokenSecret();
   if (secret) {

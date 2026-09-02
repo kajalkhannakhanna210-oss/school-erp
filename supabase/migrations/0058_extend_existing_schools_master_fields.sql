@@ -1,0 +1,33 @@
+-- Extend the existing schools table only. Existing id and organization_id are preserved.
+alter table public.schools
+  add column if not exists short_name text,
+  add column if not exists logo_url text,
+  add column if not exists school_type text,
+  add column if not exists board text,
+  add column if not exists affiliation_number text,
+  add column if not exists established_year integer,
+  add column if not exists contact_person text,
+  add column if not exists contact_designation text,
+  add column if not exists phone text,
+  add column if not exists alternate_phone text,
+  add column if not exists email text,
+  add column if not exists website text,
+  add column if not exists address_line1 text,
+  add column if not exists address_line2 text,
+  add column if not exists country text,
+  add column if not exists state text,
+  add column if not exists district text,
+  add column if not exists city text,
+  add column if not exists postal_code text,
+  add column if not exists academic_start_month integer,
+  add column if not exists medium_of_instruction text,
+  add column if not exists lowest_class text,
+  add column if not exists highest_class text,
+  add column if not exists timezone text,
+  add column if not exists date_format text,
+  add column if not exists currency_code text,
+  add column if not exists default_language text,
+  add column if not exists student_id_prefix text,
+  add column if not exists admission_prefix text;
+
+create index if not exists schools_code_idx on public.schools (code);

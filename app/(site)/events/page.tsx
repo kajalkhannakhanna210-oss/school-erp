@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { SafeImage } from "../safe-image";
 import type { Metadata } from "next";
 import { getPageMetadata } from "@/lib/seo";
+import { getSiteConfig } from "@/lib/website/config";
+import { Design2ContentPage } from "@/components/website/templates/design-2/content-page";
 const eventsMetadata: Metadata = { title: "School News & Events", description: "Read the latest school news, announcements, activities, and upcoming events.", alternates: { canonical: "/events" } };
 export async function generateMetadata() { return getPageMetadata("/events", eventsMetadata); }
 
@@ -13,6 +15,8 @@ function formatDate(value: string) {
 }
 
 export default async function EventsPage() {
+  const siteConfig = await getSiteConfig();
+  if (siteConfig?.template.id === "design-2") return <Design2ContentPage title="News & events" content="Stay connected with the latest school news, circulars, celebrations, learning experiences, competitions, and community moments." imageUrl="/remote-images/photo-1523050854058-8df90110c9f1.jpg" />;
   const supabase = await createClient();
   const [{ data: events }, { data: eventImages }] = await Promise.all([
     supabase.from("events").select("*").order("event_date", { ascending: false }),

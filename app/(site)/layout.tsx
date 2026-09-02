@@ -4,6 +4,8 @@ import { createPublicClient } from "@/lib/supabase/public";
 import { withPublicDataTimeout } from "@/lib/supabase/public";
 import { MobileNavigation } from "./mobile-navigation";
 import { ScrollToTop } from "./scroll-to-top";
+import { getSiteConfig } from "@/lib/website/config";
+import { Design2SiteChrome } from "@/components/website/templates/design-2/site-chrome";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -41,6 +43,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const supabase = createPublicClient();
+  const siteConfig = await getSiteConfig();
 
   let settingsRows: { key: string; value: string }[] = [];
   try {
@@ -54,7 +57,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     // Keep public pages available with fallback school details during outages.
   }
   const settings = Object.fromEntries((settingsRows ?? []).map((s) => [s.key, s.value]));
-  const schoolName = settings.school_name || "Your School Name";
+  const schoolName = siteConfig?.website.website_title || settings.school_name || "Your School Name";
   const contactAddress = settings.contact_address || "123 Education Lane, Knowledge Park\nNew Delhi, India 110001";
   const contactEmail = settings.contact_email || "admissions@yourschool.edu.in";
   const contactPhone = settings.contact_phone || "+91 11 2345 6789";
@@ -65,8 +68,22 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
     .join("")
     .toUpperCase();
 
+  if (siteConfig?.template.id === "design-2") {
+    return (
+      <Design2SiteChrome
+        schoolName={schoolName}
+        website={siteConfig.website}
+        email={contactEmail}
+        phone={contactPhone}
+        address={contactAddress}
+      >
+        {children}
+      </Design2SiteChrome>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
+    <div className="flex min-h-screen flex-col bg-paper" data-school-id={siteConfig?.school.id} data-website-template={siteConfig?.template.id ?? "design-1"}>
       <header className="fixed inset-x-0 top-0 z-40 bg-white shadow-[0_1px_0_rgba(30,42,74,0.08)]">
         <div className="hidden border-b border-white/10 bg-ink-900 text-paper md:block">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2 text-[11px] font-medium uppercase tracking-[0.13em] text-paper/70">

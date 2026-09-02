@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { SafeImage } from "./safe-image";
 
 export type StudentCard = {
@@ -40,17 +41,23 @@ function isBirthdayToday(dob: string | null): boolean {
 function isBirthdaySoon(dob: string | null, withinDays = 7): boolean {
   if (!dob) return false;
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const thisYear = today.getFullYear();
+    const todayParts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date());
+    const todayYear = Number(todayParts.find((part) => part.type === "year")?.value);
+    const todayMonth = Number(todayParts.find((part) => part.type === "month")?.value);
+    const todayDay = Number(todayParts.find((part) => part.type === "day")?.value);
     const [, mm, dd] = dob.split("-").map(Number);
-    const bdayThis = new Date(thisYear, mm - 1, dd);
-    const bdayNext = new Date(thisYear + 1, mm - 1, dd);
-    const diff = Math.min(
-      bdayThis.getTime() - today.getTime(),
-      bdayNext.getTime() - today.getTime()
-    );
-    return diff > 0 && diff <= withinDays * 86_400_000;
+    const today = Date.UTC(todayYear, todayMonth - 1, todayDay);
+    const bdayThis = Date.UTC(todayYear, mm - 1, dd);
+    const bdayNext = Date.UTC(todayYear + 1, mm - 1, dd);
+    const diff = [bdayThis - today, bdayNext - today]
+      .filter((value) => value > 0)
+      .sort((left, right) => left - right)[0];
+    return diff !== undefined && diff <= withinDays * 86_400_000;
   } catch {
     return false;
   }
@@ -241,10 +248,19 @@ function MarqueeRow({ students, reverse = false }: { students: StudentCard[]; re
 // ---------------------------------------------------------------------------
 
 export function StudentsSection({ students }: { students: StudentCard[] }) {
-  if (students.length === 0) return null;
+  const [birthdayStudentsFromApi, setBirthdayStudentsFromApi] = useState<StudentCard[]>(students);
 
-  const todayBirthdays = students.filter((s) => isBirthdayToday(s.date_of_birth));
-  const soonBirthdays = students.filter(
+  useEffect(() => {
+    fetch("/api/students/birthdays-public?days=7", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => {
+        if (payload?.students) setBirthdayStudentsFromApi(payload.students);
+      })
+      .catch(() => undefined);
+  }, []);
+
+  const todayBirthdays = birthdayStudentsFromApi.filter((s) => isBirthdayToday(s.date_of_birth));
+  const soonBirthdays = birthdayStudentsFromApi.filter(
     (s) => !isBirthdayToday(s.date_of_birth) && isBirthdaySoon(s.date_of_birth, 7)
   );
   const birthdayStudents = [...todayBirthdays, ...soonBirthdays];
@@ -298,6 +314,11 @@ export function StudentsSection({ students }: { students: StudentCard[] }) {
       {/* Single marquee row */}
       <div className="relative z-10 mt-6 sm:mt-10 pl-2 sm:pl-6">
         <MarqueeRow students={birthdayStudents} />
+        {birthdayStudents.length === 0 && (
+          <p className="mx-auto mt-5 max-w-6xl px-6 text-center text-sm font-medium text-white/65">
+            Birthday wishes will appear here when a student celebrates this week.
+          </p>
+        )}
       </div>
 
       {/* Fade vignette at bottom */}

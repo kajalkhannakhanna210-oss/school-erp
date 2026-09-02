@@ -5,6 +5,8 @@ export type NavItem = { key: string; label: string; href: string; roles: UserRol
 export const navItems: NavItem[] = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", roles: ["super_admin", "staff", "student"] },
   { key: "master", label: "Master Data", href: "/master", roles: ["super_admin"] },
+  { key: "organization_master", label: "Organization Master", href: "/organization-master", roles: ["super_admin"], icon: "◎" },
+  { key: "school_master", label: "School / Branch Master", href: "/school-master", roles: ["super_admin"], icon: "⌂" },
   { key: "sessions", label: "Academic Sessions", href: "/master?tab=sessions", roles: ["super_admin"] },
   { key: "classes", label: "Classes", href: "/master?tab=classes", roles: ["super_admin"] },
   { key: "sections", label: "Sections", href: "/master?tab=sections", roles: ["super_admin"] },
@@ -54,6 +56,7 @@ export const navItems: NavItem[] = [
 ];
 
 export const navSections = [
+  { key: "administration", label: "Administration", keys: ["organization_master", "school_master"] },
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
   { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },

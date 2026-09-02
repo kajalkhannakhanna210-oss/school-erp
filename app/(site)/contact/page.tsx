@@ -2,10 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { ContactForm } from "./contact-form";
 import type { Metadata } from "next";
 import { getPageMetadata } from "@/lib/seo";
+import { getSiteConfig } from "@/lib/website/config";
+import { Design2ContentPage } from "@/components/website/templates/design-2/content-page";
 const contactMetadata: Metadata = { title: "Contact Us", description: "Contact the school office for admissions, academic information, fees, facilities, and general enquiries.", alternates: { canonical: "/contact" } };
 export async function generateMetadata() { return getPageMetadata("/contact", contactMetadata); }
 
 export default async function ContactPage() {
+  const siteConfig = await getSiteConfig();
+  if (siteConfig?.template.id === "design-2") return <Design2ContentPage title="Contact us" content="Our school office and admissions team are here to help with your questions. Please use the contact details in the footer to reach us." imageUrl="/about-school.jpg" />;
   const supabase = await createClient();
   let settingsRows: { key: string; value: string }[] = [];
   try {

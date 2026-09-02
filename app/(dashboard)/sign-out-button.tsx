@@ -16,6 +16,7 @@ export function SignOutButton({ collapsed = false }: { collapsed?: boolean }) {
     try {
       const supabase = createClient();
       await fetch("/api/auth/login-audit", { method: "DELETE" });
+      await fetch("/api/auth/clear-context", { method: "POST" });
       await supabase.auth.signOut();
       router.push("/login");
       router.refresh();

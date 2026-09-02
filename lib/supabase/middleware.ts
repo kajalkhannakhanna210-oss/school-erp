@@ -89,9 +89,8 @@ export async function updateSession(request: NextRequest) {
   // getUser validates the token with Supabase and also refreshes the session
   // cookies when needed. This prevents the dashboard from treating a freshly
   // authenticated browser as anonymous.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: authData } = await supabase.auth.getUser();
+  const user = authData?.user ?? null;
 
   // Supabase refreshes sessions indefinitely by default. Super-admin access is
   // additionally bound to this signed, non-refreshable 24-hour session token.

@@ -1,0 +1,7 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { requirePageAccess } from "@/lib/require-role";
+
+async function authorize() { try { await requirePageAccess("organization_master"); return null; } catch { return NextResponse.json({ error: "Forbidden" }, { status: 403 }); } }
+export async function GET() { const denied = await authorize(); if (denied) return denied; const supabase = await createClient(); const { data, error } = await supabase.from("organizations").select("id,code,name,is_active,created_at,updated_at").order("name"); return NextResponse.json({ organizations: data ?? [] }, { status: error ? 500 : 200 }); }
+export async function POST(req: Request) { const denied = await authorize(); if (denied) return denied; const body = await req.json().catch(() => ({})); const name = String(body.name ?? "").trim(); const code = String(body.code ?? "").trim().toUpperCase(); if (!name || !code) return NextResponse.json({ error: "Organization name and code are required." }, { status: 400 }); const supabase = await createClient(); const { data, error } = await supabase.from("organizations").insert({ name, code, is_active: body.is_active !== false }).select().single(); if (error) return NextResponse.json({ error: error.code === "23505" ? "Organization code already exists." : error.message }, { status: error.code === "23505" ? 409 : 500 }); return NextResponse.json({ organization: data }, { status: 201 }); }

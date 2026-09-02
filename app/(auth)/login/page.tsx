@@ -82,13 +82,13 @@ export default function LoginPage() {
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error("Sign-in request timed out")), 12000)),
       ]);
 
-      const result = (await response.json().catch(() => ({}))) as { error?: string };
+      const result = (await response.json().catch(() => ({}))) as { error?: string; contextRequired?: boolean };
       if (!response.ok) {
         setError(result.error ?? "Invalid credentials. Check your details and try again.");
         return;
       }
 
-      window.location.assign("/dashboard");
+      window.location.assign(result.contextRequired ? "/select-school" : "/dashboard");
     } catch (err) {
       setError(
         err instanceof Error && err.message === "Sign-in request timed out"

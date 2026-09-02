@@ -62,6 +62,8 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
     profile: "/profile",
     class_teachers: "/academic/class-teachers",
     master: "/master",
+    organization_master: "/organization-master",
+    school_master: "/school-master",
     active_users: "/reports/active-users",
     login_activity: "/reports/login-activity",
     access_logs: "/reports/access-logs",

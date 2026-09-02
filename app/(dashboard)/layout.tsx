@@ -10,6 +10,7 @@ import { SessionSelector } from "./students/session-selector";
 import { getSelectedSessionCookie } from "./session-actions";
 import type { Metadata } from "next";
 import { EnquiryLiveAlerts } from "@/components/enquiry-live-alerts";
+import { getLoginContext } from "@/lib/security/login-context";
 
 export const metadata: Metadata = {
   title: "School administration dashboard",
@@ -35,6 +36,11 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     .single<Profile>();
 
   if (!profile) redirect("/login");
+  const loginContext = await getLoginContext();
+  if (!loginContext && profile.role !== "super_admin") {
+    const { data: staffContext } = await supabase.from("staff").select("organization_id, primary_school_id").eq("id", user.id).maybeSingle();
+    if (staffContext?.organization_id && staffContext.primary_school_id) redirect("/select-school");
+  }
 
   const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }] = await Promise.all([
     supabase
@@ -95,6 +101,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <div className="absolute right-4 top-3 flex flex-col items-end justify-center gap-2 sm:static sm:flex-row sm:items-center sm:gap-3">
             <RoleSwitcher role={profile.role} roles={(roleMemberships ?? []).map((item) => item.role)} />
             <SessionSelector sessions={sessions ?? []} initialSessionId={selectedSessionId} className="hidden sm:flex" />
+            {loginContext && <span className="hidden max-w-52 truncate rounded-full bg-ink-50 px-3 py-1 text-xs font-semibold text-ink-700 lg:inline">{loginContext.schoolId ? "School context active" : "Organization context"}</span>}
           </div>
         </header>
         <main className="min-h-[calc(100vh-4.5rem)] min-w-0 overflow-x-hidden bg-cover bg-fixed bg-center p-4 sm:p-5 lg:p-8" style={{ backgroundImage: "linear-gradient(135deg, rgba(248,249,253,.96), rgba(243,245,250,.9)), url('/about-school.jpg')" }}>{children}</main>

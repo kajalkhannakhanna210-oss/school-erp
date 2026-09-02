@@ -21,6 +21,8 @@ const widgetsByRole: Record<UserRole, string[]> = {
   ],
   staff: ["My Students", "Attendance to Mark Today", "Notices"],
   student: ["Fee Status", "Attendance Summary", "Notices"],
+  organization_admin: ["Organizations", "Schools", "Notices"],
+  school_admin: ["School Overview", "Notices"],
 };
 
 export default async function DashboardPage() {
@@ -271,7 +273,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <h1 className="max-w-full break-words font-sans text-xl font-extrabold leading-tight tracking-tight text-[#071b41] sm:text-3xl">Welcome, {profile?.full_name}</h1>
-      <div className="mt-2 grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         {widgets.map((w, index) => {
           const colors = [
             { accent: "border-l-[#202d4d]", label: "text-[#687386]" },
@@ -281,6 +283,7 @@ export default async function DashboardPage() {
             { accent: "border-l-[#0bb487]", label: "text-[#007b64]" },
           ];
           const color = colors[index % 5];
+          const icons = ["▥", "✓", "−", "⌂", "◎"];
 
           // Map some dashboard widgets to a target href so clicking them navigates
           const hrefMap: Record<string, string | undefined> = {
@@ -293,10 +296,12 @@ export default async function DashboardPage() {
           const href = hrefMap[w] ?? (w.includes("Students") ? "/students" : undefined);
 
           const card = (
-            <Card key={w} className={`min-w-0 min-h-[116px] rounded-2xl border border-[#d9e1ef] border-l-4 bg-white px-4 pb-4 pt-3 shadow-[0_2px_5px_rgba(30,42,74,0.06)] transition-shadow duration-200 hover:shadow-md ${color.accent}`}>
-              <p className={`truncate text-xs font-bold uppercase tracking-wide ${color.label}`}>{w}</p>
-              <p className="mt-2 font-display text-3xl font-extrabold leading-none tracking-tight text-[#172b55]">{values[w] ?? "—"}</p>
-              <p className={`mt-2 text-xs ${color.label}`}>{w === "With Adm No." ? "Assigned" : w === "Without Adm No." ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p>
+            <Card key={w} className={`group min-w-0 min-h-[122px] !p-0 overflow-hidden rounded-2xl border border-[#d9e1ef] border-l-4 bg-white shadow-[0_2px_8px_rgba(30,42,74,0.07)] transition-shadow duration-200 hover:shadow-md ${color.accent}`}>
+              <div className="relative flex h-full gap-3 p-3.5 sm:p-4">
+                <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-50 text-base font-bold ${color.label}`}>{icons[index % icons.length]}</div>
+                <div className="min-w-0 flex-1 pr-7"><p className={`truncate text-[10px] font-bold uppercase tracking-[0.12em] ${color.label}`}>{w}</p><p className="mt-2 font-display text-3xl font-extrabold leading-none tracking-tight text-[#172b55]">{values[w] ?? "—"}</p><p className={`mt-2 truncate text-[11px] ${color.label}`}>{w === "With Adm No." ? "Assigned" : w === "Without Adm No." ? "Pending" : w === "Total Students" ? "Active" : "Summary"}</p></div>
+                <span className={`absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full bg-slate-50 text-sm font-bold ${color.label}`}>{icons[index % icons.length]}</span>
+              </div>
             </Card>
           );
 
