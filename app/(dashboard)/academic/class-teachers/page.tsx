@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePageAccess } from "@/lib/require-role";
 import { AssignForm } from "./assign-form";
 import { getSelectedSessionCookie } from "../../session-actions";
+import { getMasterDataContext } from "@/lib/security/master-data-context";
+import { SchoolContextSelector } from "../school-context-selector";
 
 export default async function ClassTeachersPage({
   searchParams,
@@ -16,6 +18,7 @@ export default async function ClassTeachersPage({
   }
 
   const supabase = await createClient();
+  const context = await getMasterDataContext();
   const [
     { data: classes },
     { data: sections },
@@ -24,14 +27,14 @@ export default async function ClassTeachersPage({
     { data: enrollmentRows, error: enrollmentError },
     { data: assignments, error: assignmentsError },
   ] = await Promise.all([
-    supabase.from("classes").select("*").order("sort_order"),
-    supabase.from("sections").select("*").order("name"),
-    supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
+    context.schoolId ? supabase.from("classes").select("*").eq("school_id", context.schoolId).order("sort_order") : Promise.resolve({ data: [] }),
+    context.schoolId ? supabase.from("sections").select("*").eq("school_id", context.schoolId).order("name") : Promise.resolve({ data: [] }),
+    context.schoolId ? supabase.from("academic_sessions").select("id, name, is_current").eq("school_id", context.schoolId).order("start_date", { ascending: false }) : Promise.resolve({ data: [] }),
     supabase.from("staff").select("id, photo_path, profiles!staff_id_fkey(full_name)").eq("is_active", true),
     supabase.from("staff_enrollments").select("staff_id, session_id").eq("is_active", true),
     supabase
       .from("class_teachers")
-      .select("*, classes(name), sections(name), academic_sessions(name), profiles!class_teachers_staff_id_fkey(full_name)"),
+      .select("*, classes(name), sections(name), academic_sessions(name), profiles!class_teachers_staff_id_fkey(full_name)").eq("school_id", context.schoolId ?? "00000000-0000-0000-0000-000000000000"),
   ]);
 
   if (staffError) {
@@ -77,6 +80,7 @@ export default async function ClassTeachersPage({
 
   return (
     <div className="space-y-6">
+      <SchoolContextSelector schools={context.schools} organizationId={context.organizationId} schoolId={context.schoolId} loginScope={context.loginScope} />
       <div className="rounded-2xl border border-ink-100 bg-white/90 px-4 py-4 shadow-sm sm:px-7 sm:py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

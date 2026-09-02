@@ -22,6 +22,8 @@ import {
   deleteDesignation,
 } from "./actions";
 import { callServerAction } from "@/lib/client-action";
+import { SchoolContextSelector } from "./school-context-selector";
+import type { MasterSchool } from "@/lib/security/master-data-context";
 
 type Session = { id: string; name: string; start_date: string; end_date: string; is_current: boolean };
 type ClassRow = { id: string; name: string; sort_order: number };
@@ -39,12 +41,22 @@ export function AcademicTabs({
   sections,
   departments = [],
   designations = [],
+  schools,
+  organizationId,
+  schoolId,
+  loginScope,
+  showSchoolSelector = true,
 }: {
   sessions: Session[];
   classes: ClassRow[];
   sections: SectionRow[];
   departments?: MasterRow[];
   designations?: MasterRow[];
+  schools: MasterSchool[];
+  organizationId: string | null;
+  schoolId: string | null;
+  loginScope: "school" | "organization" | null;
+  showSchoolSelector?: boolean;
 }) {
   const searchParams = useSearchParams();
   const requestedTab = searchParams?.get("tab");
@@ -57,18 +69,21 @@ export function AcademicTabs({
 
   return (
     <div className="mt-6">
-      <div className="flex gap-2 border-b border-ink-100">
-        {(["sessions", "classes", "sections", "departments", "designations"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium capitalize ${
-              tab === t ? "border-b-2 border-gold text-ink-700" : "text-slate/50"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+      {showSchoolSelector && <SchoolContextSelector schools={schools} organizationId={organizationId} schoolId={schoolId} loginScope={loginScope} />}
+      <div className="overflow-x-auto rounded-xl border border-ink-100 bg-white p-1.5 shadow-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-max gap-1">
+          {(["sessions", "classes", "sections", "departments", "designations"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`min-h-10 rounded-lg px-3.5 py-2 text-xs font-bold capitalize transition sm:px-5 sm:text-sm ${
+                tab === t ? "bg-ink-700 text-white shadow-sm" : "text-slate/65 hover:bg-ink-50 hover:text-ink-700"
+              }`}
+            >
+              {t === "sessions" ? "Academic Sessions" : t}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="mt-6">
         {tab === "sessions" && <SessionsTab sessions={sessions} />}

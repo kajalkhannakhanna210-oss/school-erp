@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { recordServerAction } from "@/lib/security/access-logs";
+import { getMasterDataContext } from "@/lib/security/master-data-context";
+
+async function schoolScope() {
+  const context = await getMasterDataContext();
+  return context.organizationId && context.schoolId ? context : null;
+}
 
 function revalidateAcademicData() {
   revalidatePath("/academic");
@@ -23,14 +29,16 @@ export async function createSession(input: {
   is_current: boolean;
 }) {
   const supabase = await createClient();
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before saving Master Data." };
   const name = input.name.trim();
   if (!name) return { error: "Session name is required" };
-  const { data: duplicate } = await supabase.from("academic_sessions").select("id").ilike("name", name).limit(1).maybeSingle();
+  const { data: duplicate } = await supabase.from("academic_sessions").select("id").ilike("name", name).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).limit(1).maybeSingle();
   if (duplicate) return { error: "An academic session with this name already exists" };
   if (input.is_current) {
-    await supabase.from("academic_sessions").update({ is_current: false }).eq("is_current", true);
+    await supabase.from("academic_sessions").update({ is_current: false }).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_current", true);
   }
-  const { error } = await supabase.from("academic_sessions").insert({ ...input, name });
+  const { error } = await supabase.from("academic_sessions").insert({ ...input, name, organization_id: scope.organizationId, school_id: scope.schoolId });
   if (!error) {
     await recordServerAction({
       action: "Create Academic Session",
@@ -47,7 +55,9 @@ export async function createSession(input: {
 
 export async function deleteSession(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("academic_sessions").delete().eq("id", id);
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
+  const { error } = await supabase.from("academic_sessions").delete().eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Delete Academic Session",
@@ -64,9 +74,11 @@ export async function deleteSession(id: string) {
 
 export async function setCurrentSession(id: string) {
   const supabase = await createClient();
-  const { error: clearError } = await supabase.from("academic_sessions").update({ is_current: false }).eq("is_current", true);
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
+  const { error: clearError } = await supabase.from("academic_sessions").update({ is_current: false }).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_current", true);
   if (clearError) return { error: clearError.message };
-  const { error } = await supabase.from("academic_sessions").update({ is_current: true }).eq("id", id);
+  const { error } = await supabase.from("academic_sessions").update({ is_current: true }).eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Set Current Academic Session",
@@ -152,11 +164,13 @@ export async function deleteDesignation(id: string) {
 
 export async function createClassRow(input: { name: string; sort_order: number }) {
   const supabase = await createClient();
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before saving Master Data." };
   const name = input.name.trim();
   if (!name) return { error: "Class name is required" };
-  const { data: duplicate } = await supabase.from("classes").select("id").ilike("name", name).limit(1).maybeSingle();
+  const { data: duplicate } = await supabase.from("classes").select("id").ilike("name", name).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).limit(1).maybeSingle();
   if (duplicate) return { error: "A class with this name already exists" };
-  const { error } = await supabase.from("classes").insert({ ...input, name });
+  const { error } = await supabase.from("classes").insert({ ...input, name, organization_id: scope.organizationId, school_id: scope.schoolId });
   if (!error) {
     await recordServerAction({
       action: "Create Class",
@@ -173,16 +187,18 @@ export async function createClassRow(input: { name: string; sort_order: number }
 
 export async function updateClassRow(id: string, input: { name: string; sort_order: number }) {
   const supabase = await createClient();
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
   const name = input.name.trim();
   if (!name) return { error: "Class name is required" };
-  const { data: currentClass, error: currentError } = await supabase.from("classes").select("name").eq("id", id).single();
+  const { data: currentClass, error: currentError } = await supabase.from("classes").select("name").eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).single();
   if (currentError || !currentClass) return { error: currentError?.message ?? "Class not found" };
   if (currentClass.name.trim().toLowerCase() !== name.toLowerCase()) {
-    const { data: matchingClasses } = await supabase.from("classes").select("id").ilike("name", name);
+    const { data: matchingClasses } = await supabase.from("classes").select("id").ilike("name", name).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
     const duplicate = matchingClasses?.some((row) => String(row.id) !== String(id));
     if (duplicate) return { error: "A class with this name already exists" };
   }
-  const { error } = await supabase.from("classes").update({ name, sort_order: input.sort_order }).eq("id", id);
+  const { error } = await supabase.from("classes").update({ name, sort_order: input.sort_order }).eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Update Class",
@@ -198,7 +214,9 @@ export async function updateClassRow(id: string, input: { name: string; sort_ord
 
 export async function deleteClassRow(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("classes").delete().eq("id", id);
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
+  const { error } = await supabase.from("classes").delete().eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Delete Class",
@@ -215,7 +233,9 @@ export async function deleteClassRow(id: string) {
 
 export async function createSectionRow(input: { class_id: string; name: string }) {
   const supabase = await createClient();
-  const { error } = await supabase.from("sections").insert(input);
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before saving Master Data." };
+  const { error } = await supabase.from("sections").insert({ ...input, organization_id: scope.organizationId, school_id: scope.schoolId });
   if (!error) {
     await recordServerAction({
       action: "Create Section",
@@ -232,6 +252,8 @@ export async function createSectionRow(input: { class_id: string; name: string }
 
 export async function createSectionsForClasses(input: { class_ids: string[]; name: string }) {
   const supabase = await createClient();
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before saving Master Data." };
   const name = input.name.trim();
   const classIds = [...new Set(input.class_ids)];
   if (!name) return { error: "Section name is required" };
@@ -241,7 +263,9 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
     .from("sections")
     .select("class_id, classes(name)")
     .in("class_id", classIds)
-    .ilike("name", name);
+    .ilike("name", name)
+    .eq("organization_id", scope.organizationId)
+    .eq("school_id", scope.schoolId);
   if (existing?.length) {
     const names = existing
       .map((row) => {
@@ -253,7 +277,7 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
     return { error: `Section "${name}" already exists for: ${names}` };
   }
 
-  const { error } = await supabase.from("sections").insert(classIds.map((class_id) => ({ class_id, name })));
+  const { error } = await supabase.from("sections").insert(classIds.map((class_id) => ({ class_id, name, organization_id: scope.organizationId, school_id: scope.schoolId })));
   if (!error) {
     await recordServerAction({
       action: "Bulk Create Sections",
@@ -270,7 +294,9 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
 
 export async function deleteSectionRow(id: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("sections").delete().eq("id", id);
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
+  const { error } = await supabase.from("sections").delete().eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Delete Section",
@@ -287,9 +313,11 @@ export async function deleteSectionRow(id: string) {
 
 export async function updateSectionsName(ids: string[], name: string) {
   const supabase = await createClient();
+  const scope = await schoolScope();
+  if (!scope) return { error: "Select an authorized school before changing Master Data." };
   const cleanName = name.trim();
   if (!cleanName) return { error: "Section name is required" };
-  const { error } = await supabase.from("sections").update({ name: cleanName }).in("id", ids);
+  const { error } = await supabase.from("sections").update({ name: cleanName }).in("id", ids).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Update Section Name",
@@ -302,4 +330,3 @@ export async function updateSectionsName(ids: string[], name: string) {
   revalidateAcademicData();
   return { error: friendlyAcademicError(error?.message) };
 }
-
