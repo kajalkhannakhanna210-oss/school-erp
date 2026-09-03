@@ -55,7 +55,7 @@ export function AcademicTabs({
   schools: MasterSchool[];
   organizationId: string | null;
   schoolId: string | null;
-  loginScope: "school" | "organization" | null;
+  loginScope: "school" | "organization" | "super_admin" | null;
   showSchoolSelector?: boolean;
 }) {
   const searchParams = useSearchParams();

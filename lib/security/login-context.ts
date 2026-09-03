@@ -2,8 +2,8 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 export const LOGIN_CONTEXT_COOKIE = "erp_login_context";
-export type LoginScope = "school" | "organization";
-export type LoginContext = { userId: string; organizationId: string; schoolId: string | null; loginScope: LoginScope };
+export type LoginScope = "school" | "organization" | "super_admin";
+export type LoginContext = { userId: string; organizationId: string | null; schoolId: string | null; loginScope: LoginScope };
 
 function secret() {
   return process.env.SUPER_ADMIN_SESSION_SECRET ?? process.env.NEXTAUTH_SECRET ?? "";
@@ -26,7 +26,7 @@ export function parseLoginContext(value: string | undefined): LoginContext | nul
   if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
   try {
     const parsed = JSON.parse(decode(payload)) as LoginContext;
-    return parsed?.userId && parsed?.organizationId && (parsed.schoolId === null || typeof parsed.schoolId === "string") && (parsed.loginScope === "school" || parsed.loginScope === "organization") ? parsed : null;
+    return parsed?.userId && (parsed.organizationId === null || typeof parsed.organizationId === "string") && (parsed.schoolId === null || typeof parsed.schoolId === "string") && ((parsed.loginScope === "super_admin" && parsed.organizationId === null && parsed.schoolId === null) || (parsed.loginScope === "school" && parsed.organizationId && parsed.schoolId) || (parsed.loginScope === "organization" && parsed.organizationId && parsed.schoolId === null)) ? parsed : null;
   } catch { return null; }
 }
 

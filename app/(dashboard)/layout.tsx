@@ -37,6 +37,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   if (!profile) redirect("/login");
   const loginContext = await getLoginContext();
+  const profileType = (profile as Profile & { user_type?: string; organization_id?: string | null; school_id?: string | null }).user_type
+    ?? (profile.role === "super_admin" ? "SUPER_ADMIN" : (profile as any).school_id ? "SCHOOL_USER" : (profile as any).organization_id ? "ORGANISATION_USER" : null);
+  if (profileType === "ORGANISATION_USER" && (!loginContext || loginContext.loginScope !== "organization")) redirect("/organisation");
+  if (profileType === "SCHOOL_USER" && (!loginContext || loginContext.loginScope !== "school")) redirect("/select-school");
   if (!loginContext && profile.role !== "super_admin") {
     const { data: staffContext } = await supabase.from("staff").select("organization_id, primary_school_id").eq("id", user.id).maybeSingle();
     if (staffContext?.organization_id && staffContext.primary_school_id) redirect("/select-school");

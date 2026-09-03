@@ -6,6 +6,8 @@ import { MobileNavigation } from "./mobile-navigation";
 import { ScrollToTop } from "./scroll-to-top";
 import { getSiteConfig } from "@/lib/website/config";
 import { Design2SiteChrome } from "@/components/website/templates/design-2/site-chrome";
+import { getRequestTenantPrefix } from "@/lib/website/tenant-resolver";
+import { withTenantPrefix } from "@/lib/website/tenant-path";
 
 const NAV_LINKS = [
   { href: "/gallery", label: "Gallery" },
@@ -44,6 +46,8 @@ export const dynamic = "force-dynamic";
 export default async function SiteLayout({ children }: { children: ReactNode }) {
   const supabase = createPublicClient();
   const siteConfig = await getSiteConfig();
+  const tenantPrefix = await getRequestTenantPrefix();
+  const siteHref = (href: string) => tenantPrefix ? (href === "/" ? `/${tenantPrefix}` : withTenantPrefix(href, `/${tenantPrefix}/current`)) : href;
 
   let settingsRows: { key: string; value: string }[] = [];
   try {
@@ -76,6 +80,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
         email={contactEmail}
         phone={contactPhone}
         address={contactAddress}
+        href={siteHref}
       >
         {children}
       </Design2SiteChrome>
@@ -95,7 +100,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
           </div>
         </div>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:py-5">
-          <Link href="/" className="flex items-center gap-3" aria-label={`${schoolName} home`}>
+          <Link href={siteHref("/")} className="flex items-center gap-3" aria-label={`${schoolName} home`}>
             <span className="grid h-11 w-11 place-items-center rounded-full border-2 border-gold bg-ink-900 font-display text-base tracking-wide text-gold shadow-sm">{schoolInitials}</span>
             <span>
               <span className="block max-w-[11rem] truncate font-display text-base leading-none text-ink-700 sm:max-w-none sm:text-xl">{schoolName}</span>
@@ -103,17 +108,17 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
             </span>
           </Link>
           <nav className="hidden items-center gap-5 text-sm font-medium text-slate lg:flex">
-            <NavMenu label="Organisation" links={ORGANISATION_LINKS} />
-            <NavMenu label="Information" links={INFORMATION_LINKS} />
+            <NavMenu label="Organisation" links={ORGANISATION_LINKS.map((link) => ({ ...link, href: siteHref(link.href) }))} />
+            <NavMenu label="Information" links={INFORMATION_LINKS.map((link) => ({ ...link, href: siteHref(link.href) }))} />
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="relative py-2 transition hover:text-gold-600 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-gold after:transition-transform hover:after:scale-x-100">
+              <Link key={l.href} href={siteHref(l.href)} className="relative py-2 transition hover:text-gold-600 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:scale-x-0 after:bg-gold after:transition-transform hover:after:scale-x-100">
                 {l.label}
               </Link>
             ))}
           </nav>
-          <MobileNavigation organisationLinks={ORGANISATION_LINKS} informationLinks={INFORMATION_LINKS} navLinks={NAV_LINKS} />
+          <MobileNavigation organisationLinks={ORGANISATION_LINKS.map((link) => ({ ...link, href: siteHref(link.href) }))} informationLinks={INFORMATION_LINKS.map((link) => ({ ...link, href: siteHref(link.href) }))} navLinks={NAV_LINKS.map((link) => ({ ...link, href: siteHref(link.href) }))} />
           <Link
-            href="/login"
+            href={siteHref("/login")}
             className="hidden rounded-md bg-ink-700 px-4 py-2.5 text-sm font-semibold text-paper shadow-sm transition hover:bg-ink-600 hover:shadow-md sm:inline-flex"
           >
             Login
@@ -145,7 +150,7 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
               <p className="font-mono text-xs uppercase tracking-[0.18em] text-gold">Explore</p>
               <nav className="mt-4 flex flex-col gap-2 text-sm text-paper/70">
                 {FOOTER_LINKS.map((link) => (
-                  <Link key={link.href} href={link.href} className="w-fit hover:text-gold">
+                  <Link key={link.href} href={siteHref(link.href)} className="w-fit hover:text-gold">
                     {link.label}
                   </Link>
                 ))}

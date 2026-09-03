@@ -17,6 +17,11 @@ export function sanitizeStorageFileName(fileName: string) {
 export function validateImageUpload(file: File) {
   if (!imageTypes.has(file.type)) return "Upload a JPG, PNG, or WebP image.";
   if (file.size > maxImageUploadBytes) return "Image uploads must be 5 MB or smaller.";
+  if (file.size === 0) return "The image file is empty.";
+  if (file.name.length > 160 || /[\u0000-\u001f\u007f]/.test(file.name)) return "The image filename is invalid.";
+  const extension = file.name.toLowerCase().split(".").pop();
+  const matchesType = file.type === "image/jpeg" ? extension === "jpg" || extension === "jpeg" : file.type === "image/png" ? extension === "png" : extension === "webp";
+  if (!matchesType) return "The image extension does not match its file type.";
   return null;
 }
 

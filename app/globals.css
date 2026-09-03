@@ -345,6 +345,47 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
   animation-play-state: paused;
 }
 
+/* Keep the school logo picker compact beside its preview. */
+@media (min-width: 640px) {
+  input[name="logo_file"] {
+    max-width: 16rem;
+  }
+
+  div:has(> input[name="logo_file"]) {
+    flex: 0 0 16rem !important;
+    width: 16rem;
+  }
+
+  div:has(> div > div > input[name="logo_file"]) {
+    flex-wrap: nowrap;
+  }
+
+  div:has(> button[aria-label="Open logo preview"]) {
+    transform: translateY(-0.5rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Keep the logo picker beside Established Year in the academic row. */
+  div:has(> div > div > input[name="logo_file"]) {
+    grid-column: span 2 / span 2 !important;
+  }
+
+  /* Explicitly target the School Logo grid item itself. */
+  div:has(> label + div > div > input[name="logo_file"]) {
+    grid-column: 2 / span 2 !important;
+    grid-row: 3 !important;
+  }
+
+  div:has(> div > input[name="logo_file"]) {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    min-height: 5rem;
+  }
+
+}
+
 /* Reduced-motion: disable all animations, wrap marquee */
 @media (prefers-reduced-motion: reduce) {
   .confetti-fall,

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button, Input, Label } from "@/components/ui";
+import { firstPathSegment } from "@/lib/website/tenant-path";
 
 const roleIds = ["student", "parent", "staff"] as const;
 type RoleId = (typeof roleIds)[number];
@@ -13,7 +14,10 @@ function isRoleId(value: unknown): value is RoleId {
 
 export default function LoginPage() {
   const pathname = usePathname();
-  const isAdminLogin = pathname === "/admin/login";
+  const isSuperAdminLogin = pathname === "/superadmin/login" || pathname === "/admin/login";
+  const isOrganisationLogin = pathname === "/organisation/login" || pathname === "/org/login";
+  const loginMode = isSuperAdminLogin ? "SUPER_ADMIN" : isOrganisationLogin ? "ORGANISATION" : "SCHOOL";
+  const showRoleTabs = loginMode === "SCHOOL";
 
   const [activeTab, setActiveTab] = useState<RoleId>("student");
   const [identifier, setIdentifier] = useState("");
@@ -36,7 +40,7 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    if (isAdminLogin) return;
+    if (isSuperAdminLogin || isOrganisationLogin) return;
 
     let cancelled = false;
     async function loadRememberedDevice() {
@@ -60,7 +64,7 @@ export default function LoginPage() {
     return () => {
       cancelled = true;
     };
-  }, [isAdminLogin]);
+  }, [isSuperAdminLogin, isOrganisationLogin]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,7 +79,8 @@ export default function LoginPage() {
             identifier,
             password,
             role: activeTab,
-            adminLogin: isAdminLogin,
+            adminLogin: isSuperAdminLogin,
+            loginMode,
             remember: rememberMe,
           }),
         }),
@@ -88,7 +93,8 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.assign(result.contextRequired ? "/select-school" : "/dashboard");
+      const tenantPrefix = isSuperAdminLogin || isOrganisationLogin ? null : firstPathSegment(pathname);
+      window.location.assign(isSuperAdminLogin ? "/superadmin" : isOrganisationLogin ? "/organisation" : tenantPrefix ? `/${tenantPrefix}/dashboard` : "/dashboard");
     } catch (err) {
       setError(
         err instanceof Error && err.message === "Sign-in request timed out"
@@ -102,41 +108,40 @@ export default function LoginPage() {
 
   return (
     <div className="px-1 py-0 sm:px-0 sm:py-2 lg:py-4">
-      {/* Role Selection Segmented Control Tabs */}
-      <div className="mb-4 sm:mb-6">
-        <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200/80 bg-slate-100 p-1 shadow-inner shadow-slate-200/70">
-          {roleTabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  setError(null);
-                }}
-                className={`h-9 rounded-xl text-center text-sm font-bold transition-all duration-200 sm:h-11 ${
-                  isActive
-                    ? "text-white bg-slate-950 shadow-md shadow-slate-950/12"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-white/70"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
+      {showRoleTabs && (
+        <div className="mb-4 sm:mb-6">
+          <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200/80 bg-slate-100 p-1 shadow-inner shadow-slate-200/70">
+            {roleTabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setError(null);
+                  }}
+                  className={`h-9 rounded-xl text-center text-sm font-bold transition-all duration-200 sm:h-11 ${
+                    isActive
+                      ? "text-white bg-slate-950 shadow-md shadow-slate-950/12"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-white/70"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header Info */}
       <div className="mb-4 sm:mb-6">
         <h1 className="font-display text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
-          {isAdminLogin ? "Admin Login" : "Login"}
+          {isSuperAdminLogin ? "Super Admin Login" : isOrganisationLogin ? "Organisation Login" : "School Login"}
         </h1>
         <p className="mt-1 text-sm leading-relaxed text-slate-500">
-          {isAdminLogin
-            ? "Enter Super Admin credentials to manage system settings & permissions."
-            : `Enter your credentials issued by the school administrative office.`}
+          {isSuperAdminLogin ? "Platform access for organisations, schools, subscriptions, and settings." : isOrganisationLogin ? "Sign in to manage your organisation and its schools." : "Sign in to the school workspace issued by your school administrator."}
         </p>
       </div>
 
@@ -145,7 +150,7 @@ export default function LoginPage() {
         {/* Email or Phone Input */}
         <div>
           <Label htmlFor="identifier" className="mb-1.5 block text-xs font-bold text-slate-500 sm:mb-2">
-            Email or Mobile Number
+            Username, email, or mobile number
           </Label>
           <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
@@ -158,7 +163,7 @@ export default function LoginPage() {
               name="identifier"
               autoComplete="username"
               required
-              placeholder={rolePlaceholders[activeTab] || "name@school.edu.in"}
+              placeholder={showRoleTabs ? rolePlaceholders[activeTab] : "username or email"}
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="mt-0 h-12 min-h-12 rounded-2xl border-slate-200 bg-slate-50/90 pl-11 text-base text-slate-950 shadow-sm shadow-slate-200/50 focus:border-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/10 sm:text-sm"

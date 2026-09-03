@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toaster";
 import type { MasterSchool } from "@/lib/security/master-data-context";
 
-export function SchoolContextSelector({ schools, organizationId, schoolId, loginScope, compact = false }: { schools: MasterSchool[]; organizationId: string | null; schoolId: string | null; loginScope: "school" | "organization" | null; compact?: boolean }) {
+export function SchoolContextSelector({ schools, organizationId, schoolId, loginScope, compact = false }: { schools: MasterSchool[]; organizationId: string | null; schoolId: string | null; loginScope: "school" | "organization" | "super_admin" | null; compact?: boolean }) {
   const router = useRouter();
   const { push } = useToast();
   const [pending, startTransition] = useTransition();

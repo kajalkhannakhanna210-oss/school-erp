@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { createClient } from "@/lib/supabase/client";
+import { firstPathSegment } from "@/lib/website/tenant-path";
 
 export function SignOutButton({ collapsed = false }: { collapsed?: boolean }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +20,8 @@ export function SignOutButton({ collapsed = false }: { collapsed?: boolean }) {
       await fetch("/api/auth/login-audit", { method: "DELETE" });
       await fetch("/api/auth/clear-context", { method: "POST" });
       await supabase.auth.signOut();
-      router.push("/login");
+      const tenantPrefix = firstPathSegment(pathname);
+      router.push(tenantPrefix ? `/${tenantPrefix}/login` : "/login");
       router.refresh();
     } catch (error) {
       console.error("Logout error:", error);
