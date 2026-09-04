@@ -18,6 +18,159 @@
   --theme-page: #f3f5fa;
 }
 
+/* The school name is the page-header identity; hide the redundant context label. */
+.school-details-page > section:first-child > div:first-child > div:first-child > div:nth-child(2) > p:first-child {
+  display: none;
+}
+
+/* Keep the school identity header and its dashboard metrics as separate cards. */
+.school-details-page > section:first-child {
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.school-details-page > section:first-child > div:first-child {
+  overflow: hidden;
+  border: 1px solid #e1e6f0;
+  border-left: 4px solid #f7c200;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgb(30 42 74 / 0.06);
+}
+
+.school-details-page > section:first-child > div:nth-child(2) {
+  margin-top: 0.5rem;
+  border: 1px solid #e1e6f0;
+  border-radius: 1rem;
+  background: rgb(248 249 253 / 0.8);
+  padding: 0.375rem;
+}
+
+.school-details-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.school-details-page > section:first-child { order: 1; }
+.school-details-page > .grid { order: 2; }
+.school-details-page > .additional-school-information-card { order: 3; }
+.school-details-page > .address-details-card { order: 4; }
+.school-details-page > .academic-configuration-card { order: 5; }
+.school-details-page > .rounded-2xl.border:nth-child(3) { order: 6; }
+.school-details-page > .grid > .rounded-2xl.border:nth-child(2) { display: none; }
+.school-details-page > .grid > .rounded-2xl.border:nth-child(1) { display: none; }
+.school-details-page > .grid { display: none; }
+.school-details-page > .complete-basic-information-card { order: 2; }
+.school-details-page > .complete-contact-information-card { order: 3; }
+.school-details-page > .additional-school-information-card { order: 4; }
+.school-details-page > .address-details-card { order: 5; }
+.school-details-page > .academic-configuration-card { order: 4; }
+.school-details-page > .rounded-2xl.border:nth-child(3) { order: 6; }
+.school-details-page > :nth-child(8) { order: 4; }
+.school-details-page > :nth-child(3) { order: 5; }
+
+.school-details-page > .rounded-2xl.border:nth-child(3) > div:first-child button {
+  border: 1px solid rgb(255 255 255 / 0.75);
+  background: #ffffff;
+  color: #24345f;
+}
+
+.school-details-page > .rounded-2xl.border:nth-child(3) > div:first-child button:hover {
+  background: #eef3ff;
+}
+
+.school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(7),
+.school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(8) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .school-details-page {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .school-details-page > * {
+    grid-column: 1 / -1;
+    margin-top: 0 !important;
+  }
+
+  .school-details-page > .additional-school-information-card,
+  .school-details-page > .academic-configuration-card,
+  .school-details-page > .complete-basic-information-card,
+  .school-details-page > .complete-contact-information-card,
+  .school-details-page > .address-details-card,
+  .school-details-page > :nth-child(3),
+  .school-details-page > :nth-child(8) {
+    grid-column: span 1;
+  }
+
+  .school-details-page > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .school-details-page > .address-details-card,
+  .school-details-page > :nth-child(3) {
+    align-self: start;
+  }
+
+  .school-details-page > :nth-child(3) > div:nth-child(2) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .school-details-page > .address-details-card > div:nth-child(2) > :nth-child(1),
+  .school-details-page > .address-details-card > div:nth-child(2) > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The detail-card thumbnail sizing must not affect the enlarged logo modal. */
+.school-details-page .complete-basic-information-card [role="dialog"] img {
+  height: 100%;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .school-details-page > .complete-basic-information-card > div:nth-child(2),
+  .school-details-page > .complete-contact-information-card > div:nth-child(2) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(7),
+  .school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(8) {
+    grid-column: 1 / -1;
+  }
+
+  .school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(5),
+  .school-details-page > .complete-contact-information-card > div:nth-child(2) > :nth-child(6) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .school-form-sections {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .school-form-sections > * {
+    grid-column: 1 / -1;
+    margin-top: 0 !important;
+  }
+
+  /* The generated order is: setup, location, basic, contact, academic,
+     system, status, actions. */
+  .school-form-sections > :nth-child(5),
+  .school-form-sections > :nth-child(6) {
+    grid-column: span 1;
+  }
+}
+
 :root[data-font-size="small"] { font-size: 14px; }
 :root[data-font-size="large"] { font-size: 18px; }
 :root[data-theme="ocean"] { --theme-page: #f0f4fb; }
@@ -1126,4 +1279,78 @@ input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity
   }
   .birthday-ring-today { box-shadow: 0 0 0 3px #F7C200; }
   .birthday-ring-soon  { box-shadow: 0 0 0 3px #a78bfa; }
+}
+
+/* Keep the school overview information-dense so the complete record is
+   easier to scan without excessive vertical scrolling. */
+.school-details-page {
+  gap: 0.75rem;
+}
+
+.school-details-page > section:first-child > div:first-child > div:first-child {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.school-details-page > section:first-child > div:nth-child(2) {
+  padding: 0.25rem;
+}
+
+.school-details-page > section:first-child > div:nth-child(2) > div {
+  min-height: 88px;
+  padding: 0.625rem 0.75rem;
+}
+
+.school-details-page > section:first-child > div:nth-child(2) > div > div:first-child {
+  height: 2.25rem;
+  width: 2.25rem;
+}
+
+.school-details-page > section:first-child > div:nth-child(2) > div > div:last-child {
+  top: 0.625rem;
+  right: 0.75rem;
+  height: 2rem;
+  width: 2rem;
+}
+
+.school-details-page > .complete-basic-information-card > div:nth-child(2),
+.school-details-page > .complete-contact-information-card > div:nth-child(2),
+.school-details-page > .academic-configuration-card > div:nth-child(2),
+.school-details-page > .additional-school-information-card > div:nth-child(2),
+.school-details-page > :nth-child(3) > div:nth-child(2) {
+  gap: 0.625rem;
+  padding: 0.75rem;
+}
+
+.school-details-page .rounded-xl.border-slate-200\/80 {
+  padding: 0.5rem 0.625rem;
+}
+
+.school-details-page .rounded-xl.border-slate-200\/80 > p.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.school-details-page .complete-basic-information-card img {
+  margin-top: 0.375rem;
+  height: 4rem;
+  width: 4rem;
+}
+
+.school-details-page > * > div:first-child {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+}
+
+@media (min-width: 768px) {
+  .school-details-page {
+    gap: 0.75rem;
+  }
+
+  .school-details-page > .complete-basic-information-card > div:nth-child(2),
+  .school-details-page > .complete-contact-information-card > div:nth-child(2),
+  .school-details-page > .academic-configuration-card > div:nth-child(2),
+  .school-details-page > .additional-school-information-card > div:nth-child(2),
+  .school-details-page > :nth-child(3) > div:nth-child(2) {
+    padding: 0.875rem;
+  }
 }

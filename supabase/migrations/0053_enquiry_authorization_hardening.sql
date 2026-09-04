@@ -31,7 +31,7 @@ CREATE POLICY enquiries_insert_authorized ON public.enquiries FOR INSERT WITH CH
       SELECT 1 FROM public.staff_module_scopes s
       WHERE s.staff_id = auth.uid() AND s.module_key = 'admission_enquiry'
         AND (s.action_key IN ('create', 'ALL') OR s.action_key IS NULL)
-        AND (s.scope_type = 'ALL' OR (s.scope_type = 'CLASS' AND s.resource_id::text = NEW.class_id::text))
+        AND (s.scope_type = 'ALL' OR (s.scope_type = 'CLASS' AND s.resource_id::text = class_id::text))
     )
   )
 );
@@ -78,7 +78,7 @@ CREATE POLICY enquiry_followups_insert_authorized ON public.enquiry_followups FO
   public.is_super_admin() OR EXISTS (
     SELECT 1 FROM public.enquiries e
     JOIN public.staff_module_scopes s ON s.staff_id = auth.uid() AND s.module_key = 'admission_enquiry'
-    WHERE e.id = NEW.enquiry_id
+    WHERE e.id = enquiry_id
       AND EXISTS (SELECT 1 FROM public.staff_permissions p WHERE p.staff_id = auth.uid() AND p.permission_key = 'admission_enquiry.followup')
       AND (s.action_key IN ('followup', 'ALL') OR s.action_key IS NULL)
       AND (s.scope_type = 'ALL' OR (s.scope_type = 'CLASS' AND s.resource_id::text = e.class_id::text)
@@ -106,7 +106,7 @@ CREATE POLICY enquiry_assignment_select_authorized ON public.enquiry_assignment_
 );
 CREATE POLICY enquiry_assignment_insert_authorized ON public.enquiry_assignment_history FOR INSERT WITH CHECK (public.is_super_admin() OR EXISTS (
   SELECT 1 FROM public.enquiries e JOIN public.staff_module_scopes s ON s.staff_id = auth.uid() AND s.module_key = 'admission_enquiry'
-  WHERE e.id = NEW.enquiry_id AND EXISTS (SELECT 1 FROM public.staff_permissions p WHERE p.staff_id = auth.uid() AND p.permission_key = 'admission_enquiry.assign')
+  WHERE e.id = enquiry_id AND EXISTS (SELECT 1 FROM public.staff_permissions p WHERE p.staff_id = auth.uid() AND p.permission_key = 'admission_enquiry.assign')
     AND (s.action_key IN ('assign', 'ALL') OR s.action_key IS NULL)
     AND (s.scope_type = 'ALL' OR (s.scope_type = 'CLASS' AND s.resource_id::text = e.class_id::text) OR (s.scope_type = 'OWN_ASSIGNED' AND e.assigned_staff_id = auth.uid()))
 ));
@@ -123,7 +123,7 @@ CREATE POLICY enquiry_audit_select_authorized ON public.enquiry_audit_logs FOR S
 );
 CREATE POLICY enquiry_audit_insert_authorized ON public.enquiry_audit_logs FOR INSERT WITH CHECK (public.is_super_admin() OR EXISTS (
   SELECT 1 FROM public.enquiries e JOIN public.staff_module_scopes s ON s.staff_id = auth.uid() AND s.module_key = 'admission_enquiry'
-  WHERE e.id = NEW.enquiry_id AND EXISTS (SELECT 1 FROM public.staff_permissions p WHERE p.staff_id = auth.uid() AND p.permission_key = 'admission_enquiry.view')
+  WHERE e.id = enquiry_id AND EXISTS (SELECT 1 FROM public.staff_permissions p WHERE p.staff_id = auth.uid() AND p.permission_key = 'admission_enquiry.view')
     AND (s.action_key IN ('view', 'ALL') OR s.action_key IS NULL)
     AND (s.scope_type = 'ALL' OR (s.scope_type = 'CLASS' AND s.resource_id::text = e.class_id::text) OR (s.scope_type = 'OWN_ASSIGNED' AND e.assigned_staff_id = auth.uid()))
 ));

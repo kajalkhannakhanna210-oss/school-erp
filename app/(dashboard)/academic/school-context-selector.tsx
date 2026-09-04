@@ -19,7 +19,7 @@ export function SchoolContextSelector({ schools, organizationId, schoolId, login
       const response = await fetch("/api/auth/select-context", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ organizationId: school.organization_id, schoolId: school.id }) });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) { push(body?.error ?? "Could not change school context.", "error"); setValue(schoolId ?? ""); return; }
-      push(`School context changed to ${school.name}`);
+      push(`School context changed to ${school.name}${school.code ? ` (${school.code})` : ""}`);
       router.refresh();
     });
   }

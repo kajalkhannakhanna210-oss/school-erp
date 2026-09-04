@@ -1,4 +1,13 @@
--- Migration 0049: Admission Enquiry Management Module
+-- Migration 0049: Consolidated school management and admission enquiry changes.
+
+-- Student archival fields originally kept in a second 0049 migration.
+alter table public.students
+  add column if not exists inactive_date date,
+  add column if not exists inactive_reason text,
+  add column if not exists inactive_by uuid references public.profiles(id);
+
+create index if not exists idx_students_inactive_date on public.students (inactive_date);
+
 -- Creates enquiries, followups, assignment history, audit logs, counters, and RLS policies.
 
 -- 1. Counters table for unique enquiry numbers (ENQ20260001)
@@ -124,6 +133,17 @@ alter table public.enquiry_audit_logs enable row level security;
 alter table public.enquiry_counters enable row level security;
 
 -- 8. RLS Policies
+drop policy if exists "enquiries_select" on public.enquiries;
+drop policy if exists "enquiries_all_super_admin" on public.enquiries;
+drop policy if exists "enquiries_insert_staff" on public.enquiries;
+drop policy if exists "enquiries_update_staff" on public.enquiries;
+drop policy if exists "enquiry_followups_select" on public.enquiry_followups;
+drop policy if exists "enquiry_followups_all_staff" on public.enquiry_followups;
+drop policy if exists "enquiry_assignment_select" on public.enquiry_assignment_history;
+drop policy if exists "enquiry_assignment_all_staff" on public.enquiry_assignment_history;
+drop policy if exists "enquiry_audit_select" on public.enquiry_audit_logs;
+drop policy if exists "enquiry_audit_all_staff" on public.enquiry_audit_logs;
+drop policy if exists "enquiry_counters_all" on public.enquiry_counters;
 create policy "enquiries_select" on public.enquiries for select using (auth.uid() is not null);
 create policy "enquiries_all_super_admin" on public.enquiries for all using (public.is_super_admin()) with check (public.is_super_admin());
 create policy "enquiries_insert_staff" on public.enquiries for insert with check (auth.uid() is not null);

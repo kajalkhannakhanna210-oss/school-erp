@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -34,6 +35,140 @@ type MasterRow = { id: string; name: string };
 function formatSessionDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+}
+
+const calendarMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const calendarWeekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
+function toDateParts(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (match) return { year: Number(match[1]), month: Number(match[2]) - 1, day: Number(match[3]) };
+  const today = new Date();
+  return { year: today.getFullYear(), month: today.getMonth(), day: today.getDate() };
+}
+
+function toIsoDate(year: number, month: number, day: number) {
+  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function CalendarDatePicker({
+  id,
+  label,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 320 });
+  const selected = toDateParts(value);
+  const [view, setView] = useState({ year: selected.year, month: selected.month });
+  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+  const firstWeekday = new Date(view.year, view.month, 1).getDay();
+  const today = new Date();
+  const todayValue = toIsoDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+  useEffect(() => {
+    function closeOnOutsideClick(event: MouseEvent) {
+      const target = event.target as Node;
+      if (!wrapperRef.current?.contains(target) && !calendarRef.current?.contains(target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+
+  function chooseDate(day: number) {
+    onChange(toIsoDate(view.year, view.month, day));
+  }
+
+  function chooseToday() {
+    onChange(todayValue);
+    setView({ year: today.getFullYear(), month: today.getMonth() });
+  }
+
+  function toggleCalendar() {
+    const next = toDateParts(value);
+    setView({ year: next.year, month: next.month });
+    if (!open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const estimatedHeight = 390;
+      const width = Math.min(Math.max(rect.width, 320), window.innerWidth - 16);
+      const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+      const top = Math.min(rect.bottom + 8, Math.max(8, window.innerHeight - estimatedHeight - 8));
+      setPosition({ top, left, width });
+    }
+    setOpen((current) => !current);
+  }
+
+  return (
+    <div ref={wrapperRef} className="relative">
+      <Label htmlFor={`${id}-trigger`}>{label}</Label>
+      <button
+        id={`${id}-trigger`}
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={toggleCalendar}
+        className={`flex h-11 w-full items-center justify-between rounded-xl border bg-white px-3 text-left text-sm shadow-sm transition focus:outline-none focus:ring-2 focus:ring-ink-200 ${value ? "border-ink-200 text-ink-700" : "border-ink-100 text-slate/45"}`}
+      >
+        <span>{value ? formatSessionDate(value) : "Select date"}</span>
+        <span aria-hidden="true" className="text-base text-ink-700">⌄</span>
+      </button>
+      {open && typeof document !== "undefined" && createPortal(
+        <div ref={calendarRef} role="dialog" aria-label={`${label} calendar`} style={{ top: position.top, left: position.left, width: position.width }} className="fixed z-[100] max-h-[calc(100vh-1rem)] min-w-[19rem] overflow-y-auto rounded-2xl border border-ink-100 bg-white p-4 shadow-xl">
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              aria-label="Month"
+              value={view.month}
+              onChange={(event) => setView({ ...view, month: Number(event.target.value) })}
+              className="h-12 rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink-700 outline-none focus:border-ink-300"
+            >
+              {calendarMonths.map((month, index) => <option key={month} value={index}>{month}</option>)}
+            </select>
+            <select
+              aria-label="Year"
+              value={view.year}
+              onChange={(event) => setView({ ...view, year: Number(event.target.value) })}
+              className="h-12 rounded-xl border border-ink-100 bg-white px-3 text-sm font-semibold text-ink-700 outline-none focus:border-ink-300"
+            >
+              {Array.from({ length: 21 }, (_, index) => today.getFullYear() - 10 + index).map((year) => <option key={year} value={year}>{year}</option>)}
+            </select>
+          </div>
+          <div className="mt-5 grid grid-cols-7 gap-y-1 text-center text-xs font-medium text-slate/55">
+            {calendarWeekdays.map((weekday) => <span key={weekday} className="py-1">{weekday}</span>)}
+            {Array.from({ length: firstWeekday }, (_, index) => <span key={`empty-${index}`} />)}
+            {Array.from({ length: daysInMonth }, (_, index) => {
+              const day = index + 1;
+              const dateValue = toIsoDate(view.year, view.month, day);
+              const isSelected = value === dateValue;
+              return (
+                <button
+                  key={dateValue}
+                  type="button"
+                  onClick={() => chooseDate(day)}
+                  className={`mx-auto flex h-9 w-9 items-center justify-center rounded-lg text-sm transition ${isSelected ? "bg-ink-700 font-bold text-white" : "text-ink-700 hover:bg-ink-50"}`}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t border-ink-100 pt-3">
+            <button type="button" onClick={chooseToday} className="text-sm text-slate hover:text-ink-700">Today</button>
+            <button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-ink-100 px-3 py-2 text-sm font-medium text-ink-700 shadow-sm hover:bg-ink-50">Done</button>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </div>
+  );
 }
 
 export function AcademicTabs({
@@ -107,6 +242,14 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
+    if (!form.start_date) {
+      push("Start date is required", "error");
+      return;
+    }
+    if (!form.end_date) {
+      push("End date is required", "error");
+      return;
+    }
     startTransition(async () => {
       const res = await callServerAction(() => createSession(form));
       const error = res?.error ?? (res === undefined ? "No response from server" : null);
@@ -139,7 +282,7 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       <Card>
-        <h2 className="font-display text-lg text-ink-700">New session</h2>
+        <h2 className="-mx-4 -mt-4 mb-4 rounded-t-xl bg-ink-700 px-4 py-3 font-display text-lg text-white sm:-mx-6 sm:-mt-6 sm:px-6">New session</h2>
         <form onSubmit={handleCreate} className="mt-4 space-y-4">
           <div>
             <Label htmlFor="s-name">Name</Label>
@@ -152,24 +295,10 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
             />
           </div>
           <div>
-            <Label htmlFor="s-start">Start date</Label>
-            <Input
-              id="s-start"
-              type="date"
-              required
-              value={form.start_date}
-              onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-            />
+            <CalendarDatePicker id="s-start" label="Start date" value={form.start_date} onChange={(value) => setForm({ ...form, start_date: value })} />
           </div>
           <div>
-            <Label htmlFor="s-end">End date</Label>
-            <Input
-              id="s-end"
-              type="date"
-              required
-              value={form.end_date}
-              onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-            />
+            <CalendarDatePicker id="s-end" label="End date" value={form.end_date} onChange={(value) => setForm({ ...form, end_date: value })} />
           </div>
           <label className="flex items-center gap-2 text-sm text-slate">
             <input
@@ -186,12 +315,12 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
       </Card>
       <Card>
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
-              <th className="pb-2">Name</th>
-              <th className="pb-2">Dates</th>
-              <th className="pb-2">Status</th>
-              <th className="pb-2"></th>
+          <thead className="bg-ink-700 text-white">
+            <tr className="border-b border-white/20 text-left text-xs uppercase tracking-wide text-white/80">
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Dates</th>
+              <th className="px-3 py-3">Status</th>
+              <th className="px-3 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -232,7 +361,7 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
 
 function NamedMasterTab({ title, rows, create, remove }: { title: string; rows: MasterRow[]; create: (name: string) => Promise<{ error: string | null }>; remove: (id: string) => Promise<{ error: string | null }> }) {
   const { push } = useToast(); const [name, setName] = useState(""); const [pending, startTransition] = useTransition();
-  return <div className="grid gap-6 lg:grid-cols-[320px_1fr]"><Card><h2 className="font-display text-lg text-ink-700">New {title.toLowerCase()}</h2><form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); startTransition(async () => { const { error } = await create(name); if (error) push(error, "error"); else { setName(""); push(`${title} created`); } }); }}><div><Label htmlFor={`new-${title}`}>Name</Label><Input id={`new-${title}`} required value={name} onChange={(e) => setName(e.target.value)} /></div><Button className="w-full" disabled={pending}>Add {title}</Button></form></Card><Card><table className="w-full text-sm"><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-3">{row.name}</td><td className="py-3 text-right"><Button variant="ghost" disabled={pending} onClick={() => startTransition(async () => { const { error } = await remove(row.id); if (error) push(error, "error"); else push(`${title} deleted`); })}>Delete</Button></td></tr>)}{rows.length === 0 && <tr><td className="py-6 text-center text-slate/50">No {title.toLowerCase()}s yet.</td></tr>}</tbody></table></Card></div>;
+  return <div className="grid gap-6 lg:grid-cols-[320px_1fr]"><Card><h2 className="-mx-4 -mt-4 mb-4 rounded-t-xl bg-ink-700 px-4 py-3 font-display text-lg text-white sm:-mx-6 sm:-mt-6 sm:px-6">New {title.toLowerCase()}</h2><form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); startTransition(async () => { const { error } = await create(name); if (error) push(error, "error"); else { setName(""); push(`${title} created`); } }); }}><div><Label htmlFor={`new-${title}`}>Name</Label><Input id={`new-${title}`} required value={name} onChange={(e) => setName(e.target.value)} /></div><Button className="w-full" disabled={pending}>Add {title}</Button></form></Card><Card><table className="w-full text-sm"><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-3">{row.name}</td><td className="py-3 text-right"><Button variant="ghost" disabled={pending} onClick={() => startTransition(async () => { const { error } = await remove(row.id); if (error) push(error, "error"); else push(`${title} deleted`); })}>Delete</Button></td></tr>)}{rows.length === 0 && <tr><td className="py-6 text-center text-slate/50">No {title.toLowerCase()}s yet.</td></tr>}</tbody></table></Card></div>;
 }
 
 function SearchableWingSelect({ wings, value, onChange }: { wings: WingRow[]; value: string; onChange: (value: string) => void }) {
@@ -241,8 +370,8 @@ function SearchableWingSelect({ wings, value, onChange }: { wings: WingRow[]; va
   const selected = activeWings.find((wing) => wing.id === value) ?? wings.find((wing) => wing.id === value);
   const filtered = activeWings.filter((wing) => `${wing.wing_code} ${wing.wing_name}`.toLowerCase().includes(query.toLowerCase()));
   return <details className="relative mt-1 group">
-    <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700"><span className="truncate">{selected ? `${selected.wing_code} — ${selected.wing_name}` : "No wing"}</span><span className="ml-2 text-xs text-slate/50">⌄</span></summary>
-    <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-white p-2 shadow-xl"><Input aria-label="Search wings" placeholder="Search wings" value={query} onChange={(event) => setQuery(event.target.value)} className="mt-0" /><button type="button" className="mt-1 block w-full rounded px-2 py-1.5 text-left text-sm text-slate/70 hover:bg-ink-50" onClick={() => onChange("")}>No wing</button>{filtered.map((wing) => <button type="button" key={wing.id} className="block w-full rounded px-2 py-1.5 text-left text-sm text-ink-700 hover:bg-ink-50" onClick={(event) => { onChange(wing.id); (event.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open"); }}>{wing.wing_code} — {wing.wing_name}</button>)}{filtered.length === 0 && <p className="px-2 py-2 text-xs text-slate/50">No active wings found.</p>}</div>
+    <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700"><span className="truncate">{selected ? `${selected.wing_code} — ${selected.wing_name}` : "Select wing"}</span><span className="ml-2 text-xs text-slate/50">⌄</span></summary>
+    <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-white p-2 shadow-xl"><Input aria-label="Search wings" placeholder="Search wings" value={query} onChange={(event) => setQuery(event.target.value)} className="mt-0" />{filtered.map((wing) => <button type="button" key={wing.id} className="block w-full rounded px-2 py-1.5 text-left text-sm text-ink-700 hover:bg-ink-50" onClick={(event) => { onChange(wing.id); (event.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open"); }}>{wing.wing_code} — {wing.wing_name}</button>)}{filtered.length === 0 && <p className="px-2 py-2 text-xs text-slate/50">No active wings found.</p>}</div>
   </details>;
 }
 
@@ -257,6 +386,10 @@ function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] 
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
+    if (!form.wing_id) {
+      push("Wing is required", "error");
+      return;
+    }
     startTransition(async () => {
       const { error } = await createClassRow(form);
       if (error) {
@@ -289,6 +422,10 @@ function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] 
   function handleUpdate(e: FormEvent) {
     e.preventDefault();
     if (!editingId) return;
+    if (!editForm.wing_id) {
+      push("Wing is required", "error");
+      return;
+    }
     startTransition(async () => {
       const { error } = await updateClassRow(editingId, editForm);
       if (error) {
@@ -304,7 +441,7 @@ function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       <Card>
-        <h2 className="font-display text-lg text-ink-700">New class</h2>
+        <h2 className="-mx-4 -mt-4 mb-4 rounded-t-xl bg-ink-700 px-4 py-3 font-display text-lg text-white sm:-mx-6 sm:-mt-6 sm:px-6">New class</h2>
         <form onSubmit={handleCreate} className="mt-4 space-y-4">
           <div>
             <Label htmlFor="c-name">Name</Label>
@@ -316,7 +453,7 @@ function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] 
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
-          <div><Label htmlFor="c-wing">Wing</Label><SearchableWingSelect wings={wings} value={form.wing_id} onChange={(wing_id) => setForm({ ...form, wing_id })} /></div>
+          <div><Label htmlFor="c-wing">Wing <span className="text-red-600">*</span></Label><SearchableWingSelect wings={wings} value={form.wing_id} onChange={(wing_id) => setForm({ ...form, wing_id })} /></div>
           <div>
             <Label htmlFor="c-order">Sort order</Label>
             <Input
@@ -333,13 +470,52 @@ function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] 
         </form>
       </Card>
       <Card>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
-              <th className="pb-2">Name</th>
-              <th className="pb-2">Order</th>
-              <th className="pb-2">Wing</th>
-              <th className="pb-2"></th>
+        <div className="grid gap-4 md:hidden">
+          {classes.map((c) => (
+            <article key={c.id} className="rounded-2xl border border-ink-100 border-l-4 border-l-emerald-500 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+              {editingId === c.id ? (
+                <form onSubmit={handleUpdate} className="space-y-3">
+                  <Input aria-label="Class name" required value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                  <SearchableWingSelect wings={wings} value={editForm.wing_id} onChange={(wing_id) => setEditForm({ ...editForm, wing_id })} />
+                  <Input aria-label="Sort order" type="number" required value={editForm.sort_order} onChange={(e) => setEditForm({ ...editForm, sort_order: Number(e.target.value) })} />
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={pending} className="flex-1">Save</Button>
+                    <Button type="button" variant="ghost" disabled={pending} onClick={() => setEditingId(null)} className="flex-1">Cancel</Button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate/55">Class</p>
+                      <h3 className="mt-1 truncate font-display text-base font-semibold text-ink-700">{c.name}</h3>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-sm font-medium text-slate/70">Order {c.sort_order}</span>
+                      <span className="mt-1 block max-w-[9rem] truncate text-sm font-semibold text-ink-700">{wings.find((wing) => wing.id === c.wing_id)?.wing_name ?? "No wing"}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-end gap-2 border-t border-ink-100 pt-2">
+                    <Button variant="outline" size="sm" disabled={pending} onClick={() => startEdit(c)} aria-label={`Edit ${c.name}`} title={`Edit ${c.name}`} className="h-9 w-9 p-0">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-2"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg>
+                    </Button>
+                    <Button variant="ghost" size="sm" disabled={pending} onClick={() => setDeleteId(c.id)} aria-label={`Delete ${c.name}`} title={`Delete ${c.name}`} className="h-9 w-9 p-0 text-rose-600 hover:text-rose-700">
+                      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 fill-none stroke-current stroke-2"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="m19 6-1 14H6L5 6" /><path d="M10 11v5M14 11v5" /></svg>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </article>
+          ))}
+          {classes.length === 0 && <p className="py-6 text-center text-sm text-slate/50">No classes yet.</p>}
+        </div>
+        <table className="hidden w-full text-sm md:table">
+          <thead className="bg-ink-700 text-white">
+            <tr className="border-b border-white/20 text-left text-xs uppercase tracking-wide text-white/80">
+              <th className="px-3 py-3">Name</th>
+              <th className="px-3 py-3">Order</th>
+              <th className="px-3 py-3">Wing</th>
+              <th className="px-3 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -395,11 +571,16 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
   const [form, setForm] = useState({ class_ids: [] as string[], name: "" });
   const [classSearch, setClassSearch] = useState("");
   const classDropdownRef = useRef<HTMLDetailsElement>(null);
+  const classPanelRef = useRef<HTMLDivElement>(null);
+  const classTriggerRef = useRef<HTMLElement>(null);
+  const [classDropdownOpen, setClassDropdownOpen] = useState(false);
+  const [classPanelPosition, setClassPanelPosition] = useState({ top: 0, left: 0, width: 320, bottom: undefined as number | undefined, right: undefined as number | undefined });
 
   useEffect(() => {
     function closeClassDropdown(event: MouseEvent) {
-      if (!classDropdownRef.current?.contains(event.target as Node)) {
+      if (!classDropdownRef.current?.contains(event.target as Node) && !classPanelRef.current?.contains(event.target as Node)) {
         classDropdownRef.current?.removeAttribute("open");
+        setClassDropdownOpen(false);
       }
     }
     document.addEventListener("click", closeClassDropdown);
@@ -462,16 +643,23 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       <Card>
-        <h2 className="font-display text-lg text-ink-700">New section</h2>
+        <h2 className="-mx-4 -mt-4 mb-4 rounded-t-xl bg-ink-700 px-4 py-3 font-display text-lg text-white sm:-mx-6 sm:-mt-6 sm:px-6">New section</h2>
         <form onSubmit={handleCreate} className="mt-4 space-y-4">
           <div>
             <Label htmlFor="sec-class">Classes</Label>
-            <details ref={classDropdownRef} className="relative mt-1">
-              <summary className="flex cursor-pointer list-none items-center justify-between rounded-md border border-ink-100 px-3 py-2 text-sm">
+            <details ref={classDropdownRef} className="relative mt-1" onToggle={(event) => setClassDropdownOpen(event.currentTarget.open)}>
+              <summary ref={classTriggerRef} onClick={() => {
+                const rect = classTriggerRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                const mobile = window.innerWidth < 640;
+                setClassPanelPosition(mobile
+                  ? { top: 12, left: 12, width: window.innerWidth - 24, bottom: 12, right: 12 }
+                  : { top: rect.bottom + 4, left: rect.left, width: rect.width, bottom: undefined, right: undefined });
+              }} className="flex cursor-pointer list-none items-center justify-between rounded-md border border-ink-100 px-3 py-2 text-sm">
                 <span>{form.class_ids.length ? `${form.class_ids.length} class${form.class_ids.length > 1 ? "es" : ""} selected` : "Select classes"}</span>
                 <span aria-hidden="true">▾</span>
               </summary>
-              <div className="absolute z-10 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-ink-100 bg-white p-2 shadow-lg">
+              {classDropdownOpen && typeof document !== "undefined" && createPortal(<div ref={classPanelRef} style={classPanelPosition} className="fixed z-[100] max-h-[calc(100vh-1.5rem)] overflow-y-auto rounded-2xl border border-ink-100 bg-white p-4 shadow-2xl sm:max-h-52 sm:rounded-md sm:p-2 sm:shadow-lg">
                 <Input
                   aria-label="Search classes"
                   placeholder="Search classes..."
@@ -492,7 +680,7 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
                 {classes.filter((c) => c.name.toLowerCase().includes(classSearch.toLowerCase())).length === 0 && (
                   <p className="px-2 py-2 text-xs text-slate/60">No classes found.</p>
                 )}
-              </div>
+              </div>, document.body)}
             </details>
           </div>
           <div>
@@ -512,11 +700,11 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
       </Card>
       <Card>
         <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
-              <th className="pb-2">Class</th>
-              <th className="pb-2">Section</th>
-              <th className="pb-2"></th>
+          <thead className="bg-ink-700 text-white">
+            <tr className="border-b border-white/20 text-left text-xs uppercase tracking-wide text-white/80">
+              <th className="px-3 py-3">Class</th>
+              <th className="px-3 py-3">Section</th>
+              <th className="px-3 py-3"></th>
             </tr>
           </thead>
           <tbody>

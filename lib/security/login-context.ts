@@ -26,7 +26,15 @@ export function parseLoginContext(value: string | undefined): LoginContext | nul
   if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
   try {
     const parsed = JSON.parse(decode(payload)) as LoginContext;
-    return parsed?.userId && (parsed.organizationId === null || typeof parsed.organizationId === "string") && (parsed.schoolId === null || typeof parsed.schoolId === "string") && ((parsed.loginScope === "super_admin" && parsed.organizationId === null && parsed.schoolId === null) || (parsed.loginScope === "school" && parsed.organizationId && parsed.schoolId) || (parsed.loginScope === "organization" && parsed.organizationId && parsed.schoolId === null)) ? parsed : null;
+    const validIdentifiers = (parsed.organizationId === null || typeof parsed.organizationId === "string") && (parsed.schoolId === null || typeof parsed.schoolId === "string");
+    const validScope = parsed.loginScope === "school"
+      ? Boolean(parsed.organizationId && parsed.schoolId)
+      : parsed.loginScope === "organization"
+        ? Boolean(parsed.organizationId)
+        : parsed.loginScope === "super_admin"
+          ? !parsed.schoolId || Boolean(parsed.organizationId)
+          : false;
+    return parsed?.userId && validIdentifiers && validScope ? parsed : null;
   } catch { return null; }
 }
 

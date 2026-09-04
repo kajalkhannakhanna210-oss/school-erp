@@ -35,6 +35,8 @@ on conflict (key) do nothing;
 
 -- 3. RLS: basic protections (readable by authenticated users, writes controlled server-side)
 alter table public.staff_module_scopes enable row level security;
+drop policy if exists "staff_module_scopes_read_auth" on public.staff_module_scopes;
+drop policy if exists "staff_module_scopes_manage_admin" on public.staff_module_scopes;
 create policy "staff_module_scopes_read_auth" on public.staff_module_scopes for select using (auth.uid() is not null);
 create policy "staff_module_scopes_manage_admin" on public.staff_module_scopes for all using (public.is_super_admin()) with check (public.is_super_admin());
 

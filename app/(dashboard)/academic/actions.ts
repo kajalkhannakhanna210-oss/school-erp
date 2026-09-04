@@ -168,9 +168,10 @@ export async function createClassRow(input: { name: string; sort_order: number; 
   if (!scope) return { error: "Select an authorized school before saving Master Data." };
   const name = input.name.trim();
   if (!name) return { error: "Class name is required" };
+  if (!input.wing_id) return { error: "Wing is required" };
   const { data: duplicate } = await supabase.from("classes").select("id").ilike("name", name).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).limit(1).maybeSingle();
   if (duplicate) return { error: "A class with this name already exists" };
-  let wingId = input.wing_id || null;
+  let wingId = input.wing_id;
   if (wingId) { const { data: wing } = await supabase.from("school_wings").select("id").eq("id", wingId).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_active", true).maybeSingle(); if (!wing) return { error: "Selected wing is invalid for this school." }; }
   const { error } = await supabase.from("classes").insert({ name, sort_order: input.sort_order, wing_id: wingId, organization_id: scope.organizationId, school_id: scope.schoolId });
   if (!error) {
@@ -193,6 +194,7 @@ export async function updateClassRow(id: string, input: { name: string; sort_ord
   if (!scope) return { error: "Select an authorized school before changing Master Data." };
   const name = input.name.trim();
   if (!name) return { error: "Class name is required" };
+  if (!input.wing_id) return { error: "Wing is required" };
   const { data: currentClass, error: currentError } = await supabase.from("classes").select("name").eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).single();
   if (currentError || !currentClass) return { error: currentError?.message ?? "Class not found" };
   if (currentClass.name.trim().toLowerCase() !== name.toLowerCase()) {
@@ -200,7 +202,7 @@ export async function updateClassRow(id: string, input: { name: string; sort_ord
     const duplicate = matchingClasses?.some((row) => String(row.id) !== String(id));
     if (duplicate) return { error: "A class with this name already exists" };
   }
-  let wingId = input.wing_id || null;
+  let wingId = input.wing_id;
   if (wingId) { const { data: wing } = await supabase.from("school_wings").select("id").eq("id", wingId).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_active", true).maybeSingle(); if (!wing) return { error: "Selected wing is invalid for this school." }; }
   const { error } = await supabase.from("classes").update({ name, sort_order: input.sort_order, wing_id: wingId }).eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {

@@ -21,7 +21,7 @@ export async function requireSuperAdmin() {
 
 export async function requireOrganisationUser() {
   const current = await getCurrentUser();
-  if (!current || current.userType !== "ORGANISATION_USER" || !current.loginContext?.organizationId || current.loginContext.schoolId !== null) redirect("/organisation/login");
+  if (!current || current.userType !== "ORGANISATION_USER" || current.loginContext?.loginScope !== "organization" || !current.loginContext.organizationId) redirect("/organisation/login");
   return { ...current, organisationId: current.loginContext.organizationId };
 }
 
