@@ -2,7 +2,7 @@ export const TENANT_PREFIX_COOKIE = "school_tenant_prefix";
 export const TENANT_PREFIX_HEADER = "x-school-tenant-prefix";
 export const TENANT_PATH_HEADER = "x-school-request-path";
 export const VERCEL_APP_HOST = "school-erp-connect.vercel.app";
-export const RESERVED_TENANT_PATHS = new Set(["api", "_next", "superadmin", "admin", "organisation", "org", "login", "logout", "favicon.ico", "images", "assets", "dashboard", "school-master", "organization-master", "master", "academic", "wings", "students", "staff", "attendance", "exams", "fees", "payments", "reports", "documents", "cms", "profile", "role-access", "admissions", "admissions-admin", "enquiries", "leaving-students", "select-school", "forgot-password"]);
+export const RESERVED_TENANT_PATHS = new Set(["api", "_next", "superadmin", "admin", "organisation", "org", "login", "logout", "login-as", "favicon.ico", "images", "assets", "dashboard", "school-master", "organization-master", "master", "academic", "wings", "students", "staff", "attendance", "exams", "fees", "payments", "reports", "documents", "cms", "profile", "role-access", "admissions", "admissions-admin", "enquiries", "leaving-students", "select-school", "forgot-password"]);
 
 export function cleanHostname(hostname: string) { return hostname.split(":")[0].toLowerCase().trim(); }
 export function firstPathSegment(pathname: string) {

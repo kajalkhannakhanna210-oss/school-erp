@@ -13,6 +13,8 @@ import { EnquiryLiveAlerts } from "@/components/enquiry-live-alerts";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { getLoginContext } from "@/lib/security/login-context";
 import { getMasterDataContext } from "@/lib/security/master-data-context";
+import { getImpersonation } from "@/lib/security/impersonation";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 
 export const metadata: Metadata = {
   title: "School administration dashboard",
@@ -48,7 +50,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (staffContext?.organization_id && staffContext.primary_school_id) redirect("/select-school");
   }
 
-  const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }, masterDataContext] = await Promise.all([
+  const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }, masterDataContext, impersonation] = await Promise.all([
     supabase
       .from("role_page_access")
       .select("page_key, icon")
@@ -56,13 +58,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     supabase.from("profile_roles").select("role").eq("profile_id", user.id),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
     getMasterDataContext(),
+    getImpersonation(),
   ]);
 
   const allowedPageKeys = rolePageAccess ? new Set(rolePageAccess.map((access) => access.page_key)) : null;
   const icons = new Map((rolePageAccess ?? []).map((access) => [access.page_key, access.icon ?? "•"]));
   const visibleNav = navItems.filter((item) => {
     if (allowedPageKeys) {
-      return allowedPageKeys.has(item.key);
+      return allowedPageKeys.has(item.key) || (item.key === "login_as_user" && (["super_admin", "organization_admin"].includes(profile.role) || profileType === "ORGANISATION_USER"));
     }
     return item.roles.includes(profile.role);
   }).map((item) => {
@@ -89,6 +92,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
       <FeedbackModal />
       <DashboardSidebar sections={sections} profile={profile} />
       <div className="min-w-0">
+        {impersonation && <ImpersonationBanner session={impersonation} />}
         <div className="sticky top-0 z-40 min-h-16 lg:hidden" style={{ backgroundColor: "#222F57" }}>
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex min-w-0 items-center gap-2 text-white"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gold text-xs font-bold text-ink-900">R</div><span className="truncate font-display font-bold">Registrar</span></div>
