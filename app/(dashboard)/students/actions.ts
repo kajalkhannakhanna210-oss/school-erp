@@ -6,6 +6,7 @@ import { requireSuperAdmin } from "@/lib/require-role";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { recordServerAction } from "@/lib/security/access-logs";
+import { getMasterDataContext } from "@/lib/security/master-data-context";
 
 type StudentInput = {
   full_name: string;
@@ -56,9 +57,21 @@ export async function createStudent(input: StudentInput) {
   if (!userId) return { error: createError?.message ?? "Could not create the student's account" };
 
   const supabase = await createClient();
+  let admissionNumber = input.admission_number.trim() ? input.admission_number.trim().toUpperCase() : null;
+  if (!admissionNumber && input.class_id && input.session_id) {
+    const context = await getMasterDataContext();
+    const { data: classRow } = await supabase.from("classes").select("wing_id, organization_id, school_id").eq("id", input.class_id).maybeSingle();
+    if (classRow?.wing_id && context.schoolId === classRow.school_id && context.organizationId === classRow.organization_id) {
+      const { data: generated, error: generationError } = await supabase.rpc("generate_wing_admission_number", { p_organization_id: classRow.organization_id, p_school_id: classRow.school_id, p_wing_id: classRow.wing_id, p_academic_session_id: input.session_id });
+      if (generationError) return { error: generationError.message };
+      admissionNumber = generated;
+    } else if (classRow?.wing_id) {
+      return { error: "Select the correct school context before admitting this student." };
+    }
+  }
   const { error: insertError } = await supabase.from("students").insert({
     id: userId,
-    admission_number: input.admission_number.trim() ? input.admission_number.trim().toUpperCase() : null,
+    admission_number: admissionNumber,
     contact_email: input.contact_email,
     roll_number: input.roll_number || null,
     father_name: input.father_name || null,

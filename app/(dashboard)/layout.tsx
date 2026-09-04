@@ -10,7 +10,9 @@ import { SessionSelector } from "./students/session-selector";
 import { getSelectedSessionCookie } from "./session-actions";
 import type { Metadata } from "next";
 import { EnquiryLiveAlerts } from "@/components/enquiry-live-alerts";
+import { FeedbackModal } from "@/components/feedback-modal";
 import { getLoginContext } from "@/lib/security/login-context";
+import { getMasterDataContext } from "@/lib/security/master-data-context";
 
 export const metadata: Metadata = {
   title: "School administration dashboard",
@@ -46,18 +48,18 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     if (staffContext?.organization_id && staffContext.primary_school_id) redirect("/select-school");
   }
 
-  const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }] = await Promise.all([
+  const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }, masterDataContext] = await Promise.all([
     supabase
       .from("role_page_access")
       .select("page_key, icon")
       .eq("role", profile.role),
     supabase.from("profile_roles").select("role").eq("profile_id", user.id),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
+    getMasterDataContext(),
   ]);
 
   const allowedPageKeys = rolePageAccess ? new Set(rolePageAccess.map((access) => access.page_key)) : null;
   const icons = new Map((rolePageAccess ?? []).map((access) => [access.page_key, access.icon ?? "•"]));
-
   const visibleNav = navItems.filter((item) => {
     if (allowedPageKeys) {
       return allowedPageKeys.has(item.key);
@@ -84,6 +86,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[auto_minmax(0,1fr)]">
       <EnquiryLiveAlerts />
+      <FeedbackModal />
       <DashboardSidebar sections={sections} profile={profile} />
       <div className="min-w-0">
         <div className="sticky top-0 z-40 min-h-16 lg:hidden" style={{ backgroundColor: "#222F57" }}>

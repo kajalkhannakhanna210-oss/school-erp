@@ -162,7 +162,7 @@ export async function deleteDesignation(id: string) {
   return { error: error?.message ?? null };
 }
 
-export async function createClassRow(input: { name: string; sort_order: number }) {
+export async function createClassRow(input: { name: string; sort_order: number; wing_id?: string | null }) {
   const supabase = await createClient();
   const scope = await schoolScope();
   if (!scope) return { error: "Select an authorized school before saving Master Data." };
@@ -170,7 +170,9 @@ export async function createClassRow(input: { name: string; sort_order: number }
   if (!name) return { error: "Class name is required" };
   const { data: duplicate } = await supabase.from("classes").select("id").ilike("name", name).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).limit(1).maybeSingle();
   if (duplicate) return { error: "A class with this name already exists" };
-  const { error } = await supabase.from("classes").insert({ ...input, name, organization_id: scope.organizationId, school_id: scope.schoolId });
+  let wingId = input.wing_id || null;
+  if (wingId) { const { data: wing } = await supabase.from("school_wings").select("id").eq("id", wingId).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_active", true).maybeSingle(); if (!wing) return { error: "Selected wing is invalid for this school." }; }
+  const { error } = await supabase.from("classes").insert({ name, sort_order: input.sort_order, wing_id: wingId, organization_id: scope.organizationId, school_id: scope.schoolId });
   if (!error) {
     await recordServerAction({
       action: "Create Class",
@@ -185,7 +187,7 @@ export async function createClassRow(input: { name: string; sort_order: number }
   return { error: error?.message ?? null };
 }
 
-export async function updateClassRow(id: string, input: { name: string; sort_order: number }) {
+export async function updateClassRow(id: string, input: { name: string; sort_order: number; wing_id?: string | null }) {
   const supabase = await createClient();
   const scope = await schoolScope();
   if (!scope) return { error: "Select an authorized school before changing Master Data." };
@@ -198,7 +200,9 @@ export async function updateClassRow(id: string, input: { name: string; sort_ord
     const duplicate = matchingClasses?.some((row) => String(row.id) !== String(id));
     if (duplicate) return { error: "A class with this name already exists" };
   }
-  const { error } = await supabase.from("classes").update({ name, sort_order: input.sort_order }).eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
+  let wingId = input.wing_id || null;
+  if (wingId) { const { data: wing } = await supabase.from("school_wings").select("id").eq("id", wingId).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId).eq("is_active", true).maybeSingle(); if (!wing) return { error: "Selected wing is invalid for this school." }; }
+  const { error } = await supabase.from("classes").update({ name, sort_order: input.sort_order, wing_id: wingId }).eq("id", id).eq("organization_id", scope.organizationId).eq("school_id", scope.schoolId);
   if (!error) {
     await recordServerAction({
       action: "Update Class",

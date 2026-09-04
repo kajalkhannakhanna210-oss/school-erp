@@ -16,7 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import { setStudentPhoto } from "./actions";
 import { sanitizeStorageFileName, validateImageUpload } from "@/lib/security/uploads";
 
-type Option = { id: string; name: string };
+type Option = { id: string; name: string; wing_name?: string | null };
 
 type FormState = {
   full_name: string;
@@ -287,28 +287,7 @@ export function StudentForm({
             </>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            {mode === "create" && (
-              <div>
-                <Label htmlFor="admission_number">Adm No.</Label>
-                <Input
-                  id="admission_number"
-                  placeholder="Optional — auto-generated if blank"
-                  value={form.admission_number}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      admission_number: e.target.value
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9-]/g, ""),
-                    })
-                  }
-                />
-                <p className="mt-1 text-xs text-slate/60">
-                  Optional. A unique Adm No. will be generated if left
-                  blank.
-                </p>
-              </div>
-            )}
+            {mode === "create" && <div className="rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-800"><p className="font-semibold">Admission number</p><p className="mt-0.5 text-xs">Generated automatically from the selected class wing and academic session.</p></div>}
             {mode === "edit" && (
               <div>
                 <Label htmlFor="admission_number_edit">Adm No.</Label>
@@ -464,10 +443,11 @@ export function StudentForm({
                 <option value="">Select class</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name}{c.wing_name ? ` — ${c.wing_name}` : ""}
                   </option>
                 ))}
               </select>
+              {form.class_id && classes.find((item) => item.id === form.class_id)?.wing_name && <p className="mt-1 text-xs font-semibold text-indigo-700">Wing: {classes.find((item) => item.id === form.class_id)?.wing_name}</p>}
             </div>
             <div>
               <Label

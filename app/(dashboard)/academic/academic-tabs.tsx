@@ -26,7 +26,8 @@ import { SchoolContextSelector } from "./school-context-selector";
 import type { MasterSchool } from "@/lib/security/master-data-context";
 
 type Session = { id: string; name: string; start_date: string; end_date: string; is_current: boolean };
-type ClassRow = { id: string; name: string; sort_order: number };
+type ClassRow = { id: string; name: string; sort_order: number; wing_id?: string | null };
+type WingRow = { id: string; wing_name: string; wing_code: string; is_active: boolean };
 type SectionRow = { id: string; name: string; class_id: string; classes: { name: string } | null };
 type MasterRow = { id: string; name: string };
 
@@ -39,6 +40,7 @@ export function AcademicTabs({
   sessions,
   classes,
   sections,
+  wings = [],
   departments = [],
   designations = [],
   schools,
@@ -50,6 +52,7 @@ export function AcademicTabs({
   sessions: Session[];
   classes: ClassRow[];
   sections: SectionRow[];
+  wings?: WingRow[];
   departments?: MasterRow[];
   designations?: MasterRow[];
   schools: MasterSchool[];
@@ -87,7 +90,7 @@ export function AcademicTabs({
       </div>
       <div className="mt-6">
         {tab === "sessions" && <SessionsTab sessions={sessions} />}
-        {tab === "classes" && <ClassesTab classes={classes} />}
+        {tab === "classes" && <ClassesTab classes={classes} wings={wings} />}
         {tab === "sections" && <SectionsTab sections={sections} classes={classes} />}
         {tab === "departments" && <NamedMasterTab title="Department" rows={departments} create={createDepartment} remove={deleteDepartment} />}
         {tab === "designations" && <NamedMasterTab title="Designation" rows={designations} create={createDesignation} remove={deleteDesignation} />}
@@ -232,14 +235,25 @@ function NamedMasterTab({ title, rows, create, remove }: { title: string; rows: 
   return <div className="grid gap-6 lg:grid-cols-[320px_1fr]"><Card><h2 className="font-display text-lg text-ink-700">New {title.toLowerCase()}</h2><form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); startTransition(async () => { const { error } = await create(name); if (error) push(error, "error"); else { setName(""); push(`${title} created`); } }); }}><div><Label htmlFor={`new-${title}`}>Name</Label><Input id={`new-${title}`} required value={name} onChange={(e) => setName(e.target.value)} /></div><Button className="w-full" disabled={pending}>Add {title}</Button></form></Card><Card><table className="w-full text-sm"><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-ink-100 last:border-0"><td className="py-3">{row.name}</td><td className="py-3 text-right"><Button variant="ghost" disabled={pending} onClick={() => startTransition(async () => { const { error } = await remove(row.id); if (error) push(error, "error"); else push(`${title} deleted`); })}>Delete</Button></td></tr>)}{rows.length === 0 && <tr><td className="py-6 text-center text-slate/50">No {title.toLowerCase()}s yet.</td></tr>}</tbody></table></Card></div>;
 }
 
-function ClassesTab({ classes }: { classes: ClassRow[] }) {
+function SearchableWingSelect({ wings, value, onChange }: { wings: WingRow[]; value: string; onChange: (value: string) => void }) {
+  const [query, setQuery] = useState("");
+  const activeWings = wings.filter((wing) => wing.is_active);
+  const selected = activeWings.find((wing) => wing.id === value) ?? wings.find((wing) => wing.id === value);
+  const filtered = activeWings.filter((wing) => `${wing.wing_code} ${wing.wing_name}`.toLowerCase().includes(query.toLowerCase()));
+  return <details className="relative mt-1 group">
+    <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between rounded-md border border-ink-100 bg-white px-3 py-2 text-sm text-ink-700"><span className="truncate">{selected ? `${selected.wing_code} — ${selected.wing_name}` : "No wing"}</span><span className="ml-2 text-xs text-slate/50">⌄</span></summary>
+    <div className="absolute left-0 right-0 z-30 mt-1 rounded-lg border border-ink-100 bg-white p-2 shadow-xl"><Input aria-label="Search wings" placeholder="Search wings" value={query} onChange={(event) => setQuery(event.target.value)} className="mt-0" /><button type="button" className="mt-1 block w-full rounded px-2 py-1.5 text-left text-sm text-slate/70 hover:bg-ink-50" onClick={() => onChange("")}>No wing</button>{filtered.map((wing) => <button type="button" key={wing.id} className="block w-full rounded px-2 py-1.5 text-left text-sm text-ink-700 hover:bg-ink-50" onClick={(event) => { onChange(wing.id); (event.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open"); }}>{wing.wing_code} — {wing.wing_name}</button>)}{filtered.length === 0 && <p className="px-2 py-2 text-xs text-slate/50">No active wings found.</p>}</div>
+  </details>;
+}
+
+function ClassesTab({ classes, wings }: { classes: ClassRow[]; wings: WingRow[] }) {
   const { push } = useToast();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [form, setForm] = useState({ name: "", sort_order: 0 });
+  const [form, setForm] = useState({ name: "", sort_order: 0, wing_id: "" });
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", sort_order: 0 });
+  const [editForm, setEditForm] = useState({ name: "", sort_order: 0, wing_id: "" });
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -250,7 +264,7 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
         return;
       }
       push("Class created");
-      setForm({ name: "", sort_order: 0 });
+      setForm({ name: "", sort_order: 0, wing_id: "" });
     });
   }
 
@@ -269,7 +283,7 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
 
   function startEdit(c: ClassRow) {
     setEditingId(c.id);
-    setEditForm({ name: c.name, sort_order: c.sort_order });
+    setEditForm({ name: c.name, sort_order: c.sort_order, wing_id: c.wing_id ?? "" });
   }
 
   function handleUpdate(e: FormEvent) {
@@ -302,6 +316,7 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
           </div>
+          <div><Label htmlFor="c-wing">Wing</Label><SearchableWingSelect wings={wings} value={form.wing_id} onChange={(wing_id) => setForm({ ...form, wing_id })} /></div>
           <div>
             <Label htmlFor="c-order">Sort order</Label>
             <Input
@@ -323,6 +338,7 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
             <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-slate/50">
               <th className="pb-2">Name</th>
               <th className="pb-2">Order</th>
+              <th className="pb-2">Wing</th>
               <th className="pb-2"></th>
             </tr>
           </thead>
@@ -330,10 +346,11 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
             {classes.map((c) => (
               <tr key={c.id} className="border-b border-ink-100 last:border-0">
                 {editingId === c.id ? (
-                  <td colSpan={3} className="py-3">
-                    <form onSubmit={handleUpdate} className="grid gap-2 sm:grid-cols-[1fr_140px_auto_auto]">
+                  <td colSpan={4} className="py-3">
+                    <form onSubmit={handleUpdate} className="grid gap-2 sm:grid-cols-[1fr_140px_1fr_auto_auto]">
                       <Input aria-label="Class name" required value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
                       <Input aria-label="Sort order" type="number" required value={editForm.sort_order} onChange={(e) => setEditForm({ ...editForm, sort_order: Number(e.target.value) })} />
+                      <SearchableWingSelect wings={wings} value={editForm.wing_id} onChange={(wing_id) => setEditForm({ ...editForm, wing_id })} />
                       <Button type="submit" disabled={pending}>Save</Button>
                       <Button type="button" variant="ghost" disabled={pending} onClick={() => setEditingId(null)}>Cancel</Button>
                     </form>
@@ -342,6 +359,7 @@ function ClassesTab({ classes }: { classes: ClassRow[] }) {
                   <>
                     <td className="py-3 font-mono">{c.name}</td>
                     <td className="py-3 text-slate/70">{c.sort_order}</td>
+                    <td className="py-3 text-slate/70">{wings.find((wing) => wing.id === c.wing_id)?.wing_name ?? "—"}</td>
                     <td className="py-3 text-right">
                       <Button variant="ghost" disabled={pending} onClick={() => startEdit(c)}>Edit</Button>
                       <Button variant="ghost" disabled={pending} onClick={() => setDeleteId(c.id)}>Delete</Button>

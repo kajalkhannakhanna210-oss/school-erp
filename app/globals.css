@@ -5,6 +5,12 @@
 /* The SEO keywords field is submitted with the main SEO form. */
 .grid.gap-6.lg\:grid-cols-\[220px_1fr\] > .lg\:col-span-2 { display: none; }
 
+/* Keep the Wing Master create form compact on desktop: all five fields fit
+   on one row, while Tailwind's mobile breakpoints remain unchanged. */
+@media (min-width: 1024px) {
+  .wing-master-page .grid.gap-3.sm\:grid-cols-2.lg\:grid-cols-4 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
 :root {
   --font-display: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -68,6 +74,725 @@ select {
   border-radius: 0.5rem !important;
   padding: 0.625rem 0.75rem !important;
   box-shadow: 0 1px 2px rgb(30 42 74 / 0.05);
+}
+
+/* Keep the Wing Admission Policy dialog fully visible on desktop. */
+@media (min-width: 768px) {
+  [role="dialog"] > .max-h-\[94vh\] { max-height: none !important; overflow: visible !important; }
+  [role="dialog"] > .max-h-\[94vh\] > .overflow-y-auto { overflow-y: visible !important; }
+}
+
+/* Keep the Wings filters on the same compact line as the School Wings heading. */
+@media (min-width: 768px) {
+  .wing-master-page > div:nth-child(2) .shadow-sm {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .wing-master-page > div:nth-child(2) .shadow-sm > :nth-child(1) {
+    grid-column: 2;
+    grid-row: 1;
+    border-bottom: 0;
+    padding: 0.75rem 1rem 0.75rem 0;
+  }
+  .wing-master-page > div:nth-child(2) .shadow-sm > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    border-bottom: 0;
+  }
+  .wing-master-page > div:nth-child(2) .shadow-sm > :nth-child(3),
+  .wing-master-page > div:nth-child(2) .shadow-sm > :nth-child(4) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .wing-master-page > div:nth-child(2) > .space-y-4 > .grid.grid-cols-2 {
+    gap: 0.75rem;
+  }
+  .wing-master-page > div:nth-child(2) > .space-y-4 > .grid.grid-cols-2 > div {
+    padding: 1rem;
+  }
+  .wing-master-page > div:nth-child(2) > .space-y-4 > .grid.grid-cols-2 + div {
+    padding: 1rem;
+  }
+}
+
+.wing-master-page [role="dialog"] input[placeholder="YYYY-YY"] {
+  text-transform: uppercase;
+}
+
+/* Wing dashboard cards follow the compact Organisation Master treatment. */
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 {
+  margin-bottom: 0.25rem;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) {
+  overflow: hidden;
+  padding: 0;
+  box-shadow: 0 8px 30px rgb(30 42 74 / 0.08);
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0;
+  border-bottom: 2px solid #e1e6f0;
+  background: linear-gradient(to right, #fff, rgb(238 242 250 / 0.55));
+  padding: 0.75rem 1rem;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) > div:first-child > div:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) > div:first-child > div:first-child::before {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: #24345f;
+  color: white;
+  content: "⌂";
+  font-size: 1.15rem;
+  box-shadow: 0 2px 6px rgb(30 42 74 / 0.12);
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) > div:nth-child(2) {
+  padding: 1rem;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article {
+  min-height: 178px;
+  border-left: 4px solid #64748b;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article:hover {
+  border-left-color: #24345f;
+  box-shadow: 0 4px 14px rgb(30 42 74 / 0.08);
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article > div:nth-child(2) {
+  border: 1px solid #eef1f6;
+  background: rgb(248 249 253 / 0.8);
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article button {
+  min-height: 2.25rem;
+  border-radius: 0.5rem;
+}
+
+/* Modern summary grid: breathable surface, responsive auto-fit cards, and
+   clear hierarchy without turning the dashboard into a dense table. */
+@media (min-width: 768px) {
+  .wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) > div:nth-child(2) > .grid {
+    grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+    gap: 0.875rem;
+  }
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article {
+  background: linear-gradient(145deg, #ffffff 0%, #fbfcff 100%);
+  box-shadow: 0 2px 10px rgb(30 42 74 / 0.04);
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article h3 {
+  letter-spacing: -0.02em;
+}
+
+.wing-master-page > .space-y-4 > .grid.grid-cols-2 + .rounded-2xl.border:not(.shadow-sm) article > div:first-child > div:last-child {
+  border: 1px solid #dce5f5;
+  background: #eef3ff;
+  color: #24345f;
+}
+
+/* School Wings listing: responsive cards on phones and compact table on
+   intermediate screens. */
+@media (max-width: 767px) {
+  .wing-master-page > .space-y-4 > .shadow-sm {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:first-child {
+    gap: 0.5rem;
+    border: 1px solid #e1e6f0;
+    border-radius: 0.9rem;
+    background: #fff;
+    padding: 0.7rem;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:first-child input,
+  .wing-master-page > .space-y-4 > .shadow-sm > div:first-child select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(2) {
+    margin-top: 0.75rem;
+    border: 1px solid #e1e6f0;
+    border-radius: 0.9rem;
+    background: linear-gradient(110deg, #24345f, #314a82);
+    padding: 0.8rem 0.9rem;
+    color: #fff;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(2) h2,
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(2) p {
+    color: inherit;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(3) {
+    display: none;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article {
+    display: grid;
+    min-height: 0;
+    gap: 0.75rem;
+    border: 1px solid #dce5f5;
+    border-left: 4px solid #24345f;
+    border-radius: 1rem;
+    background: linear-gradient(145deg, #fff, #f9fbff);
+    padding: 0.9rem;
+    box-shadow: 0 4px 14px rgb(30 42 74 / 0.06);
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article > div:first-child {
+    align-items: center;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article > div:first-child h3 {
+    font-size: 1rem;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article > p {
+    margin: 0;
+    border-radius: 0.65rem;
+    background: #f4f6fa;
+    padding: 0.55rem 0.65rem;
+    color: #526078;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article > div:last-child {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-top: 0;
+  }
+
+.wing-master-page > .space-y-4 > .shadow-sm > div:nth-child(4) article > div:last-child button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.35rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Wing status confirmation follows the Organisation Master modal pattern. */
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] {
+  background: rgb(23 33 63 / 0.62);
+  padding: 1.25rem;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div {
+  max-width: 35rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 1.25rem;
+  background: #fff;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:first-child {
+  display: block;
+  background: #fff;
+  color: #24345f;
+  padding: 2rem 1.875rem 0;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:first-child > div:first-child {
+  display: none;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:first-child p {
+  display: none;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:first-child h3 {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.25;
+  color: #24345f;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) {
+  padding: 0.75rem 1.875rem 1.5rem;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child {
+  margin: 0 0 1.15rem;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:first-child {
+  display: none;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:nth-child(3) {
+  display: none;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:nth-child(2) {
+  color: #667085;
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:nth-child(2)::before {
+  content: "You are changing the status of ";
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:nth-child(2)::after {
+  content: ". Please provide a reason.";
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:nth-child(2) > div:first-child p:nth-child(2) span {
+  display: none;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] textarea {
+  min-height: 6rem;
+  border-radius: 0.65rem;
+  border-color: #d7deeb;
+  padding: 0.8rem 0.9rem;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child {
+  justify-content: flex-end;
+  gap: 0.6rem;
+  border-top: 0;
+  background: #fff;
+  padding: 0 1.875rem 1.875rem;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child {
+  min-height: 3.1rem;
+  border-radius: 0.65rem;
+  background: #e91e4d;
+  padding-inline: 1.25rem;
+  color: #fff;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:first-child::before {
+  content: none !important;
+  margin-right: 0;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button {
+  display: inline-flex !important;
+  min-height: 2.75rem;
+  height: auto;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem;
+  opacity: 1;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:first-child {
+  color: #24345f !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child:disabled {
+  background: #f6a0b5 !important;
+  color: #a3163d !important;
+  opacity: 1 !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child:disabled::after {
+  color: #a3163d !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:first-child,
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child {
+  font-size: 0 !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:first-child::after {
+  content: "Cancel";
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child::after {
+  content: "Confirm deactivate";
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"]:has(.from-emerald-700) > div > div:last-child button:last-child::after {
+  content: "Confirm activate";
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:first-child {
+  min-width: 6rem;
+  min-height: 3.1rem;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  font-weight: 600;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"] > div > div:last-child button:last-child {
+  min-width: 12rem;
+  min-height: 3.1rem;
+  border-radius: 0.65rem;
+  font-weight: 700;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"]:has(.from-emerald-700) > div > div:last-child button:last-child {
+  background: #24345f !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"]:has(.from-emerald-700) > div > div:last-child button:last-child::after {
+  color: #ffffff;
+}
+
+/* Isolate the status modal from the legacy row-action selectors above. */
+.wing-status-modal .wing-status-dialog {
+  max-width: 35rem;
+  border-radius: 1.25rem;
+  padding: 0.9rem !important;
+}
+
+@media (min-width: 640px) {
+  .wing-status-modal .wing-status-dialog {
+    padding: 1rem !important;
+  }
+}
+
+.wing-master-page .wing-status-modal .wing-status-dialog > div:last-child {
+  padding: 1rem 0 0 !important;
+}
+
+.wing-master-page .wing-status-modal .wing-status-dialog > div:last-child > div:last-child {
+  padding: 0.5rem 0 0 !important;
+  border-top: 0 !important;
+  background: #ffffff !important;
+}
+
+.wing-status-modal .wing-status-dialog button {
+  display: inline-flex !important;
+  min-height: 3.1rem !important;
+  height: auto !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  opacity: 1 !important;
+}
+
+.wing-status-modal .wing-status-dialog button::before,
+.wing-status-modal .wing-status-dialog button::after {
+  content: none !important;
+}
+
+.wing-status-modal .wing-status-dialog button:first-child {
+  min-width: 6rem;
+  color: #24345f !important;
+}
+
+.wing-status-modal .wing-status-dialog button.bg-ink-700 {
+  min-width: 12rem;
+  background: #24345f !important;
+  color: #fff !important;
+}
+
+.wing-status-modal .wing-status-dialog button.bg-rose-600 {
+  min-width: 12rem;
+  background: #e91e4d !important;
+  color: #fff !important;
+}
+
+.wing-status-modal .wing-status-dialog button:disabled.bg-ink-700 {
+  background: #8793b0 !important;
+  color: #fff !important;
+}
+
+.wing-status-modal .wing-status-dialog button:disabled.bg-rose-600 {
+  background: #f3a0b5 !important;
+  color: #9f1239 !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-cancel,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 3.1rem !important;
+  min-height: 3.1rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  opacity: 1 !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-cancel::before,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-cancel::after,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm::before,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm::after {
+  content: none !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-cancel {
+  min-width: 6rem !important;
+  background: #ffffff !important;
+  color: #24345f !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm-activate,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm-activate:disabled {
+  min-width: 0 !important;
+  padding-inline: 1rem !important;
+  background: #24345f !important;
+  color: #ffffff !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm-deactivate,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog .wing-status-confirm-deactivate:disabled {
+  min-width: 0 !important;
+  padding-inline: 1rem !important;
+  background: #e91e4d !important;
+  color: #ffffff !important;
+}
+
+/* Highest-specificity reset for the modal because it is rendered inside a
+   table/card action cell and must not inherit row-action rules. */
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:first-child,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: auto !important;
+  min-height: 3.1rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  opacity: 1 !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:first-child::before,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:first-child::after,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child::before,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child::after {
+  content: none !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child.bg-ink-700,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child.bg-ink-700:disabled {
+  min-width: 12rem !important;
+  background: #24345f !important;
+  color: #ffffff !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child.bg-rose-600,
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > button:last-child.bg-rose-600:disabled {
+  min-width: 12rem !important;
+  background: #e91e4d !important;
+  color: #ffffff !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog {
+  box-sizing: border-box !important;
+  width: min(100%, 27rem) !important;
+  max-width: 27rem !important;
+  padding: 1rem !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child {
+  margin-top: 1rem !important;
+  padding: 0 !important;
+}
+
+.wing-master-page .wing-status-modal[role="dialog"][aria-modal="true"][aria-labelledby] .wing-status-dialog > div:last-child > div:last-child {
+  margin-top: 0.75rem !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: #ffffff !important;
+}
+
+.wing-master-page [role="dialog"][aria-labelledby^="wing-status-title-"]:has(.from-emerald-700) > div > div:last-child button:last-child {
+  background: #24345f;
+}
+
+/* Compact row action treatment matching the master grids. */
+.wing-master-page > .space-y-4 > .shadow-sm table td:last-child button,
+.wing-master-page > .space-y-4 > .shadow-sm article > div:last-child button {
+  min-height: 2.2rem;
+  border-radius: 0.65rem;
+  padding-inline: 0.9rem;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm table td:last-child button:first-child::before,
+.wing-master-page > .space-y-4 > .shadow-sm article > div:last-child button:first-child::before {
+  content: "✎";
+  margin-right: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-emerald-100) td:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-emerald-100) > div:last-child button:last-child {
+  color: #e11d48 !important;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-rose-100) td:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-rose-100) > div:last-child button:last-child {
+  color: #24345f !important;
+}
+
+/* Keep status labels deterministic even when the row is rerendered. */
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-emerald-100) td:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-rose-100) td:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-emerald-100) > div:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-rose-100) > div:last-child button:last-child {
+  min-height: 2rem;
+  padding-block: 0.35rem;
+  font-size: 0;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-emerald-100) td:last-child button:last-child::after,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-emerald-100) > div:last-child button:last-child::after {
+  content: "⊘ Deactivate";
+  color: #e11d48;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm tr:has(.bg-rose-100) td:last-child button:last-child::after,
+.wing-master-page > .space-y-4 > .shadow-sm article:has(.bg-rose-100) > div:last-child button:last-child::after {
+  content: "✓ Activate";
+  color: #24345f;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm table td:last-child button,
+.wing-master-page > .space-y-4 > .shadow-sm article > div:last-child button {
+  min-height: 1.9rem;
+  height: 1.9rem;
+  padding-block: 0.2rem;
+}
+
+/* Use the component's real label/icon content inside the button. */
+.wing-master-page > .space-y-4 > .shadow-sm tr td:last-child button:last-child,
+.wing-master-page > .space-y-4 > .shadow-sm article > div:last-child button:last-child {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem !important;
+  line-height: 1;
+}
+
+.wing-master-page > .space-y-4 > .shadow-sm tr td:last-child button:last-child::after,
+.wing-master-page > .space-y-4 > .shadow-sm article > div:last-child button:last-child::after {
+  content: none !important;
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+  .wing-master-page > .space-y-4 > .shadow-sm table {
+    min-width: 0;
+    font-size: 0.75rem;
+  }
+
+  .wing-master-page > .space-y-4 > .shadow-sm table th,
+  .wing-master-page > .space-y-4 > .shadow-sm table td {
+    padding: 0.55rem 0.45rem;
+  }
+}
+
+/* Selected-school context bar for the drill-down view. */
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border {
+  position: relative;
+  overflow: hidden;
+  min-height: 76px;
+  border-color: #cbd7f2;
+  background: linear-gradient(110deg, #24345f 0%, #314a82 68%, #405d98 100%);
+  padding: 0.75rem 1rem;
+  color: white;
+  box-shadow: 0 6px 18px rgb(36 52 95 / 0.14);
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border::after {
+  position: absolute;
+  right: 7rem;
+  top: -2.5rem;
+  width: 9rem;
+  height: 9rem;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 999px;
+  content: "";
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child {
+  position: relative;
+  z-index: 1;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child p:first-child {
+  color: #f4ca37;
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child p:nth-child(2) {
+  margin-top: 0.15rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff !important;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child p:nth-child(3) {
+  color: rgb(255 255 255 / 0.78) !important;
+  font-size: 0.75rem;
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.25rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.12);
+  padding: 0.2rem 0.6rem;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child p:nth-child(2) span,
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > div:first-child p:nth-child(3) span {
+  color: rgb(255 255 255 / 0.78) !important;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > button {
+  position: relative;
+  z-index: 1;
+  border-color: rgb(255 255 255 / 0.28);
+  background: rgb(255 255 255 / 0.1);
+  color: white;
+}
+
+.wing-master-page > .space-y-4 > .flex.items-center.justify-between.rounded-xl.border > button:hover {
+  background: rgb(255 255 255 / 0.18);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .65; }

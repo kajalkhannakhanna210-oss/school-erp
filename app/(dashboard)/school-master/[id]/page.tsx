@@ -1,49 +1,33 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requirePageAccess } from "@/lib/require-role";
 import { createClient } from "@/lib/supabase/server";
 import { Badge, Button, Card } from "@/components/ui";
+import { getMasterDataContext } from "@/lib/security/master-data-context";
+
+function Metric({ label, value, tone = "text-ink-700" }: { label: string; value: string | number; tone?: string }) { const accent = label === "Active wings" ? "border-l-emerald-500" : label === "Policies" ? "border-l-amber-500" : label === "Mapped classes" ? "border-l-indigo-500" : "border-l-ink-700"; return <div className={`rounded-xl border border-slate-200 border-l-4 bg-white px-3 py-3 shadow-sm transition hover:shadow-md ${accent}`}><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate/55">{label}</p><p className={`mt-1 text-xl font-black ${tone}`}>{value}</p></div>; }
+function DetailItem({ label, value }: { label: string; value: string | null | undefined }) { return <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate/55">{label}</p><p className="mt-1 break-words text-sm font-semibold text-ink-700">{value || "—"}</p></div>; }
+function SectionHeading({ icon, title, subtitle, action }: { icon: string; title: string; subtitle: string; action?: React.ReactNode }) { return <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5 sm:px-5"><div className="flex min-w-0 items-center gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-indigo-50 text-sm font-bold text-ink-700">{icon}</span><div className="min-w-0"><h2 className="font-display text-base font-semibold text-ink-700 sm:text-lg">{title}</h2><p className="mt-0.5 truncate text-xs text-slate/60">{subtitle}</p></div></div>{action}</div>; }
 
 export default async function SchoolDetailsPage({ params }: { params: { id: string } }) {
   await requirePageAccess("school_master");
+  const context = await getMasterDataContext();
+  if (context.loginScope === "school" && context.schoolId !== params.id) redirect(`/school-master/${context.schoolId}`);
   const supabase = await createClient();
-  const { data: school } = await supabase
-    .from("schools")
-    .select("*, organizations(id, code, name)")
-    .eq("id", params.id)
-    .maybeSingle();
-
+  const { data: school } = await supabase.from("schools").select("*, organizations(id, code, name)").eq("id", params.id).maybeSingle();
   if (!school) notFound();
-
+  const [{ data: wings }, { data: classes }] = await Promise.all([
+    supabase.from("school_wings").select("id, wing_code, wing_name, description, is_active, wing_admission_policies(prefix, suffix, current_number, number_length, separator, include_academic_year, academic_year_format, is_active)").eq("school_id", params.id).order("display_order"),
+    supabase.from("classes").select("id, wing_id").eq("school_id", params.id),
+  ]);
   const organization = Array.isArray(school.organizations) ? school.organizations[0] : school.organizations;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted-foreground">School / Branch Master</p>
-          <h1 className="text-2xl font-semibold">{school.name}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link className="inline-flex min-h-10 items-center justify-center rounded-lg border border-ink-100 bg-white px-4 py-2 text-sm font-semibold text-ink-700 shadow-sm hover:bg-ink-50" href="/school-master">Back</Link>
-          <Link className="inline-flex min-h-10 items-center justify-center rounded-lg bg-ink-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-ink-600" href={`/school-master/${school.id}/edit`}>Edit School</Link>
-        </div>
-      </div>
-
-      <Card>
-        <h2 className="mb-5 text-lg font-semibold">School details</h2>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div><p className="text-sm text-muted-foreground">School name</p><p className="font-medium">{school.name}</p></div>
-          <div><p className="text-sm text-muted-foreground">School code</p><p className="font-medium">{school.code}</p></div>
-          <div><p className="text-sm text-muted-foreground">Organization</p><p className="font-medium">{organization?.name ?? "—"}</p><p className="text-sm text-muted-foreground">{organization?.code ?? ""}</p></div>
-          <div><p className="text-sm text-muted-foreground">Status</p><Badge variant={school.is_active ? "default" : "secondary"}>{school.is_active ? "Active" : "Inactive"}</Badge></div>
-          <div><p className="text-sm text-muted-foreground">Website slug</p><p className="font-medium">{school.slug}</p></div>
-        </div>
-      </Card>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card><h2 className="mb-4 text-lg font-semibold">Contact information</h2><div className="grid gap-4 sm:grid-cols-2 text-sm"><div><p className="text-muted-foreground">Contact person</p><p className="font-medium">{school.contact_person ?? "—"}</p></div><div><p className="text-muted-foreground">Designation</p><p className="font-medium">{school.contact_designation ?? "—"}</p></div><div><p className="text-muted-foreground">Mobile</p><p className="font-medium">{school.phone ?? "—"}</p></div><div><p className="text-muted-foreground">Email</p><p className="break-words font-medium">{school.email ?? "—"}</p></div></div></Card>
-        <Card><h2 className="mb-4 text-lg font-semibold">Address</h2><p className="text-sm leading-6 text-ink-700">{[school.address_line1, school.address_line2, school.city, school.state, school.country, school.postal_code].filter(Boolean).join(", ") || "No address provided."}</p></Card>
-      </div>
-    </div>
-  );
+  const wingRows = (wings ?? []).map((wing: any) => { const policy = Array.isArray(wing.wing_admission_policies) ? wing.wing_admission_policies[0] ?? null : wing.wing_admission_policies ?? null; const number = policy ? String((policy.current_number ?? 0) + 1).padStart(policy.number_length ?? 4, "0") : null; const academicYear = policy?.include_academic_year && policy.academic_year_format ? policy.academic_year_format.replace("YYYY", "2026").replace("YY", "27") : null; return { ...wing, policy, classCount: (classes ?? []).filter((item: any) => item.wing_id === wing.id).length, preview: policy ? [policy.prefix, academicYear, number, policy.suffix].filter(Boolean).join(policy.separator ?? "/") : null }; });
+  const activeWings = wingRows.filter((wing) => wing.is_active).length;
+  const configuredPolicies = wingRows.filter((wing) => wing.policy?.is_active).length;
+  const mappedClasses = (classes ?? []).filter((item: any) => item.wing_id).length;
+  return <div className="-mx-2 space-y-3 sm:-mx-3 sm:space-y-4 lg:-mx-4">
+    <section className="overflow-hidden rounded-2xl border border-ink-100 border-l-4 border-l-gold-500 bg-white shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 sm:px-5"><div className="flex min-w-0 items-center gap-3"><div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-ink-700"><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M3 21h18M5 21V8l7-4 7 4v13M9 21v-5h6v5M8 10h.01M12 10h.01M16 10h.01" strokeLinecap="round" strokeLinejoin="round" /></svg></div><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate/60">School / Branch Master</p><h1 className="mt-0.5 truncate font-display text-xl font-semibold text-ink-700 sm:text-2xl">{school.name}</h1><p className="mt-0.5 truncate font-mono text-xs text-slate/60">{school.code}{organization?.name ? ` • ${organization.name}` : ""}</p></div></div><div className="flex flex-wrap gap-2">{context.loginScope !== "school" && <Link href="/school-master"><Button size="sm" variant="outline">← Back</Button></Link>}<Link href={`/school-master/new?id=${school.id}`}><Button size="sm">✎ Edit School</Button></Link></div></div><div className="grid grid-cols-2 gap-2 border-t border-ink-100 bg-slate-50/70 p-3 sm:grid-cols-4 sm:gap-3"><Metric label="Total wings" value={wingRows.length} /><Metric label="Active wings" value={activeWings} tone="text-emerald-700" /><Metric label="Mapped classes" value={mappedClasses} /><Metric label="Policies" value={`${configuredPolicies}/${wingRows.length}`} tone={configuredPolicies === wingRows.length ? "text-emerald-700" : "text-amber-700"} /></div></section>
+    <div className="grid gap-3 lg:grid-cols-2 lg:gap-4"><Card className="overflow-hidden rounded-2xl border border-ink-100 !p-0 shadow-sm"><SectionHeading icon="⌂" title="School information" subtitle="Identity and operating status." /><div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5"><DetailItem label="School name" value={school.name} /><DetailItem label="School code" value={school.code} /><DetailItem label="Organization" value={organization?.name} /><DetailItem label="Website slug" value={school.slug} /><DetailItem label="School type" value={school.school_type} /><DetailItem label="Board / affiliation" value={school.board} /><div><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate/55">Status</p><div className="mt-1"><Badge variant={school.is_active ? "default" : "destructive"}>{school.is_active ? "Active" : "Inactive"}</Badge></div></div></div></Card><Card className="overflow-hidden rounded-2xl border border-ink-100 !p-0 shadow-sm"><SectionHeading icon="☎" title="Contact & location" subtitle="Contact details and registered address." /><div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5"><DetailItem label="Contact person" value={school.contact_person} /><DetailItem label="Designation" value={school.contact_designation} /><DetailItem label="Mobile" value={school.phone} /><DetailItem label="Email" value={school.email} /><div className="sm:col-span-2"><DetailItem label="Address" value={[school.address_line1, school.address_line2, school.city, school.state, school.country, school.postal_code].filter(Boolean).join(", ")} /></div></div></Card></div>
+    <Card className="overflow-hidden rounded-2xl border border-ink-100 !p-0 shadow-sm"><SectionHeading icon="⌘" title="School wings" subtitle="Classes and wing-wise admission number policies." action={<Link href={`/wings?schoolId=${school.id}`}><Button size="sm">Manage Wings</Button></Link>} />{wingRows.length ? <div className="grid gap-3 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-3">{wingRows.map((wing) => <article key={wing.id} className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm transition hover:border-indigo-200 hover:shadow-md"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="font-mono text-[10px] font-bold tracking-[0.12em] text-slate/55">{wing.wing_code}</p><h3 className="mt-1 truncate font-semibold text-ink-700">{wing.wing_name}</h3></div><Badge variant={wing.is_active ? "default" : "destructive"}>{wing.is_active ? "Active" : "Inactive"}</Badge></div><div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3 text-xs"><div className="rounded-lg bg-slate-50 px-2.5 py-2"><p className="text-slate/55">Classes</p><p className="mt-1 font-bold text-ink-700">{wing.classCount}</p></div><div className="rounded-lg bg-slate-50 px-2.5 py-2"><p className="text-slate/55">Policy</p><p className={`mt-1 font-bold ${wing.policy?.is_active ? "text-emerald-700" : "text-amber-700"}`}>{wing.policy?.is_active ? "Configured" : "Required"}</p></div></div>{wing.preview ? <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-2"><p className="text-[10px] font-bold uppercase tracking-wide text-indigo-700">Admission preview</p><p className="mt-1 truncate font-mono text-sm font-bold text-ink-700">{wing.preview}</p></div> : <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">Configure admission policy</p>}</article>)}</div> : <div className="px-5 py-10 text-center"><p className="font-semibold text-ink-700">No wings configured</p><p className="mt-1 text-sm text-slate/60">Create the first wing from Wing Master.</p><Link className="mt-3 inline-flex text-sm font-semibold text-ink-700 underline" href={`/wings?schoolId=${school.id}`}>Open Wing Master</Link></div>}</Card>
+  </div>;
 }

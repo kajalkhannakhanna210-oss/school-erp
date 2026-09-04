@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   const schoolId = typeof body.schoolId === "string" ? body.schoolId : "";
   if (!organizationId || !schoolId) return NextResponse.json({ error: "Select an organization and school." }, { status: 400 });
   const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("role").eq("id", auth.user.id).maybeSingle();
+  const { data: profile } = await admin.from("profiles").select("role, user_type").eq("id", auth.user.id).maybeSingle();
   if (!profile?.role) return NextResponse.json({ error: "No active profile was found." }, { status: 403 });
   const { data: school } = await admin.from("schools").select("id, organization_id").eq("id", schoolId).eq("organization_id", organizationId).eq("is_active", true).maybeSingle();
   if (!school) return NextResponse.json({ error: "That school is not part of the selected organization." }, { status: 403 });
@@ -28,6 +28,11 @@ export async function POST(req: Request) {
     if (!belongsToOrganization || !authorized) return NextResponse.json({ error: "You are not authorized for that school." }, { status: 403 });
   }
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(LOGIN_CONTEXT_COOKIE, serializeLoginContext({ userId: auth.user.id, organizationId, schoolId, loginScope: "school" }), loginContextCookieOptions());
+  const loginScope = profile.role === "super_admin"
+    ? "super_admin"
+    : profile.user_type === "ORGANISATION_USER" || profile.role === "organization_admin"
+      ? "organization"
+      : "school";
+  response.cookies.set(LOGIN_CONTEXT_COOKIE, serializeLoginContext({ userId: auth.user.id, organizationId, schoolId, loginScope }), loginContextCookieOptions());
   return response;
 }
