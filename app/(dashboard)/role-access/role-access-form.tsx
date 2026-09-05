@@ -6,7 +6,7 @@ import { Button, Card } from "@/components/ui";
 import { useToast } from "@/components/toaster";
 import type { UserRole } from "@/lib/types";
 import { navItems, navSections } from "../nav-config";
-import { updateRolePageAccess, updateStaffSchoolScope } from "./actions";
+import { assignStaffRole, updateRolePageAccess, updateStaffSchoolScope } from "./actions";
 
 const ROLES: { value: UserRole; label: string }[] = [
   { value: "super_admin", label: "Super Admin" },
@@ -16,7 +16,8 @@ const ROLES: { value: UserRole; label: string }[] = [
 
 type Organization = { id: string; name: string; code: string };
 type School = { id: string; name: string; code: string; organization_id: string };
-type StaffMember = { id: string; employee_id: string; organization_id: string | null; full_name: string };
+type StaffMember = { id: string; employee_id: string; organization_id: string | null; role_id: string | null; full_name: string };
+type StaffRole = { id: string; role_code: string; role_name: string; role_scope: string };
 type SchoolScope = { staff_id: string; scope_type: string; resource_id: string | null };
 
 export function RoleAccessForm({
@@ -25,12 +26,14 @@ export function RoleAccessForm({
   schools,
   staff,
   initialSchoolScopes,
+  roles,
 }: {
   initialAccess: { role: UserRole; page_key: string }[];
   organizations: Organization[];
   schools: School[];
   staff: StaffMember[];
   initialSchoolScopes: SchoolScope[];
+  roles: StaffRole[];
 }) {
   const router = useRouter();
   const { push } = useToast();
@@ -40,6 +43,7 @@ export function RoleAccessForm({
   const [scopeOrganizationId, setScopeOrganizationId] = useState(organizations[0]?.id ?? "");
   const scopedStaff = staff.filter((member) => member.organization_id === scopeOrganizationId);
   const [scopeStaffId, setScopeStaffId] = useState(scopedStaff[0]?.id ?? "");
+  const [assignedRoleId, setAssignedRoleId] = useState("");
   const [scopeSchools, setScopeSchools] = useState<Set<string>>(new Set());
   const [allAuthorizedSchools, setAllAuthorizedSchools] = useState(false);
 
@@ -57,6 +61,10 @@ export function RoleAccessForm({
     setAllAuthorizedSchools(rows.some((scope) => scope.scope_type === "ALL"));
     setScopeSchools(new Set(rows.filter((scope) => scope.scope_type === "SCHOOL" && scope.resource_id).map((scope) => scope.resource_id as string)));
   }, [initialSchoolScopes, scopeStaffId]);
+
+  useEffect(() => {
+    setAssignedRoleId(staff.find((member) => member.id === scopeStaffId)?.role_id ?? "");
+  }, [staff, scopeStaffId]);
 
   function togglePage(key: string) {
     setSelected((current) => {
@@ -97,6 +105,15 @@ export function RoleAccessForm({
     });
   }
 
+  function saveStaffRole() {
+    startTransition(async () => {
+      const result = await assignStaffRole(scopeStaffId, assignedRoleId);
+      if (result.error) return push(result.error, "error");
+      push("Staff role and login scope updated.");
+      router.refresh();
+    });
+  }
+
   // Build sections with pages from navSections
   const sections = navSections.map((s) => ({ section: s, pages: s.keys.map((k) => navItems.find((n) => n.key === k)).filter(Boolean) as typeof navItems }));
   const used = new Set(sections.flatMap((s) => s.section.keys));
@@ -132,6 +149,15 @@ export function RoleAccessForm({
             {scopedStaff.map((member) => <option key={member.id} value={member.id}>{member.employee_id} — {member.full_name}</option>)}
           </select>
         </div>
+        {scopeStaffId && <div className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="min-w-64 flex-1 text-xs font-semibold uppercase tracking-wide text-slate/60">Login role
+            <select value={assignedRoleId} onChange={(event) => setAssignedRoleId(event.target.value)} className="mt-1 min-h-10 w-full rounded-md border border-ink-100 bg-white px-3 text-sm font-normal normal-case tracking-normal text-ink-700">
+              <option value="">Select role</option>
+              {roles.map((item) => <option key={item.id} value={item.id}>{item.role_name} ({item.role_scope})</option>)}
+            </select>
+          </label>
+          <Button type="button" onClick={saveStaffRole} disabled={pending || !assignedRoleId}>{pending ? "Saving…" : "Save role"}</Button>
+        </div>}
         {scopeStaffId && <div className="mt-3 space-y-1.5">
           <label className="flex min-h-10 items-center gap-3 rounded-md border border-ink-100 bg-white px-3 text-sm font-medium text-ink-700">
             <input type="checkbox" checked={allAuthorizedSchools} onChange={(event) => setAllAuthorizedSchools(event.target.checked)} />

@@ -267,13 +267,15 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
 
   const { data: existing } = await supabase
     .from("sections")
-    .select("class_id, classes(name)")
+    .select("class_id, classes!inner(name, school_id, organization_id)")
     .in("class_id", classIds)
     .ilike("name", name)
-    .eq("organization_id", scope.organizationId)
-    .eq("school_id", scope.schoolId);
-  if (existing?.length) {
-    const names = existing
+    .eq("classes.school_id", scope.schoolId)
+    .eq("classes.organization_id", scope.organizationId);
+  const existingClassIds = new Set((existing ?? []).map((row) => row.class_id));
+  const classIdsToCreate = classIds.filter((classId) => !existingClassIds.has(classId));
+  if (classIdsToCreate.length === 0) {
+    const names = (existing ?? [])
       .map((row) => {
         const classes = row.classes as { name: string }[] | { name: string } | null;
         return Array.isArray(classes) ? classes[0]?.name : classes?.name;
@@ -283,7 +285,10 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
     return { error: `Section "${name}" already exists for: ${names}` };
   }
 
-  const { error } = await supabase.from("sections").insert(classIds.map((class_id) => ({ class_id, name, organization_id: scope.organizationId, school_id: scope.schoolId })));
+  const { error } = await supabase.from("sections").upsert(
+    classIdsToCreate.map((class_id) => ({ class_id, name, organization_id: scope.organizationId, school_id: scope.schoolId })),
+    { onConflict: "class_id,name", ignoreDuplicates: true },
+  );
   if (!error) {
     await recordServerAction({
       action: "Bulk Create Sections",
@@ -295,7 +300,17 @@ export async function createSectionsForClasses(input: { class_ids: string[]; nam
     });
   }
   revalidateAcademicData();
-  return { error: friendlyAcademicError(error?.message) };
+  const skippedNames = (existing ?? [])
+    .map((row) => {
+      const classes = row.classes as { name: string }[] | { name: string } | null;
+      return Array.isArray(classes) ? classes[0]?.name : classes?.name;
+    })
+    .filter((value): value is string => Boolean(value))
+    .join(", ");
+  return {
+    error: friendlyAcademicError(error?.message),
+    warning: !error && skippedNames ? `Skipped existing section "${name}" for: ${skippedNames}` : null,
+  };
 }
 
 export async function deleteSectionRow(id: string) {

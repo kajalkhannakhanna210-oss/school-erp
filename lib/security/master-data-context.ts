@@ -12,7 +12,7 @@ export async function getMasterDataContext() {
 
   const admin = createAdminClient();
   const [{ data: profile }, loginContext] = await Promise.all([
-    admin.from("profiles").select("role, user_type").eq("id", auth.user.id).maybeSingle(),
+    admin.from("profiles").select("role, user_type, organization_id, school_id").eq("id", auth.user.id).maybeSingle(),
     getLoginContext(),
   ]);
   const role = profile?.role ?? null;
@@ -20,9 +20,12 @@ export async function getMasterDataContext() {
   const { data: memberships } = await admin.from("organization_memberships").select("organization_id, school_id").eq("profile_id", auth.user.id).eq("is_active", true);
   const { data: scopes } = await admin.from("staff_module_scopes").select("scope_type, resource_id").eq("staff_id", auth.user.id).eq("module_key", "school_access").eq("action_key", "ALL");
 
-  const organizationId = loginContext?.organizationId ?? staff?.organization_id ?? memberships?.[0]?.organization_id ?? null;
+  const organizationId = loginContext?.organizationId ?? (profile as any)?.organization_id ?? staff?.organization_id ?? memberships?.[0]?.organization_id ?? null;
+  // A school login is always bound to the school on the user's profile. The
+  // context cookie is only used for organisation/super-admin selection.
+  const schoolId = (profile as any)?.school_id ?? loginContext?.schoolId ?? null;
   const allSchools = role === "super_admin" || (memberships ?? []).some((row) => row.school_id === null) || (scopes ?? []).some((row) => row.scope_type === "ALL");
-  const allowedIds = new Set([...(memberships ?? []).map((row) => row.school_id), ...(scopes ?? []).filter((row) => row.scope_type === "SCHOOL").map((row) => row.resource_id)].filter(Boolean));
+  const allowedIds = new Set([schoolId, ...(memberships ?? []).map((row) => row.school_id), ...(scopes ?? []).filter((row) => row.scope_type === "SCHOOL").map((row) => row.resource_id)].filter(Boolean));
   const organizationsQuery = role === "super_admin" ? admin.from("organizations").select("id, name, code").eq("is_active", true).order("name") : null;
   const query = organizationId ? admin.from("schools").select("id, name, code, organization_id").eq("organization_id", organizationId).eq("is_active", true) : admin.from("schools").select("id, name, code, organization_id").eq("is_active", true);
   const { data: organizations } = organizationsQuery ? await organizationsQuery : { data: [] as MasterOrganization[] };
@@ -32,8 +35,10 @@ export async function getMasterDataContext() {
     ? "super_admin"
     : (profile as any)?.user_type === "ORGANISATION_USER" || role === "organization_admin"
       ? "organization"
-      : loginContext?.loginScope ?? null;
-  return { userId: auth.user.id, role, organizationId, schoolId: loginContext?.schoolId ?? null, loginScope: normalizedScope, organizations: (organizations ?? []) as MasterOrganization[], schools: visibleSchools as MasterSchool[] };
+      : (profile as any)?.school_id
+        ? "school"
+        : loginContext?.loginScope ?? null;
+  return { userId: auth.user.id, role, organizationId, schoolId, loginScope: normalizedScope, organizations: (organizations ?? []) as MasterOrganization[], schools: visibleSchools as MasterSchool[] };
 }
 
 export async function validateMasterSchool(schoolId: string, organizationId?: string | null) {

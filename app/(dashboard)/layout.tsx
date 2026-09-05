@@ -35,7 +35,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, role, is_active")
+    .select("id, full_name, role, role_id, user_type, organization_id, school_id, is_active")
     .eq("id", user.id)
     .single<Profile>();
 
@@ -44,28 +44,40 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const profileType = (profile as Profile & { user_type?: string; organization_id?: string | null; school_id?: string | null }).user_type
     ?? (profile.role === "super_admin" ? "SUPER_ADMIN" : (profile as any).school_id ? "SCHOOL_USER" : (profile as any).organization_id ? "ORGANISATION_USER" : null);
   if (profileType === "ORGANISATION_USER" && (!loginContext || loginContext.loginScope !== "organization")) redirect("/organisation");
-  if (profileType === "SCHOOL_USER" && (!loginContext || loginContext.loginScope !== "school")) redirect("/select-school");
+  // School users are permanently scoped to the school on their profile. They
+  // must not be sent through the organisation/school picker when the context
+  // cookie is missing or stale.
+  if (profileType === "SCHOOL_USER" && loginContext && loginContext.loginScope !== "school") redirect("/select-school");
   if (!loginContext && profile.role !== "super_admin") {
     const { data: staffContext } = await supabase.from("staff").select("organization_id, primary_school_id").eq("id", user.id).maybeSingle();
     if (staffContext?.organization_id && staffContext.primary_school_id) redirect("/select-school");
   }
 
-  const [{ data: rolePageAccess }, { data: roleMemberships }, { data: sessions }, masterDataContext, impersonation] = await Promise.all([
+  const [{ data: rolePageAccess }, { data: rolePermissions }, { data: roleMemberships }, { data: sessions }, masterDataContext, impersonation] = await Promise.all([
     supabase
       .from("role_page_access")
       .select("page_key, icon")
       .eq("role", profile.role),
+    supabase.from("role_permissions").select("permission_key").eq("role_id", (profile as any).role_id ?? "00000000-0000-0000-0000-000000000000"),
     supabase.from("profile_roles").select("role").eq("profile_id", user.id),
     supabase.from("academic_sessions").select("id, name, is_current").order("start_date", { ascending: false }),
     getMasterDataContext(),
     getImpersonation(),
   ]);
+  const { data: effectivePageCodes } = profile.organization_id
+    ? await supabase.rpc("get_effective_page_codes")
+    : { data: null };
 
   const allowedPageKeys = rolePageAccess ? new Set(rolePageAccess.map((access) => access.page_key)) : null;
+  const allowedPermissionKeys = new Set((rolePermissions ?? []).map((access) => access.permission_key));
+  const effectivePages = new Set((effectivePageCodes ?? []).map((row: { page_code: string }) => row.page_code));
   const icons = new Map((rolePageAccess ?? []).map((access) => [access.page_key, access.icon ?? "•"]));
   const visibleNav = navItems.filter((item) => {
+    if (profile.organization_id && effectivePageCodes) {
+      return effectivePages.has(item.key);
+    }
     if (allowedPageKeys) {
-      return allowedPageKeys.has(item.key) || (item.key === "login_as_user" && (["super_admin", "organization_admin"].includes(profile.role) || profileType === "ORGANISATION_USER"));
+      return allowedPageKeys.has(item.key) || allowedPermissionKeys.has(`${item.key}.view`) || (item.key === "login_as_user" && (["super_admin", "organization_admin"].includes(profile.role) || profileType === "ORGANISATION_USER"));
     }
     return item.roles.includes(profile.role);
   }).map((item) => {

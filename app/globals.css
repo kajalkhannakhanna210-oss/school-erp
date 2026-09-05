@@ -5,6 +5,89 @@
 /* The SEO keywords field is submitted with the main SEO form. */
 .grid.gap-6.lg\:grid-cols-\[220px_1fr\] > .lg\:col-span-2 { display: none; }
 
+/* Master page controls use a consistent, clearly visible field treatment. */
+.master-data-page input:not([type="checkbox"]):not([type="radio"]),
+.master-data-page select,
+.master-data-page textarea {
+  border: 2px solid #d7deec !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 1px 2px rgb(30 42 74 / 0.04);
+}
+
+.master-data-page input:not([type="checkbox"]):not([type="radio"]):focus,
+.master-data-page select:focus,
+.master-data-page textarea:focus {
+  border-color: #24345f !important;
+  box-shadow: 0 0 0 3px rgb(36 52 95 / 0.12) !important;
+}
+
+.master-data-page input[type="checkbox"],
+.master-data-page input[type="radio"] {
+  accent-color: #24345f;
+}
+
+.master-data-page table thead {
+  background: #24345f !important;
+  color: #ffffff !important;
+}
+
+.master-data-page table thead th {
+  color: #ffffff !important;
+}
+
+@media (max-width: 639px) {
+  .master-data-page .sessions-list-card {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .master-data-page .sessions-list-card > .sessions-mobile-list {
+    padding: 0;
+  }
+
+  .master-data-page .sessions-mobile-list article h3 {
+    letter-spacing: 0.01em;
+  }
+
+  .master-data-page .sessions-mobile-list {
+    gap: 1rem;
+  }
+
+  .master-data-page .session-mobile-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    padding: 1rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .master-data-page .session-mobile-card:active {
+    transform: translateY(1px);
+  }
+
+  .master-data-page .session-mobile-date {
+    border: 1px solid #edf0f5;
+    background: #f8fafc;
+  }
+
+  .master-data-page .sections-list-card {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .master-data-page .sections-mobile-list {
+    gap: 1rem;
+  }
+
+  .master-data-page .section-mobile-card {
+    min-height: 0;
+  }
+}
+
 /* Keep the Wing Master create form compact on desktop: all five fields fit
    on one row, while Tailwind's mobile breakpoints remain unchanged. */
 @media (min-width: 1024px) {
@@ -369,6 +452,30 @@ select {
   border: 1px solid #dce5f5;
   background: #eef3ff;
   color: #24345f;
+}
+
+/* Keep each school summary card in a predictable vertical flow. */
+.wing-master-page .wing-summary-card {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 178px;
+}
+
+.wing-master-page .wing-summary-header {
+  flex: 0 0 auto;
+}
+
+.wing-master-page .wing-summary-metrics {
+  flex: 0 0 auto;
+}
+
+.wing-master-page .wing-summary-warning {
+  flex: 0 0 auto;
+}
+
+.wing-master-page .wing-summary-card > button {
+  flex: 0 0 auto;
+  margin-top: auto !important;
 }
 
 /* School Wings listing: responsive cards on phones and compact table on

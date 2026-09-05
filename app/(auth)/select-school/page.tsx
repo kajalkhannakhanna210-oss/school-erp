@@ -10,8 +10,9 @@ export default async function SelectSchoolPage() {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) redirect("/login");
   const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("role").eq("id", auth.user.id).maybeSingle();
+  const { data: profile } = await admin.from("profiles").select("role, user_type, organization_id, school_id").eq("id", auth.user.id).maybeSingle();
   if (!profile?.role) redirect("/login");
+  if (profile.user_type === "SCHOOL_USER" && profile.organization_id && profile.school_id) redirect("/dashboard");
   const [{ data: staff }, { data: memberships }, { data: scopes }] = await Promise.all([
     admin.from("staff").select("organization_id").eq("id", auth.user.id).maybeSingle(),
     admin.from("organization_memberships").select("organization_id, school_id").eq("profile_id", auth.user.id).eq("is_active", true),

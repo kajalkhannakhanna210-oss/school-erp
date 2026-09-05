@@ -70,3 +70,29 @@ export async function updateStaffSchoolScope(staffId: string, organizationId: st
   revalidatePath("/role-access");
   return { error: null };
 }
+
+export async function assignStaffRole(staffId: string, roleId: string) {
+  await requireSuperAdmin();
+  const admin = createAdminClient();
+  const [{ data: staff }, { data: role }] = await Promise.all([
+    admin.from("staff").select("id, organization_id, primary_school_id").eq("id", staffId).maybeSingle(),
+    admin.from("staff_roles").select("id, role_scope, is_active").eq("id", roleId).maybeSingle(),
+  ]);
+  if (!staff || !role || !role.is_active) return { error: "Select a valid active staff role." };
+  if (role.role_scope === "ORGANISATION" && !staff.organization_id) return { error: "Organisation roles require an organisation assignment." };
+  if (role.role_scope === "SCHOOL" && (!staff.organization_id || !staff.primary_school_id)) return { error: "School roles require an organisation and primary school assignment." };
+  const userType = role.role_scope === "ORGANISATION" ? "ORGANISATION_USER" : "SCHOOL_USER";
+  const { error } = await admin.from("profiles").update({ role_id: role.id, user_type: userType, organization_id: staff.organization_id, school_id: role.role_scope === "SCHOOL" ? staff.primary_school_id : null, updated_at: new Date().toISOString() }).eq("id", staffId);
+  if (error) return { error: error.message };
+  const { error: staffError } = await admin.from("staff").update({ role_id: role.id }).eq("id", staffId);
+  if (staffError) return { error: staffError.message };
+  await admin.from("user_roles").update({ is_primary: false, updated_at: new Date().toISOString() }).eq("user_id", staffId);
+  const { error: assignmentError } = await admin.from("user_roles").upsert({
+    user_id: staffId, role_id: role.id, organization_id: staff.organization_id,
+    school_id: role.role_scope === "SCHOOL" ? staff.primary_school_id : null, is_primary: true, updated_at: new Date().toISOString(),
+  }, { onConflict: "user_id,role_id,organization_id,school_id" });
+  if (assignmentError) return { error: assignmentError.message };
+  revalidatePath("/role-access");
+  revalidatePath("/staff");
+  return { error: null };
+}

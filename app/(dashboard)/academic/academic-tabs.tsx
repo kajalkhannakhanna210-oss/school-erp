@@ -239,6 +239,7 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
   const [pending, startTransition] = useTransition();
   const [form, setForm] = useState({ name: "", start_date: "", end_date: "", is_current: false });
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(null);
 
   function handleCreate(e: FormEvent) {
     e.preventDefault();
@@ -275,8 +276,9 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
       push("Academic session deleted");
     });
   }
-  function makeCurrent(id: string) {
-    startTransition(async () => { const res = await callServerAction(() => setCurrentSession(id)); const error = res?.error ?? (res === undefined ? "No response from server" : null); if (error) push(error, "error"); else push("Current session updated"); });
+  function confirmMakeCurrent() {
+    if (!currentId) return;
+    startTransition(async () => { const res = await callServerAction(() => setCurrentSession(currentId)); setCurrentId(null); const error = res?.error ?? (res === undefined ? "No response from server" : null); if (error) push(error, "error"); else push("Current session updated"); });
   }
 
   return (
@@ -313,26 +315,56 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
           </Button>
         </form>
       </Card>
-      <Card>
-        <table className="w-full text-sm">
-          <thead className="bg-ink-700 text-white">
-            <tr className="border-b border-white/20 text-left text-xs uppercase tracking-wide text-white/80">
-              <th className="px-3 py-3">Name</th>
-              <th className="px-3 py-3">Dates</th>
-              <th className="px-3 py-3">Status</th>
-              <th className="px-3 py-3"></th>
+      <Card className="sessions-list-card overflow-hidden !p-0">
+        <div className="sessions-mobile-list space-y-3 px-3 py-3 sm:hidden">
+          {sessions.map((s) => (
+            <article key={s.id} className={`session-mobile-card rounded-2xl border border-l-4 bg-white p-4 shadow-[0_4px_14px_rgba(30,42,74,0.06)] ${s.is_current ? "border-slate-200 border-l-emerald-500" : "border-slate-200 border-l-ink-700"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate/50">Academic session</p>
+                  <h3 className="mt-1 font-mono text-base font-bold text-ink-700">{s.name}</h3>
+                </div>
+                {s.is_current && <Badge>Current</Badge>}
+              </div>
+              <div className="session-mobile-date mt-4 flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-3">
+                <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate/50">Dates</p>
+                <p className="mt-1 text-sm font-medium text-slate/75">{formatSessionDate(s.start_date)} <span className="px-1 text-slate/40">→</span> {formatSessionDate(s.end_date)}</p>
+                </div>
+                <Button size="sm" variant="ghost" aria-label={`Delete ${s.name}`} title={`Delete ${s.name}`} className="h-9 w-9 shrink-0 p-0 text-rose-600 hover:bg-rose-100 hover:text-rose-700" onClick={() => setDeleteId(s.id)}>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Button>
+              </div>
+              {!s.is_current && <div className="mt-4 flex items-center justify-end border-t border-slate-100 pt-3">
+                <Button size="sm" variant="primary" disabled={pending} onClick={() => setCurrentId(s.id)} className="session-set-current-button w-full gap-2">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><path d="M5 12.5 9.2 17 19 7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  Set current
+                </Button>
+              </div>}
+            </article>
+          ))}
+          {sessions.length === 0 && <p className="rounded-xl border border-dashed border-ink-100 px-4 py-10 text-center text-sm text-slate/50">No sessions yet.</p>}
+        </div>
+        <div className="hidden overflow-x-auto px-3 pb-3 sm:block sm:px-5">
+        <table className="w-full min-w-[620px] text-sm">
+          <thead>
+            <tr className="border-b border-ink-100 text-left text-[11px] uppercase tracking-[0.12em] text-slate/55">
+              <th className="px-2 py-3 font-bold">Name</th>
+              <th className="px-2 py-3 font-bold">Dates</th>
+              <th className="px-2 py-3 font-bold">Status</th>
+              <th className="px-2 py-3 text-right font-bold">Actions</th>
             </tr>
           </thead>
           <tbody>
             {sessions.map((s) => (
-              <tr key={s.id} className="border-b border-ink-100 last:border-0">
-                <td className="py-3 font-mono">{s.name}</td>
-                <td className="py-3 text-slate/70">
+              <tr key={s.id} className="border-b border-ink-50 last:border-0 hover:bg-ink-50/40">
+                <td className="px-2 py-4 font-mono font-semibold text-ink-700">{s.name}</td>
+                <td className="px-2 py-4 text-slate/70">
                   {formatSessionDate(s.start_date)} → {formatSessionDate(s.end_date)}
                 </td>
-                <td className="py-3">{s.is_current ? <Badge>Current</Badge> : <Button variant="ghost" disabled={pending} onClick={() => makeCurrent(s.id)}>Set current</Button>}</td>
-                <td className="py-3 text-right">
-                  <Button variant="ghost" onClick={() => setDeleteId(s.id)}>
+                <td className="px-2 py-4">{s.is_current ? <Badge>Current</Badge> : <Button size="sm" variant="outline" disabled={pending} onClick={() => setCurrentId(s.id)}>Set current</Button>}</td>
+                <td className="px-2 py-4 text-right">
+                  <Button size="sm" variant="ghost" className="text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => setDeleteId(s.id)}>
                     Delete
                   </Button>
                 </td>
@@ -340,13 +372,14 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
             ))}
             {sessions.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-6 text-center text-slate/50">
+                <td colSpan={4} className="px-2 py-12 text-center text-slate/50">
                   No sessions yet.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
       </Card>
       <ConfirmDialog
         open={!!deleteId}
@@ -354,6 +387,15 @@ function SessionsTab({ sessions }: { sessions: Session[] }) {
         description="This removes the session. Classes and sections themselves are unaffected."
         onConfirm={handleDelete}
         onCancel={() => setDeleteId(null)}
+      />
+      <ConfirmDialog
+        open={!!currentId}
+        title="Set current academic session?"
+        description={`This will make ${sessions.find((session) => session.id === currentId)?.name ?? "this session"} the active session for the selected school.`}
+        confirmLabel="Set current"
+        isLoading={pending}
+        onConfirm={confirmMakeCurrent}
+        onCancel={() => setCurrentId(null)}
       />
     </div>
   );
@@ -609,12 +651,13 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
     e.preventDefault();
     if (form.class_ids.length === 0) return;
     startTransition(async () => {
-      const { error } = await createSectionsForClasses({ class_ids: form.class_ids, name: form.name });
+      const { error, warning } = await createSectionsForClasses({ class_ids: form.class_ids, name: form.name });
       if (error) {
         push(error, "error");
         return;
       }
       push("Section created");
+      if (warning) push(warning, "error");
       setForm({ class_ids: form.class_ids, name: "" });
     });
   }
@@ -639,6 +682,9 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
       else { setEditingSectionId(null); push("Section updated"); }
     });
   }
+
+  const filteredClasses = classes.filter((c) => c.name.toLowerCase().includes(classSearch.toLowerCase()));
+  const allClassesSelected = classes.length > 0 && form.class_ids.length === classes.length;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
@@ -667,7 +713,15 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
                   onChange={(e) => setClassSearch(e.target.value)}
                   className="mb-2"
                 />
-                {classes.filter((c) => c.name.toLowerCase().includes(classSearch.toLowerCase())).map((c) => (
+                <label className="mb-1 flex cursor-pointer items-center gap-2 rounded-lg border border-ink-100 bg-ink-50/60 px-2 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50">
+                  <input
+                    type="checkbox"
+                    checked={allClassesSelected}
+                    onChange={(e) => setForm({ ...form, class_ids: e.target.checked ? classes.map((c) => c.id) : [] })}
+                  />
+                  Select all classes
+                </label>
+                {filteredClasses.map((c) => (
                   <label key={c.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-2 text-sm hover:bg-ink-50">
                     <input
                       type="checkbox"
@@ -677,7 +731,7 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
                     {c.name}
                   </label>
                 ))}
-                {classes.filter((c) => c.name.toLowerCase().includes(classSearch.toLowerCase())).length === 0 && (
+                {filteredClasses.length === 0 && (
                   <p className="px-2 py-2 text-xs text-slate/60">No classes found.</p>
                 )}
               </div>, document.body)}
@@ -698,7 +752,38 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
           </Button>
         </form>
       </Card>
-      <Card>
+      <Card className="sections-list-card overflow-hidden !p-0 sm:overflow-visible sm:!p-6">
+        <div className="sections-mobile-list space-y-3 p-3 sm:hidden">
+          {groupedSections.map((s) => (
+            <article key={s.ids[0]} className="section-mobile-card rounded-2xl border border-slate-200 border-l-4 border-l-ink-700 bg-white p-4 shadow-[0_4px_14px_rgba(30,42,74,0.06)]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-50 text-indigo-700">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5"><path d="M12 3 2 8l10 5 8-4v6h2V8L12 3Zm-6 9.2V16c0 1.7 2.7 4 6 4s6-2.3 6-4v-3.8l-6 3-6-3Z" /></svg>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate/50">Class</p>
+                    <h3 className="mt-1 font-display text-lg font-semibold text-ink-700">{s.name}</h3>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                <Button type="button" size="sm" variant="outline" aria-label={`Add section to ${s.name}`} title={`Add section to ${s.name}`} className="h-9 w-9 shrink-0 !border-ink-700 !bg-ink-700 p-0 !text-white hover:!bg-ink-600" onClick={() => { setForm({ ...form, class_ids: [s.classId] }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><path d="M12 5v14M5 12h14" strokeLinecap="round" /></svg>
+                </Button>
+                <Button size="sm" variant="ghost" aria-label={`Delete sections for ${s.name}`} title={`Delete sections for ${s.name}`} className="h-9 w-9 shrink-0 p-0 text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => setDeleteId(s.ids[0])}>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </Button>
+                </div>
+              </div>
+              <div className="mt-4 border-t border-slate-100 pt-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate/50">Sections</p>
+                {editingSectionId && s.sections.some((section) => section.id === editingSectionId) ? <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); handleSectionUpdate([editingSectionId]); }}><Input required value={editingSectionName} onChange={(e) => setEditingSectionName(e.target.value)} className="mt-0" /><Button type="submit" size="sm" disabled={pending}>Save</Button><Button type="button" size="sm" variant="ghost" onClick={() => setEditingSectionId(null)}>Cancel</Button></form> : <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2">{s.sections.map((section) => <span key={section.id} className="inline-flex items-center gap-1.5 font-mono text-sm font-semibold text-ink-700">{section.name}<Button className="h-7 w-7 rounded-lg bg-slate-50 p-0 text-ink-700 shadow-sm hover:bg-indigo-50" variant="ghost" aria-label={`Edit section ${section.name}`} title={`Edit section ${section.name}`} disabled={pending} onClick={() => { setEditingSectionId(section.id); setEditingSectionName(section.name); }}>✎</Button></span>)}</div>}
+              </div>
+            </article>
+          ))}
+          {groupedSections.length === 0 && <p className="rounded-xl border border-dashed border-ink-100 px-4 py-10 text-center text-sm text-slate/50">No sections yet.</p>}
+        </div>
+        <div className="hidden overflow-x-auto sm:block">
         <table className="w-full text-sm">
           <thead className="bg-ink-700 text-white">
             <tr className="border-b border-white/20 text-left text-xs uppercase tracking-wide text-white/80">
@@ -713,7 +798,7 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
                 {editingSectionId && s.sections.some((section) => section.id === editingSectionId) ? <td colSpan={3} className="py-3"><form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); handleSectionUpdate([editingSectionId]); }}><Input required value={editingSectionName} onChange={(e) => setEditingSectionName(e.target.value)} /><Button type="submit" disabled={pending}>Save</Button><Button type="button" variant="ghost" onClick={() => setEditingSectionId(null)}>Cancel</Button></form></td> : <><td className="py-3">{s.name}</td>
                 <td className="py-3 font-mono"><div className="flex flex-wrap gap-1">{s.sections.map((section) => <span key={section.id} className="inline-flex items-center gap-0.5">{section.name}<Button className="h-7 w-7 p-0" variant="ghost" aria-label={`Edit section ${section.name}`} title={`Edit section ${section.name}`} disabled={pending} onClick={() => { setEditingSectionId(section.id); setEditingSectionName(section.name); }}>✎</Button></span>)}</div></td>
                 <td className="py-3 text-right">
-                  <Button variant="ghost" onClick={() => setDeleteId(s.ids[0])}>
+                  <Button variant="ghost" className="text-rose-600 hover:bg-rose-50 hover:text-rose-700" onClick={() => setDeleteId(s.ids[0])}>
                     Delete
                   </Button>
                 </td>
@@ -729,6 +814,7 @@ function SectionsTab({ sections, classes }: { sections: SectionRow[]; classes: C
             )}
           </tbody>
         </table>
+        </div>
       </Card>
       <ConfirmDialog
         open={!!deleteId}

@@ -44,28 +44,28 @@ function SummaryCard({ title, count, subtitle, tone, icon }: { title: string; co
 
 function OrganizationCard({ organization, schools, history }: { organization: { id: string; code: string; name: string; is_active: boolean; inactive_reason?: string | null; created_at: string }; schools: { id: string; code: string; name: string; slug?: string | null; is_active: boolean }[]; history: StatusHistoryItem[] }) {
   return (
-    <article className={`group relative overflow-hidden rounded-xl border border-slate-200/90 border-l-4 bg-white p-2.5 shadow-sm transition-all hover:border-slate-300 hover:shadow-md sm:p-3.5 ${organization.is_active ? "border-l-emerald-500" : "border-l-rose-400"}`}>
+    <article className={`group relative overflow-hidden rounded-xl border border-slate-200/80 border-l-4 bg-white px-2 py-2.5 shadow-sm transition-all hover:shadow-md sm:rounded-[22px] sm:border-l-[7px] sm:px-7 sm:py-6 ${organization.is_active ? "border-l-emerald-500" : "border-l-ink-700"}`}>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-2.5">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink-700 text-white shadow-sm"><svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M4 20h16M6 20V8l6-4 6 4v12M9 20v-5h6v5M9 10h.01M15 10h.01" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+        <div className="flex min-w-0 items-center gap-2.5 sm:gap-4">
+          <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-white shadow-sm sm:h-[82px] sm:w-[82px] ${organization.is_active ? "bg-emerald-500" : "bg-ink-700"}`}><svg viewBox="0 0 24 24" className="h-4 w-4 sm:h-10 sm:w-10" fill="none" stroke="currentColor" strokeWidth="1.55" aria-hidden="true"><path d="M4 20h16M6 20V8l6-4 6 4v12M9 20v-5h6v5M9 10h.01M15 10h.01" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
           <div className="min-w-0">
-            <Link href={`/organization-master/${organization.id}`} className="block truncate text-sm font-bold text-ink-700 hover:text-gold-700 sm:text-base">
+            <Link href={`/organization-master/${organization.id}`} className="block truncate text-sm font-bold leading-tight text-ink-700 hover:text-gold-700 sm:text-[28px]">
               {organization.name}
             </Link>
-            <p className="mt-1 flex items-center gap-1.5 truncate font-mono text-[11px] text-slate/60"><svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.2 2.5 3.3 5.5 3.3 9S14.2 18.5 12 21c-2.2-2.5-3.3-5.5-3.3-9S9.8 5.5 12 3Z" strokeLinecap="round" /></svg>{organization.code}</p>
+            <p className="mt-1 flex items-center gap-1.5 truncate font-mono text-[11px] text-slate/60 sm:mt-2 sm:gap-2 sm:text-base"><svg viewBox="0 0 24 24" className="h-3 w-3 shrink-0 sm:h-5 sm:w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.2 2.5 3.3 5.5 3.3 9S14.2 18.5 12 21c-2.2-2.5-3.3-5.5-3.3-9S9.8 5.5 12 3Z" strokeLinecap="round" /></svg>{organization.code}</p>
           </div>
         </div>
-        <div className="shrink-0 text-right"><Badge variant={organization.is_active ? "default" : "destructive"}>{organization.is_active ? "Active" : "Inactive"}</Badge></div>
+        <div className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-bold sm:gap-2 sm:px-5 sm:py-3 sm:text-lg ${organization.is_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}><span className={`h-2 w-2 rounded-full sm:h-3 sm:w-3 ${organization.is_active ? "bg-emerald-600" : "bg-rose-600"}`} />{organization.is_active ? "Active" : "Inactive"}</div>
       </div>
-      <dl className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 p-2 text-[11px]">
+      <dl className="mt-2.5 grid grid-cols-2 gap-1.5 rounded-xl bg-[#f5f8fc] p-2 text-[11px] sm:mt-6 sm:divide-x sm:rounded-[18px] sm:px-6 sm:py-5">
         <div className="flex min-w-0 items-center gap-1.5"><svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-slate/60" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="9" cy="8" r="3" /><path d="M3.5 19c.8-3 2.7-4.5 5.5-4.5s4.7 1.5 5.5 4.5M16 11a2.5 2.5 0 1 0 0-5M16 14.5c2.3 0 3.9 1.2 4.5 3.5" strokeLinecap="round" /></svg><div className="min-w-0"><dt className="font-medium text-slate/50">Branches</dt><dd className="truncate font-semibold text-ink-700"><OrganizationBranchesModal organizationName={organization.name} schools={schools} showLabel /></dd></div></div>
         <div className="flex min-w-0 items-center gap-1.5"><svg viewBox="0 0 24 24" className="h-3.5 w-3.5 shrink-0 text-slate/60" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="3" /><path d="M5.5 20c.8-3.2 3-5 6.5-5s5.7 1.8 6.5 5" strokeLinecap="round" /></svg><div className="min-w-0"><dt className="font-medium text-slate/50">Account</dt><dd className="truncate font-semibold text-ink-700">Organization</dd></div></div>
       </dl>
-      <div className="mt-2.5 border-t border-slate-100 pt-2.5">
-        <div className="min-w-0 rounded-lg bg-slate-50/80 px-2.5 py-2"><p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-slate/50">Remark</p><div className="min-w-0"><StatusHistoryModal title={organization.name} items={history} /></div></div>
+      <div className="mt-2.5 sm:mt-6">
+        <div className="min-w-0 rounded-lg bg-[#f5f8fc] px-2.5 py-2 sm:rounded-[18px] sm:px-6 sm:py-5"><p className="mb-1 text-[10px] font-bold uppercase text-slate-600 sm:mb-2 sm:text-lg">Remark</p><div className="min-w-0"><StatusHistoryModal title={organization.name} items={history} /></div></div>
         <div className="mt-2.5 flex items-center justify-between gap-2">
-        <p className="min-w-0 truncate text-[11px] text-slate/60">Created Date: <span className="font-semibold text-ink-700">{formatCreatedAt(organization.created_at)}</span></p>
-        <div className="flex shrink-0 gap-1.5">
+        <p className="min-w-0 truncate text-[11px] text-slate/60 sm:text-lg">Created Date: <span className="font-semibold text-ink-700">{formatCreatedAt(organization.created_at)}</span></p>
+        <div className="flex shrink-0 gap-1.5 sm:gap-4">
         <Link href={`/organization-master/${organization.id}`}><Button size="sm" variant="outline" className="min-h-9 w-9 rounded-lg px-0 text-sm" aria-label="View organization" title="View organization"><span aria-hidden="true">↗</span></Button></Link>
         <OrganizationEditModal organization={organization} />
         {organization.is_active ? <OrganizationStatusModal id={organization.id} name={organization.name} compact /> : <OrganizationStatusModal id={organization.id} name={organization.name} compact activate />}
@@ -135,7 +135,7 @@ export default async function OrganizationMasterPage({ searchParams }: { searchP
           </form>
         </OrganizationFilters>
         </div>
-        <div className="grid gap-3 p-3 sm:gap-4 sm:p-4 md:hidden">
+        <div className="grid gap-5 px-2 py-3 sm:gap-6 sm:px-5 sm:py-5 md:hidden">
           {allOrganizations.map((organization) => <OrganizationCard key={organization.id} organization={organization} schools={schoolsByOrganization.get(organization.id) ?? []} history={historyByOrganization.get(organization.id) ?? []} />)}
         </div>
         <div className="hidden overflow-hidden px-1 pb-2 sm:px-2 md:block">

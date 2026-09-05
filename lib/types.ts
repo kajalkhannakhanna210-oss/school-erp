@@ -4,6 +4,7 @@ export type Profile = {
   id: string;
   full_name: string;
   role: UserRole;
+  role_id?: string | null;
   is_active: boolean;
   organization_id?: string | null;
   school_id?: string | null;

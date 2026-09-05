@@ -12,8 +12,13 @@ export async function POST(req: Request) {
   const schoolId = typeof body.schoolId === "string" ? body.schoolId : "";
   if (!organizationId || !schoolId) return NextResponse.json({ error: "Select an organization and school." }, { status: 400 });
   const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("role, user_type").eq("id", auth.user.id).maybeSingle();
+  const { data: profile } = await admin.from("profiles").select("role, user_type, organization_id, school_id").eq("id", auth.user.id).maybeSingle();
   if (!profile?.role) return NextResponse.json({ error: "No active profile was found." }, { status: 403 });
+  if (profile.user_type === "SCHOOL_USER") {
+    if (!profile.organization_id || !profile.school_id || profile.organization_id !== organizationId || profile.school_id !== schoolId) {
+      return NextResponse.json({ error: "School staff are permanently restricted to their assigned school." }, { status: 403 });
+    }
+  }
   const { data: school } = await admin.from("schools").select("id, organization_id").eq("id", schoolId).eq("organization_id", organizationId).eq("is_active", true).maybeSingle();
   if (!school) return NextResponse.json({ error: "That school is not part of the selected organization." }, { status: 403 });
   if (profile.role !== "super_admin") {

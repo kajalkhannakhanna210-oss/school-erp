@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: genericAuthError }, { status: 401 });
   }
 
-  let { data: profile } = await supabase.from("profiles").select("role, user_type, platform_role, organization_id, school_id, is_active").eq("id", data.user.id).maybeSingle();
+  let { data: profile } = await supabase.from("profiles").select("role, role_id, user_type, platform_role, organization_id, school_id, is_active").eq("id", data.user.id).maybeSingle();
   const { data: userRoles } = await supabase.from("profile_roles").select("role").eq("profile_id", data.user.id);
 
   // Auth has already verified the credentials. If profile RLS prevents the
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
   if (!profile?.role) {
     const { data: adminProfile } = await createAdminClient()
       .from("profiles")
-      .select("role, user_type, platform_role, organization_id, school_id, is_active")
+      .select("role, role_id, user_type, platform_role, organization_id, school_id, is_active")
       .eq("id", data.user.id)
       .maybeSingle();
     profile = adminProfile;
@@ -165,6 +165,9 @@ export async function POST(req: NextRequest) {
 
   const userType = profile.user_type ?? (profile.role === "super_admin" ? "SUPER_ADMIN" : profile.school_id ? "SCHOOL_USER" : profile.organization_id ? "ORGANISATION_USER" : null);
   const isSuperAdmin = userType === "SUPER_ADMIN" && (profile.platform_role === "SUPER_ADMIN" || profile.role === "super_admin");
+  const { data: assignedRole } = profile.role_id
+    ? await createAdminClient().from("staff_roles").select("role_code, role_scope, is_active").eq("id", profile.role_id).maybeSingle()
+    : { data: null };
   // The root /login page is the unified entry point. Once Supabase verifies
   // the password, infer the user's scope from the trusted profile record.
   if (isUnifiedLogin && !isSuperAdmin) {
@@ -238,6 +241,12 @@ export async function POST(req: NextRequest) {
     );
   } else {
     response.cookies.set(SUPER_ADMIN_SESSION_COOKIE_NAME, "", superAdminSessionCookieOptions(0));
+  }
+
+  if (!isSuperAdmin && assignedRole && (!assignedRole.is_active || (requestedMode === "ORGANISATION" && assignedRole.role_scope !== "ORGANISATION") || (requestedMode === "SCHOOL" && assignedRole.role_scope !== "SCHOOL"))) {
+    await supabase.auth.signOut();
+    await logSecurityEvent({ eventType: "sign_in_role_scope_denied", userId: data.user.id, identifier: identifier.value, request: req, metadata: { roleScope: assignedRole.role_scope, requestedMode } });
+    return NextResponse.json({ error: genericAuthError }, { status: 401 });
   }
   response.cookies.set(LOGIN_CONTEXT_COOKIE, serializeLoginContext({ userId: data.user.id, organizationId, schoolId: isSuperAdmin ? null : tenant?.schoolId ?? null, loginScope: isSuperAdmin ? "super_admin" : requestedMode === "ORGANISATION" ? "organization" : "school" }), loginContextCookieOptions());
   const secret = tokenSecret();

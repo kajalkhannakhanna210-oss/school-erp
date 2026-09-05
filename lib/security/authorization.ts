@@ -7,10 +7,17 @@ export async function getCurrentUser() {
   const supabase = await createClient();
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) return null;
-  const { data: profile } = await createAdminClient().from("profiles").select("id, full_name, role, user_type, platform_role, organization_id, school_id, is_active").eq("id", auth.user.id).maybeSingle();
+  const { data: profile } = await createAdminClient().from("profiles").select("id, full_name, role, role_id, user_type, platform_role, organization_id, school_id, is_active").eq("id", auth.user.id).maybeSingle();
   if (!profile?.is_active) return null;
   const userType = profile.user_type ?? (profile.role === "super_admin" ? "SUPER_ADMIN" : profile.school_id ? "SCHOOL_USER" : profile.organization_id ? "ORGANISATION_USER" : null);
-  return { authUser: auth.user, profile, userType, loginContext: await getLoginContext() };
+  const admin = createAdminClient();
+  const [{ data: rolePermissions }, { data: directPermissions }, { data: assignedRole }] = await Promise.all([
+    profile.role_id ? admin.from("role_permissions").select("permission_key").eq("role_id", profile.role_id) : Promise.resolve({ data: [] as { permission_key: string }[] }),
+    admin.from("staff_permissions").select("permission_key").eq("staff_id", auth.user.id),
+    profile.role_id ? admin.from("staff_roles").select("id, role_code, role_name, role_scope").eq("id", profile.role_id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  const permissions = [...new Set([...(rolePermissions ?? []), ...(directPermissions ?? [])].map((item) => item.permission_key))];
+  return { authUser: auth.user, profile, userType, assignedRole, permissions, loginContext: await getLoginContext() };
 }
 
 export async function requireSuperAdmin() {
@@ -31,8 +38,8 @@ export async function requireSchoolUser() {
   return { ...current, organisationId: current.loginContext.organizationId, schoolId: current.loginContext.schoolId };
 }
 
-export const getCurrentOrganisation = async () => (await getCurrentUser())?.loginContext?.organizationId ?? null;
-export const getCurrentSchool = async () => (await getCurrentUser())?.loginContext?.schoolId ?? null;
-export const validateOrganisationAccess = async (id: string) => (await getCurrentUser())?.loginContext?.organizationId === id;
-export const validateSchoolAccess = async (organisationId: string, schoolId: string) => { const c = await getCurrentUser(); return c?.loginContext?.organizationId === organisationId && c?.loginContext?.schoolId === schoolId; };
+export const getCurrentOrganisation = async () => { const c = await getCurrentUser(); return c?.loginContext?.organizationId ?? c?.profile.organization_id ?? null; };
+export const getCurrentSchool = async () => { const c = await getCurrentUser(); return c?.loginContext?.schoolId ?? c?.profile.school_id ?? null; };
+export const validateOrganisationAccess = async (id: string) => { const c = await getCurrentUser(); return c?.userType === "SUPER_ADMIN" || c?.loginContext?.organizationId === id || c?.profile.organization_id === id; };
+export const validateSchoolAccess = async (organisationId: string, schoolId: string) => { const c = await getCurrentUser(); return c?.userType === "SUPER_ADMIN" || (c?.loginContext?.organizationId === organisationId && c?.loginContext?.schoolId === schoolId) || (c?.profile.organization_id === organisationId && c?.profile.school_id === schoolId); };
 export const logoutUser = async () => { const supabase = await createClient(); await supabase.auth.signOut(); };

@@ -9,6 +9,7 @@ export const navItems: NavItem[] = [
   { key: "organization_master", label: "Organization Master", href: "/organization-master", roles: ["super_admin"], icon: "◎" },
   { key: "school_master", label: "School / Branch Master", href: "/school-master", roles: ["super_admin"], icon: "⌂" },
   { key: "wing_master", label: "Wing Master", href: "/wings", roles: ["super_admin", "organization_admin", "school_admin"], icon: "◈" },
+  { key: "module_master", label: "Module Master", href: "/module-master", roles: ["super_admin"], icon: "▣" },
   { key: "sessions", label: "Academic Sessions", href: "/master?tab=sessions", roles: ["super_admin"] },
   { key: "classes", label: "Classes", href: "/master?tab=classes", roles: ["super_admin"] },
   { key: "sections", label: "Sections", href: "/master?tab=sections", roles: ["super_admin"] },
@@ -51,6 +52,9 @@ export const navItems: NavItem[] = [
   { key: "cms", label: "Website CMS", href: "/cms", roles: ["super_admin"], icon: "◆" },
   { key: "admissions", label: "Admissions & Alumni", href: "/admissions-admin", roles: ["super_admin"], icon: "♜" },
   { key: "role_access", label: "Role Page Access", href: "/role-access", roles: ["super_admin"], icon: "⚙" },
+  { key: "role_master", label: "Role Master", href: "/role-master", roles: ["super_admin"], icon: "⚙" },
+  { key: "organisation_page_access", label: "Organisation Page Access", href: "/access/organisations", roles: ["super_admin"], icon: "▣" },
+  { key: "staff_page_access", label: "Staff Page Access", href: "/access/staff", roles: ["super_admin", "organization_admin", "school_admin"], icon: "▣" },
   { key: "profile", label: "My Profile", href: "/profile", roles: ["super_admin", "staff", "student"], icon: "●" },
 
   // Developer / API tools
@@ -59,7 +63,7 @@ export const navItems: NavItem[] = [
 
 export const navSections = [
   { key: "support", label: "Support", keys: ["login_as_user"] },
-  { key: "administration", label: "Administration", keys: ["organization_master", "school_master", "wing_master"] },
+  { key: "administration", label: "Administration", keys: ["organization_master", "school_master", "wing_master", "module_master"] },
   { key: "dashboard", label: "Dashboard", keys: ["dashboard"] },
   { key: "master", label: "Master Data", keys: ["master", "sessions", "classes", "sections", "class_teachers"] },
   { key: "students", label: "Students", keys: ["students", "add_student", "admission_allotment", "leaving_students", "student_id_cards"] },
@@ -70,7 +74,7 @@ export const navSections = [
   { key: "documents", label: "Document Management", keys: ["documents"] },
   { key: "reports", label: "Reports", keys: ["reports"] },
   { key: "security", label: "Login & Security", keys: ["active_users", "login_activity", "access_logs"] },
-  { key: "misc", label: "Settings & More", keys: ["attendance", "cms", "admissions", "role_access", "profile", "api_explorer"] },
+  { key: "misc", label: "Settings & More", keys: ["attendance", "cms", "admissions", "role_access", "role_master", "organisation_page_access", "staff_page_access", "profile", "api_explorer"] },
 ];
 
 export function isNavItemActive(item: NavItem, pathname?: string | null, currentTab?: string | null): boolean {

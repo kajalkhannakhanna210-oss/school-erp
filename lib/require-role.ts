@@ -36,11 +36,20 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role")
+    .select("full_name, role, role_id, organization_id")
     .eq("id", user.id)
     .single();
 
   if (!profile?.role) throw new Error("User profile not found");
+
+  // New configurable staff roles are permission-driven. Keep the old
+  // role_page_access check below as a fallback for legacy profiles.
+  const permissionKey = `${pageKey}.view`;
+  const { data: permissionGranted } = await supabase.rpc("has_staff_permission", { permission_key: permissionKey });
+  const hasConfiguredPermission = permissionGranted === true;
+  const { data: effectivePage } = profile.organization_id
+    ? await supabase.rpc("has_effective_page_access", { target_page_code: pageKey })
+    : { data: null };
 
   // Determine resource path for page key
   const pagePathMap: Record<string, string> = {
@@ -83,7 +92,8 @@ export async function requirePageAccess(pageKey: string): Promise<{ user: any; r
     .eq("page_key", pageKey)
     .maybeSingle();
 
-  if (!pageAccess) {
+  const deniedByOrganisation = Boolean(profile.organization_id) && effectivePage !== true;
+  if (deniedByOrganisation || (!pageAccess && !hasConfiguredPermission)) {
     await recordLoginActivity({ eventType: "role_access_denied", status: "blocked", userId: user.id, failureReason: "page_not_allowed", metadata: { pageKey } });
     await recordAccessLog({
       userId: user.id,
